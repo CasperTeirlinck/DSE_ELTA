@@ -75,6 +75,36 @@ def climbgradient(etap, cV, CD, CL, rho, WS):
     """
     return etap/(np.sqrt(WS)*(cV + CD/CL)*np.sqrt((2/rho)*(1/CL)))
 
+## Determining design point
+# Calculate W/S value of vertical limits
+WS_s = stallspeed(CLmax=variables.CLmaxclean[1], Vs=variables.Vs, rho=variables.rho) # Stallspeed
+WS_landing1 = landing(CLmax=variables.CLmaxland[0], rho=variables.rho, sland=variables.sland, f=variables.f) # Pessimistic landing 
+WS_landing2 = landing(CLmax=variables.CLmaxland[1], rho=variables.rho, sland=variables.sland, f=variables.f) # Neutral landing 
+WS_landing3 = landing(CLmax=variables.CLmaxland[2], rho=variables.rho, sland=variables.sland, f=variables.f) # Optimistic landing 
+
+# Calculate limiting W/S value
+WS_limit = min([WS_s,WS_landing1,WS_landing2,WS_landing3])
+
+# Calculate W/P value of curved limits
+WP_to1 = takeoff(k=variables.k, CLto=variables.CLto[0], sigma=variables.sigma, WS= WS_limit) # Pessimistic take-off
+WP_to2 = takeoff(k=variables.k, CLto=variables.CLto[1], sigma=variables.sigma, WS= WS_limit) # Neutral take-off
+WP_to3 = takeoff(k=variables.k, CLto=variables.CLto[2], sigma=variables.sigma, WS= WS_limit) # Optimistic take-off
+
+WP_cruise1 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[0], e=variables.e, WS=WS_limit) # Pessimistic cruise
+WP_cruise2 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[1], e=variables.e, WS=WS_limit) # Neutral cruise
+WP_cruise3 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[2], e=variables.e, WS=WS_limit) # Optimistic cruise
+
+WP_climbrate1 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[0], e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_limit) # Pessimistic climb rate
+WP_climbrate2 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[1], e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_limit) # Neutral climb rate
+WP_climbrate3 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[2], e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_limit) # Optimistic climb rate
+
+WP_climbgrad1 = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[0], CL=variables.CLclimb, rho=variables.rho, WS=WS_limit) # Pessimistic climb gradient
+WP_climbgrad2 = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[1], CL=variables.CLclimb, rho=variables.rho, WS=WS_limit) # Neutral climb rate
+WP_climbgrad3 = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[2], CL=variables.CLclimb, rho=variables.rho, WS=WS_limit) # Optimistic climb rate
+
+# Calculate limiting W/P values
+WP_limit = min([WP_to1,WP_to2,WP_to3,WP_cruise1,WP_cruise2,WP_cruise3,WP_climbrate1,WP_climbrate2,WP_climbrate3,WP_climbgrad1,WP_climbgrad2,WP_climbgrad3])
+
 
 ## Plotting
 WS_plot = np.arange(100, 1500, 0.1)
