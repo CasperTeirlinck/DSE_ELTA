@@ -2,9 +2,10 @@ import numpy as np
 
 def IAS_TAS(h, V_IAS):
     """
+    Calculates the true airspeed at for a certain indicated airspeed at a altitude
     :param h: alititude [m]
-    :param V_IAS: indicated airspeed m/s
-    :return: true airspeed m/s
+    :param V_IAS: indicated airspeed [m/s]
+    :return: V_TAS: true airspeed [m/s]
     """
     p0 = 101325
     rho0 = 1.225
@@ -24,23 +25,23 @@ def IAS_TAS(h, V_IAS):
     return V_TAS
 
 
-CLmax =         # CLmax of the aircraft
-Vs =  IAS_TAS(0, 23.15)    # stall speed (45 kts calibrated)
-rho =           # airdensity
-rho0 = 1.225          # density at sealvl
-k =             # take-off parameter
-CLTO =          # take-off CL, = CLmax,TO/1.1^2
-sigma =         # density ratio rho/rho0
-WS =            # wing loading
-sland =         # landing distance
-f =             # WL/WTO
-etap =          # propeller efficiency
-V =             # velocity
-CD0 =           # drag constant
-A =             # aspect ratio
-e =             # oswald efficiency factor
-c =             #
-cV =            #
+CLmax =                     # CLmax of the aircraft
+Vs    = IAS_TAS(0, 23.15)   # stall speed (45 kts calibrated)
+rho   =                     # airdensity
+rho0  = 1.225               # density at sealvl
+k     =                     # take-off parameter
+CLTO  =                     # take-off CL, = CLmax,TO/1.1^2
+sigma =                     # density ratio rho/rho0
+WS    =                     # wing loading
+sland =                     # landing distance
+f     =                     # WL/WTO
+etap  =                     # propeller efficiency
+V     =                     # velocity
+CD0   =                     # drag constant
+A     =                     # aspect ratio
+e     =                     # oswald efficiency factor
+c     =                     #
+cV    =                     #
 
 
 
