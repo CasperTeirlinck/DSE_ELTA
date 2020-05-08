@@ -80,8 +80,8 @@ def climbgradient(etap, cV, CD, CL, rho, WS):
 WS_plot = np.arange(100, 1500, 0.1)
 
 # stallspeed
-WP_s = stallspeed(CLmax=variables.CLmaxclean[1], Vs=variables.Vs, rho=variables.rho)
-plt.plot([WP_s, WP_s], [0, 0.5], label = f"Stall, CLmax = {variables.CLmaxclean[1]}", color='c' )
+WS_s = stallspeed(CLmax=variables.CLmaxclean[1], Vs=variables.Vs, rho=variables.rho)
+plt.plot([WS_s, WS_s], [0, 0.5], label = f"Stall, CLmax = {variables.CLmaxclean[1]}", color='c' )
 
 # take off
 WP_to_1 = takeoff(k=variables.k, CLto=variables.CLto[0], sigma=variables.sigma, WS= WS_plot)
@@ -104,13 +104,13 @@ WP_landing_3 = landing(CLmax=variables.CLmaxland[2], rho=variables.rho, sland=va
 plt.plot([WP_landing_3, WP_landing_3], [0, 0.5], label = f"Landing, CL = {variables.CLmaxland[2]}", color='darkgreen')
 
 # cruise
-WP_cruise_1 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[0], e=variables.e, WS=WS_plot)
+WP_cruise_1 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[0], e=variables.e, WS=WS_plot)
 plt.plot(WS_plot, WP_cruise_1, label = f"Cruise, A = {variables.A[0]}", color='darkorchid')
 
-WP_cruise_2 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[1], e=variables.e, WS=WS_plot)
+WP_cruise_2 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[1], e=variables.e, WS=WS_plot)
 plt.plot(WS_plot, WP_cruise_2, label = f"Cruise, A = {variables.A[1]}", color='mediumorchid')
 
-WP_cruise_3 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[2], e=variables.e, WS=WS_plot)
+WP_cruise_3 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[2], e=variables.e, WS=WS_plot)
 plt.plot(WS_plot, WP_cruise_3, label = f"Cruise, A = {variables.A[2]}", color='plum')
 
 # climbrate
