@@ -85,13 +85,13 @@ plt.plot([WP_s, WP_s], [0, 0.5], label = f"Stall, CLmax = {variables.CLmaxclean[
 
 # take off
 WP_to = takeoff(k=variables.k, CLto=variables.CLto[0], sigma=variables.sigma, WS= WS_plot)
-plt.plot(WS_plot, WP_to, label = f"Take-off, CLmax = {variables.CLto[0]}", color='firebrick')
+plt.plot(WS_plot, WP_to, label = f"Take-off, CLto = {variables.CLto[0]}", color='firebrick')
 
 WP_to = takeoff(k=variables.k, CLto=variables.CLto[1], sigma=variables.sigma, WS= WS_plot)
-plt.plot(WS_plot, WP_to, label = f"Take-off, CLmax = {variables.CLto[1]}", color='indianred')
+plt.plot(WS_plot, WP_to, label = f"Take-off, CLto = {variables.CLto[1]}", color='indianred')
 
 WP_to = takeoff(k=variables.k, CLto=variables.CLto[2], sigma=variables.sigma, WS= WS_plot)
-plt.plot(WS_plot, WP_to, label = f"Take-off, CLmax = {variables.CLto[2]}", color='lightcoral')
+plt.plot(WS_plot, WP_to, label = f"Take-off, CLto = {variables.CLto[2]}", color='lightcoral')
 
 # landing
 WP_landing = landing(CLmax=variables.CLmaxland[0], rho=variables.rho, sland=variables.sland, f=variables.f)
