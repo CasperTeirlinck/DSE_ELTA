@@ -31,17 +31,16 @@ CLto        = CLmaxland/(1.1**2)            # take-off CL, = CLmax,TO/1.1^2
 Vs          = IAS_TAS(0, 23.15)             # stall speed (45 kts calibrated)
 rho         = 1.225                         # airdensity
 rho0        = 1.225                         # density at sealvl
-k           = 0                             # take-off parameter
-sigma       = 0                             # density ratio rho/rho0
-WS          = 0                             # wing loading
-sland       = 0                             # landing distance
-f           = 0                             # WL/WTO
-etap        = 0                             # propeller efficiency
-V           = 0                             # velocity
-CD0         = 0                             # drag constant
-A           = 0                             # aspect ratio
-e           = 0                             # oswald efficiency factor
-c           = 0                             # climb gradient
+k           = 100                           # take-off parameter
+sigma       = 1                             # density ratio rho/rho0
+sland       = 500                           # landing distance
+f           = 1                             # WL/WTO
+etap        = 0.7                           # propeller efficiency
+V           = 70                            # velocity
+CD0         = 0.05                          # drag constant
+A           = 10                            # aspect ratio
+e           = 0.7                           # oswald efficiency factor
+c           = 2                             # climb gradient
 
 
 
