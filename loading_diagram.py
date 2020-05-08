@@ -137,4 +137,3 @@ plt.ylim(0, 0.4)
 plt.xlim(0, 1500)
 plt.legend(loc=1)
 plt.show()
-
