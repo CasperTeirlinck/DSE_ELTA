@@ -80,27 +80,27 @@ def climbgradient(etap, cV, CD, CL, rho, WS):
 WS_plot = np.arange(0.1, 2000, 0.1)
 
 # stallspeed
-WP_s = stallspeed(CLmax = 1.3, Vs = 23.15, rho = 1.225)
+WP_s = stallspeed(CLmax=1.3, Vs=variables.Vs, rho=variables.rho)
 plt.plot([WP_s, WP_s], [0, 0.5], label = "Stall, CLmax = 1.3" )
 
 # take off
-WP_to = takeoff(k = 100, CLTO= 1.3, sigma = 1, WS= WS_plot)
+WP_to = takeoff(k=variables.k, CLTO=1.3, sigma=variables.sigma, WS= WS_plot)
 plt.plot(WS_plot, WP_to, label = "Take-off = 1.3")
 
 # landing
-WP_landing = landing(CLmax = 1.3, rho = 1.225, sland=500, f=1)
+WP_landing = landing(CLmax=1.3, rho=variables.rho, sland=variables.sland, f=variables.f)
 plt.plot([WP_landing, WP_landing], [0, 0.5], label = "Landing = 1.3")
 
 # cruise
-WP_cruise = cruisspeed(etap=0.7, rho=1.225, rho0=1.225, CD0=0.05, V=70, A=10, e=0.7, WS=WS_plot)
+WP_cruise = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0, V=variables.V, A=variables.A, e=variables.e, WS=WS_plot)
 plt.plot(WS_plot, WP_cruise, label = "Cruise")
 
 # climbrate
-WP_climbrate = climbrate(etap=0.7, rho=1.225, A=10, e=0.7, CD0=0.05, c=2, WS=WS_plot)
+WP_climbrate = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A, e=variables.e, CD0=variables.CD0, c=variables.c, WS=WS_plot)
 plt.plot(WS_plot, WP_climbrate, label = "Climb rate")
 
 # climbgrad
-WP_climbgrad = climbgradient(etap=0.7, cV=2/70, CD=0.7, CL=1.2, rho=1.225, WS=WS_plot)
+WP_climbgrad = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=0.7, CL=1.2, rho=variables.rho, WS=WS_plot)
 plt.plot(WS_plot, WP_climbgrad, label = "Climb gradient")
 
 plt.ylim(0, 0.4)

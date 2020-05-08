@@ -24,23 +24,24 @@ def IAS_TAS(h, V_IAS):
 
     return V_TAS
 
-
-CLmaxto     = np.array([ 1.3, 1.6, 1.9 ])   # CLmax take-off
-CLmaxland   = np.array([ 1.6, 2.0, 2.3 ])   # CLmax landing
-CLto        = CLmaxland/(1.1**2)            # take-off CL, = CLmax,TO/1.1^2
-Vs          = IAS_TAS(0, 23.15)             # stall speed (45 kts calibrated)
-rho         = 1.225                         # airdensity
-rho0        = 1.225                         # density at sealvl
-k           = 100                           # take-off parameter
-sigma       = 1                             # density ratio rho/rho0
-sland       = 500                           # landing distance
-f           = 1                             # WL/WTO
-etap        = 0.7                           # propeller efficiency
-V           = 70                            # velocity
-CD0         = 0.05                          # drag constant
-A           = 10                            # aspect ratio
-e           = 0.7                           # oswald efficiency factor
-c           = 2                             # climb gradient
+A           = 10                                # aspect ratio
+e           = 0.7                               # oswald efficiency factor
+CLmaxto     = np.array([ 1.3, 1.6, 1.9 ])       # CLmax take-off
+CLmaxland   = np.array([ 1.6, 2.0, 2.3 ])       # CLmax landing
+CLto        = CLmaxland/(1.1**2)                # take-off CL, = CLmax,TO/1.1^2
+CD0         = 0.05                              # drag constant
+CLclimb     = CLmaxto - 0.2                     # CLmax - safety margin fo crimb gradient
+CDclimb     = CD0 + (CLclimb**2)/(np.pi*A*e)    # CD for climb gradient
+Vs          = IAS_TAS(0, 23.15)                 # stall speed (45 kts calibrated)
+rho         = 1.225                             # airdensity
+rho0        = 1.225                             # density at sealvl
+k           = 100                               # take-off parameter
+sigma       = 1                                 # density ratio rho/rho0
+sland       = 500                               # landing distance
+f           = 1                                 # WL/WTO
+etap        = 0.7                               # propeller efficiency
+V           = 70                                # velocity
+c           = 2                                 # climb gradient
 
 
 
