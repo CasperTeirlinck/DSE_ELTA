@@ -136,13 +136,13 @@ WP_landing_3 = landing(CLmax=variables.CLmaxland[2], rho=variables.rho, sland=va
 plt.plot([WP_landing_3, WP_landing_3], [0, 0.5], label = f"Landing, CL = {variables.CLmaxland[2]}", color='darkgreen')
 
 # cruise
-WP_cruise_1 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[0], e=variables.e, WS=WS_plot)
+WP_cruise_1 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean, V=variables.V, A=variables.A[0], e=variables.e, WS=WS_plot)
 plt.plot(WS_plot, WP_cruise_1, label = f"Cruise, A = {variables.A[0]}", color='darkorchid')
 
-WP_cruise_2 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[1], e=variables.e, WS=WS_plot)
+WP_cruise_2 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean, V=variables.V, A=variables.A[1], e=variables.e, WS=WS_plot)
 plt.plot(WS_plot, WP_cruise_2, label = f"Cruise, A = {variables.A[1]}", color='mediumorchid')
 
-WP_cruise_3 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[2], e=variables.e, WS=WS_plot)
+WP_cruise_3 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean, V=variables.V, A=variables.A[2], e=variables.e, WS=WS_plot)
 plt.plot(WS_plot, WP_cruise_3, label = f"Cruise, A = {variables.A[2]}", color='plum')
 
 # climbrate
@@ -169,12 +169,14 @@ WP_1 = np.minimum(WP_to_1, WP_cruise_1)
 i = (np.abs(WS_plot - WS_s)).argmin()
 plt.fill_between(WS_plot[:i], WP_1[:i], 1000*(WS_plot[:i] - WS_s), color='green', alpha=0.5)
 
+print(f'\nDesign point: W/S = {WS_limit} \t W/P = {WP_limit}\n')
+
 plt.plot(WS_limit, WP_limit, marker='o', markersize='10', markerfacecolor='limegreen', markeredgewidth=1, markeredgecolor='black')
 
 plt.ylim(0, 0.4)
 plt.xlim(0, 1500)
 plt.ylabel('W/P [N/W]')
 plt.xlabel('W/S [N/m2]')
-plt.legend(loc='top left', bbox_to_anchor=(1, 1), fancybox=False, shadow=False, edgecolor='black')
+plt.legend(loc='upper left', bbox_to_anchor=(1, 1), fancybox=False, shadow=False, edgecolor='black')
 plt.tight_layout()
 plt.show()
