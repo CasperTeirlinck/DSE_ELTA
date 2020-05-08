@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 def stallspeed(CLmax, Vs, rho):
     """
@@ -72,3 +73,20 @@ def climbgradient(etap, cV, CD, CL, rho, WS):
     :return: plot y values, array
     """
     return etap/(np.sqrt(WS)*(cV + CD/CL)*np.sqrt((2/rho)*(1/CL)))
+
+
+## Plotting
+WS_plot = np.arange(0.1, 1500, 0.1)
+
+# stallspeed
+WP_s = stallspeed(CLmax = 1.3, Vs = 23.15, rho = 1.225)
+plt.plot([WP_s, WP_s], [0, 0.5], label = "Stall, CLmax = 1.3" )
+
+# take off
+WP_to = takeoff(k = 3000, CLTO= 1.3, sigma = 1, WS= WS_plot)
+plt.plot(WS_plot, WP_to, label = "Take-off = 1.3")
+
+
+plt.legend()
+plt.show()
+
