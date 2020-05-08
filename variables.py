@@ -25,22 +25,23 @@ def IAS_TAS(h, V_IAS):
     return V_TAS
 
 
-CLmax =                     # CLmax of the aircraft
-Vs    = IAS_TAS(0, 23.15)   # stall speed (45 kts calibrated)
-rho   =                     # airdensity
-rho0  = 1.225               # density at sealvl
-k     =                     # take-off parameter
-CLTO  =                     # take-off CL, = CLmax,TO/1.1^2
-sigma =                     # density ratio rho/rho0
-WS    =                     # wing loading
-sland =                     # landing distance
-f     =                     # WL/WTO
-etap  =                     # propeller efficiency
-V     =                     # velocity
-CD0   =                     # drag constant
-A     =                     # aspect ratio
-e     =                     # oswald efficiency factor
-c     =                     # climb gradient
+CLmaxto     = [ 1.3, 1.6, 1.9 ]   # CLmax take-off
+CLmaxland   = [ 1.6, 2.0, 2.3 ]   # CLmax landing
+CLto        = CLmaxland/(1.1**2)  # take-off CL, = CLmax,TO/1.1^2
+Vs          = IAS_TAS(0, 23.15)   # stall speed (45 kts calibrated)
+rho         = 1.225               # airdensity
+rho0        = 1.225               # density at sealvl
+k           = 0                   # take-off parameter
+sigma       = 0                   # density ratio rho/rho0
+WS          = 0                   # wing loading
+sland       = 0                   # landing distance
+f           = 0                   # WL/WTO
+etap        = 0                   # propeller efficiency
+V           = 0                   # velocity
+CD0         = 0                   # drag constant
+A           = 0                   # aspect ratio
+e           = 0                   # oswald efficiency factor
+c           = 0                   # climb gradient
 
 
 
