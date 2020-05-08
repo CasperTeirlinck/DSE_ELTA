@@ -13,5 +13,5 @@ V =             # velocity
 CD0 =           # drag constant
 A =             # aspect ratio
 e =             # oswald efficiency factor
-c =             # 
+c =             # climb rate
 cV =            # 
