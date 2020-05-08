@@ -80,8 +80,8 @@ def climbgradient(etap, cV, CD, CL, rho, WS):
 WS_plot = np.arange(100, 1500, 0.1)
 
 # stallspeed
-WP_s = stallspeed(CLmax=variables.CLmaxclean[0], Vs=variables.Vs, rho=variables.rho)
-plt.plot([WP_s, WP_s], [0, 0.5], label = f"Stall, CLmax = {variables.CLmaxclean[0]}", color='c' )
+WP_s = stallspeed(CLmax=variables.CLmaxclean[1], Vs=variables.Vs, rho=variables.rho)
+plt.plot([WP_s, WP_s], [0, 0.5], label = f"Stall, CLmax = {variables.CLmaxclean[1]}", color='c' )
 
 # take off
 WP_to = takeoff(k=variables.k, CLto=variables.CLto[0], sigma=variables.sigma, WS= WS_plot)
