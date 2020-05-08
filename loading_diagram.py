@@ -84,54 +84,57 @@ WP_s = stallspeed(CLmax=variables.CLmaxclean[1], Vs=variables.Vs, rho=variables.
 plt.plot([WP_s, WP_s], [0, 0.5], label = f"Stall, CLmax = {variables.CLmaxclean[1]}", color='c' )
 
 # take off
-WP_to = takeoff(k=variables.k, CLto=variables.CLto[0], sigma=variables.sigma, WS= WS_plot)
-plt.plot(WS_plot, WP_to, label = f"Take-off, CLto = {variables.CLto[0]}", color='firebrick')
+WP_to_1 = takeoff(k=variables.k, CLto=variables.CLto[0], sigma=variables.sigma, WS= WS_plot)
+plt.plot(WS_plot, WP_to_1, label = f"Take-off, CLto = {variables.CLto[0]}", color='firebrick')
 
-WP_to = takeoff(k=variables.k, CLto=variables.CLto[1], sigma=variables.sigma, WS= WS_plot)
-plt.plot(WS_plot, WP_to, label = f"Take-off, CLto = {variables.CLto[1]}", color='indianred')
+WP_to_2 = takeoff(k=variables.k, CLto=variables.CLto[1], sigma=variables.sigma, WS= WS_plot)
+plt.plot(WS_plot, WP_to_2, label = f"Take-off, CLto = {variables.CLto[1]}", color='indianred')
 
-WP_to = takeoff(k=variables.k, CLto=variables.CLto[2], sigma=variables.sigma, WS= WS_plot)
-plt.plot(WS_plot, WP_to, label = f"Take-off, CLto = {variables.CLto[2]}", color='lightcoral')
+WP_to_3 = takeoff(k=variables.k, CLto=variables.CLto[2], sigma=variables.sigma, WS= WS_plot)
+plt.plot(WS_plot, WP_to_3, label = f"Take-off, CLto = {variables.CLto[2]}", color='lightcoral')
 
 # landing
-WP_landing = landing(CLmax=variables.CLmaxland[0], rho=variables.rho, sland=variables.sland, f=variables.f)
-plt.plot([WP_landing, WP_landing], [0, 0.5], label = f"Landing, CL = {variables.CLmaxland[0]}", color='forestgreen')
+WP_landing_1 = landing(CLmax=variables.CLmaxland[0], rho=variables.rho, sland=variables.sland, f=variables.f)
+plt.plot([WP_landing_1, WP_landing_1], [0, 0.5], label = f"Landing, CL = {variables.CLmaxland[0]}", color='forestgreen')
 
-WP_landing = landing(CLmax=variables.CLmaxland[1], rho=variables.rho, sland=variables.sland, f=variables.f)
-plt.plot([WP_landing, WP_landing], [0, 0.5], label = f"Landing, CL = {variables.CLmaxland[1]}", color='limegreen')
+WP_landing_2 = landing(CLmax=variables.CLmaxland[1], rho=variables.rho, sland=variables.sland, f=variables.f)
+plt.plot([WP_landing_2, WP_landing_2], [0, 0.5], label = f"Landing, CL = {variables.CLmaxland[1]}", color='limegreen')
 
-WP_landing = landing(CLmax=variables.CLmaxland[2], rho=variables.rho, sland=variables.sland, f=variables.f)
-plt.plot([WP_landing, WP_landing], [0, 0.5], label = f"Landing, CL = {variables.CLmaxland[2]}", color='darkgreen')
+WP_landing_3 = landing(CLmax=variables.CLmaxland[2], rho=variables.rho, sland=variables.sland, f=variables.f)
+plt.plot([WP_landing_3, WP_landing_3], [0, 0.5], label = f"Landing, CL = {variables.CLmaxland[2]}", color='darkgreen')
 
 # cruise
-WP_cruise = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[0], e=variables.e, WS=WS_plot)
-plt.plot(WS_plot, WP_cruise, label = f"Cruise, A = {variables.A[0]}", color='darkorchid')
+WP_cruise_1 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[0], e=variables.e, WS=WS_plot)
+plt.plot(WS_plot, WP_cruise_1, label = f"Cruise, A = {variables.A[0]}", color='darkorchid')
 
-WP_cruise = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[1], e=variables.e, WS=WS_plot)
-plt.plot(WS_plot, WP_cruise, label = f"Cruise, A = {variables.A[1]}", color='mediumorchid')
+WP_cruise_2 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[1], e=variables.e, WS=WS_plot)
+plt.plot(WS_plot, WP_cruise_2, label = f"Cruise, A = {variables.A[1]}", color='mediumorchid')
 
-WP_cruise = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[2], e=variables.e, WS=WS_plot)
-plt.plot(WS_plot, WP_cruise, label = f"Cruise, A = {variables.A[2]}", color='plum')
+WP_cruise_3 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[2], e=variables.e, WS=WS_plot)
+plt.plot(WS_plot, WP_cruise_3, label = f"Cruise, A = {variables.A[2]}", color='plum')
 
 # climbrate
-WP_climbrate = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[0], e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_plot)
-plt.plot(WS_plot, WP_climbrate, label = f"Climb rate, A = {variables.A[0]}", color='mediumblue')
+WP_climbrate_1 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[0], e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_plot)
+plt.plot(WS_plot, WP_climbrate_1, label = f"Climb rate, A = {variables.A[0]}", color='mediumblue')
 
-WP_climbrate = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[1], e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_plot)
-plt.plot(WS_plot, WP_climbrate, label = f"Climb rate, A = {variables.A[1]}", color='royalblue')
+WP_climbrate_2 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[1], e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_plot)
+plt.plot(WS_plot, WP_climbrate_2, label = f"Climb rate, A = {variables.A[1]}", color='royalblue')
 
-WP_climbrate = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[2], e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_plot)
-plt.plot(WS_plot, WP_climbrate, label = f"Climb rate, A = {variables.A[2]}", color='cornflowerblue')
+WP_climbrate_3 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[2], e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_plot)
+plt.plot(WS_plot, WP_climbrate_3, label = f"Climb rate, A = {variables.A[2]}", color='cornflowerblue')
 
 # climbgrad
-WP_climbgrad = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[0], CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
-plt.plot(WS_plot, WP_climbgrad, label = f"Climb gradient, A = {variables.A[0]}", color='darkorange')
+WP_climbgrad_1 = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[0], CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
+plt.plot(WS_plot, WP_climbgrad_1, label = f"Climb gradient, A = {variables.A[0]}", color='darkorange')
 
-WP_climbgrad = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[1], CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
-plt.plot(WS_plot, WP_climbgrad, label = f"Climb gradient, A = {variables.A[1]}", color='orange')
+WP_climbgrad_2 = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[1], CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
+plt.plot(WS_plot, WP_climbgrad_2, label = f"Climb gradient, A = {variables.A[1]}", color='orange')
 
-WP_climbgrad = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[2], CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
-plt.plot(WS_plot, WP_climbgrad, label = f"Climb gradient, A = {variables.A[2]}", color='gold')
+WP_climbgrad_3 = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[2], CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
+plt.plot(WS_plot, WP_climbgrad_3, label = f"Climb gradient, A = {variables.A[2]}", color='gold')
+
+WP_1 = np.minimum(WP_to_1, WP_cruise_1)
+plt.fill_between(WS_plot, WP_1, 0, color='green', alpha=0.5)
 
 plt.ylim(0, 0.4)
 plt.xlim(0, 1500)
