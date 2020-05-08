@@ -84,7 +84,7 @@ plt.plot([WP_s, WP_s], [0, 0.5], label = "Stall, CLmax = 1.3" )
 
 # take off
 WP_to = takeoff(k = 3000, CLTO= 1.3, sigma = 1, WS= WS_plot)
-plt.plot(WS_plot, WP_to, label = "Take-off = 1.3")
+plt.plot(WS_plot, WP_to, label = "Take-off = 1.3") # hier gaat iets fout
 
 
 plt.legend()
