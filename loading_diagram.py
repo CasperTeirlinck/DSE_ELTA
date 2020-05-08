@@ -12,15 +12,15 @@ def stallspeed(CLmax, Vs, rho):
     return 0.5*rho*(Vs**2)*CLmax
 
 
-def takeoff(k, CLTO, sigma, WS):
+def takeoff(k, CLto, sigma, WS):
     """
     :param k: take-off parameter, scalar
-    :param CLTO: take-off CL, = CLmax,TO/1.1^2 scalar
+    :param CLto: take-off CL, = CLmax,TO/1.1^2 scalar
     :param sigma: density ratio rho/rho0, scalar
     :param WS: plot x values, array
     :return: WP: plot y values, array
     """
-    return (k/WS)*CLTO*sigma
+    return (k/WS)*CLto*sigma
 
 
 def landing(CLmax, rho, sland, f):
@@ -80,11 +80,11 @@ def climbgradient(etap, cV, CD, CL, rho, WS):
 WS_plot = np.arange(0.1, 2000, 0.1)
 
 # stallspeed
-WP_s = stallspeed(CLmax=1.3, Vs=variables.Vs, rho=variables.rho)
+WP_s = stallspeed(CLmax=variables.CLmaxclean[0], Vs=variables.Vs, rho=variables.rho)
 plt.plot([WP_s, WP_s], [0, 0.5], label = "Stall, CLmax = 1.3" )
 
 # take off
-WP_to = takeoff(k=variables.k, CLTO=1.3, sigma=variables.sigma, WS= WS_plot)
+WP_to = takeoff(k=variables.k, CLto=1.3, sigma=variables.sigma, WS= WS_plot)
 plt.plot(WS_plot, WP_to, label = "Take-off = 1.3")
 
 # landing
@@ -92,15 +92,15 @@ WP_landing = landing(CLmax=1.3, rho=variables.rho, sland=variables.sland, f=vari
 plt.plot([WP_landing, WP_landing], [0, 0.5], label = "Landing = 1.3")
 
 # cruise
-WP_cruise = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0, V=variables.V, A=variables.A, e=variables.e, WS=WS_plot)
+WP_cruise = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A, e=variables.e, WS=WS_plot)
 plt.plot(WS_plot, WP_cruise, label = "Cruise")
 
 # climbrate
-WP_climbrate = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A, e=variables.e, CD0=variables.CD0, c=variables.c, WS=WS_plot)
+WP_climbrate = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A, e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_plot)
 plt.plot(WS_plot, WP_climbrate, label = "Climb rate")
 
 # climbgrad
-WP_climbgrad = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=0.7, CL=1.2, rho=variables.rho, WS=WS_plot)
+WP_climbgrad = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb, CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
 plt.plot(WS_plot, WP_climbgrad, label = "Climb gradient")
 
 plt.ylim(0, 0.4)
