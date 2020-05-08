@@ -1,0 +1,16 @@
+CLmax = 
+Vs = 
+rho = 
+rho0 = 
+k = 
+CLTO = 
+sigma = 
+WS = 
+sland = 
+f = 
+etap = 
+V = 
+A = 
+e = 
+c = 
+cV = 
