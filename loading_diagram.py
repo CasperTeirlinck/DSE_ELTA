@@ -169,9 +169,6 @@ WP_1 = np.minimum(WP_to_1, WP_cruise_1)
 i = (np.abs(WS_plot - WS_s)).argmin()
 plt.fill_between(WS_plot[:i], WP_1[:i], 1000*(WS_plot[:i] - WS_s), color='green', alpha=0.5)
 
-WS_limit = WS_s
-WP_limit = 0.1  
-
 plt.plot(WS_limit, WP_limit, marker='o', markersize='10', markerfacecolor='limegreen', markeredgewidth=1, markeredgecolor='black')
 
 plt.ylim(0, 0.4)
