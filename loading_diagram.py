@@ -77,7 +77,7 @@ def climbgradient(etap, cV, CD, CL, rho, WS):
 
 
 ## Plotting
-WS_plot = np.arange(250, 2000, 0.1)
+WS_plot = np.arange(100, 1500, 0.1)
 
 # stallspeed
 WP_s = stallspeed(CLmax=variables.CLmaxclean[0], Vs=variables.Vs, rho=variables.rho)
@@ -134,7 +134,7 @@ WP_climbgrad = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD
 plt.plot(WS_plot, WP_climbgrad, label = f"Climb gradient, A = {variables.A[2]}", color='gold')
 
 plt.ylim(0, 0.4)
-plt.xlim(0, 2000)
-plt.legend()
+plt.xlim(0, 1500)
+plt.legend(loc=1)
 plt.show()
 
