@@ -14,33 +14,45 @@ climbpower = 1 # -
 # Descent assumed to be included in endurance and range
 
 
-def range_battery(CD0, e, A, WTO, Especific, eff_total, powerloading):
-    # Returns the battery weight in N. WTO required to be in N.
-    CL = sqrt(pi * A * e * CD0)
-    CD = 2 * CD0
-    total_energy_range = range_m / (CL/CD)
-    total_energy_range += taxipower / powerloading * taxitime * 2 # Taxi before TO and after L
-    total_energy_range += climbpower / powerloading * climbtime
-    return total_energy_range / (Especific * eff_total) * WTO * g0
+def range_power_per_WTO(CD0, e, A, range_m):
+    CL, CD = sqrt(pi * A * e * CD0), 2 * CD0
+    return range_m / (CL/CD)
 
 
-def endurance_battery(CD0, e, A, WTO, Especific, eff_total, powerloading, wingloading):
-    # Returns the battery weight in N. WTO required to be in N.
-    CD = 4 * CD0
-    CL = sqrt(3 * pi * CD0 * e * A)
+def endurance_power_per_WTO(CD0, e, A, endurance_s, wingloading):
+    CL, CD = sqrt(3 * pi * CD0 * e * A), 4 * CD0
     V_loiter = CL/CD / sqrt(0.5 * rho0 * CL**3 / CD**2 / wingloading)
-    total_energy_loiter = endurance_s * 0.5 * rho0 * V_loiter**3 * CL * CD / wingloading
-    total_energy_loiter += taxipower / powerloading * taxitime * 2 # Taxi before TO and after L
-    total_energy_loiter += climbpower / powerloading * climbtime
-    return total_energy_loiter / (Especific * eff_total) * WTO * g0
+    return endurance_s * 0.5 * rho0 * V_loiter**3 * CL * CD / wingloading
 
 
+def taxi_power_per_WTO(powerloading):
+    return taxipower * taxitime / powerloading
+
+
+def climb_power_per_WTO(powerloading):
+    return climbpower * climbtime / powerloading
+
+
+def flight_profile_energy_per_WTO(CD0, e, A, Especific, eff_total, powerloading, wingloading, taxi=2, climb=1,
+                                  endurance_s=9000, range_m=250000):
+    total_energy = 0
+    if taxi != 0:
+        for _ in range(taxi):
+            total_energy += taxi_power_per_WTO(powerloading)
+    if climb != 0:
+        for _ in range(climb):
+            total_energy += climb_power_per_WTO(powerloading)
+    if endurance_s != 0:
+        total_energy += endurance_power_per_WTO(CD0, e, A, endurance_s, wingloading)
+    if range_m != 0:
+        total_energy += range_power_per_WTO(CD0, e, A, range_m)
+    return total_energy * g0 / (Especific * eff_total)
 
 if __name__ == "__main__":
     CD0 = 0.011 # -
     e = 0.83 # -
     A = 8 # -
-    WTO = 542.4761973 * g0 # N
+    WTO = 730 * g0 # N
     Especific = 900000 # J/kg Li-ion from Maarten
     eff_motor = 0.95 # -, PM motor from Maarten
     eff_battery = 0.8 # -, lower estimate for Li-ion
@@ -48,5 +60,4 @@ if __name__ == "__main__":
     wingloading = 592.289 # N/m2
     powerloading = 0.1 # N/W
 
-    print(range_battery(CD0, e, A, WTO, Especific, eff_total, powerloading)/g0)
-    print(endurance_battery(CD0, e, A, WTO, Especific, eff_total, powerloading, wingloading)/g0)
+    print(flight_profile_energy_per_WTO(CD0, e, A, Especific, eff_total, powerloading, wingloading, range_m=0)*WTO/g0)
