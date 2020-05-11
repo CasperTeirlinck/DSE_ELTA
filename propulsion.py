@@ -52,13 +52,13 @@ def flight_profile_energy_per_WTO(CD0, e, A, Especific, eff_total, powerloading,
 
 if __name__ == "__main__":
     Cfes = [0.0055, 0.0045]
-    n_engines = 2
+    n_engines = 1
     Cfe = Cfes[n_engines-1] # -
     SwetS = 3.7 # -
     CD0 = Cfe * SwetS # -
     # CD0 = 0.015
     e = 0.83 # -
-    A = 8 # -
+    A = 12 # -
     WTO = 750 * g0 # N
     Especific = 900000 # J/kg Li-ion from Maarten
     eff_motor = 0.95 # -, PM motor from Maarten
@@ -66,14 +66,17 @@ if __name__ == "__main__":
     eff_total = eff_motor * eff_battery
     wingloading = 592.289 # N/m2
     powerloading = 0.089 # N/W
-    m_PL = 200
+    m_PL = 200 # kg
 
     bat1 = flight_profile_energy_per_WTO(CD0, e, A, Especific, eff_total, powerloading, wingloading,
-                                         range_m=range_m, endurance_s=0, climb=0)
+                                         range_m=range_m, endurance_s=0, climb=1)
     bat2 = flight_profile_energy_per_WTO(CD0, e, A, Especific, eff_total, powerloading, wingloading,
                                          range_m=0, endurance_s=endurance_s, climb=1)
     bat3 = flight_profile_energy_per_WTO(CD0, e, A, Especific, eff_total, powerloading, wingloading,
                                          range_m=0, endurance_s=endurance_s, climb=2)
+
+
+
 
     print("Take-off, OE, bat weight:", [w/g0 for w in calc_W_TO(m_PL, bat1)])
     print("Take-off, OE, bat weight:", [w/g0 for w in calc_W_TO(m_PL, bat2)])
