@@ -90,9 +90,9 @@ WP_to1 = takeoff(k=variables.k, CLto=variables.CLto[0], sigma=variables.sigma, W
 WP_to2 = takeoff(k=variables.k, CLto=variables.CLto[1], sigma=variables.sigma, WS= WS_limit) # Neutral take-off
 WP_to3 = takeoff(k=variables.k, CLto=variables.CLto[2], sigma=variables.sigma, WS= WS_limit) # Optimistic take-off
 
-WP_cruise1 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[0], e=variables.e, WS=WS_limit) # Pessimistic cruise
-WP_cruise2 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[1], e=variables.e, WS=WS_limit) # Neutral cruise
-WP_cruise3 = cruisspeed(etap=variables.etap, rho=variables.rho, rho0=variables.rho, CD0=variables.CD0clean, V=variables.V, A=variables.A[2], e=variables.e, WS=WS_limit) # Optimistic cruise
+WP_cruise1 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean, V=variables.V, A=variables.A[0], e=variables.e, WS=WS_limit) # Pessimistic cruise
+WP_cruise2 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean, V=variables.V, A=variables.A[1], e=variables.e, WS=WS_limit) # Neutral cruise
+WP_cruise3 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean, V=variables.V, A=variables.A[2], e=variables.e, WS=WS_limit) # Optimistic cruise
 
 WP_climbrate1 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[0], e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_limit) # Pessimistic climb rate
 WP_climbrate2 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[1], e=variables.e, CD0=variables.CD0to, c=variables.c, WS=WS_limit) # Neutral climb rate
