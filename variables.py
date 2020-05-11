@@ -47,6 +47,7 @@ sigma       = rho/rho0                                  # density ratio rho/rho0
 f           = 1                                         # WL/WTO
 etap        = 0.7                                       # propeller efficiency
 c           = 2                                         # [m/s] climb rate
+phi         = 60                                        # [deg] bank angle
 
 # Twin engine
 A           = np.array([8, 10, 12])                     # aspect ratio
@@ -71,3 +72,4 @@ sigma       = rho/rho0                                  # density ratio rho/rho0
 f           = 1                                         # WL/WTO
 etap        = 0.7                                       # propeller efficiency
 c           = 2                                         # [m/s] climb rate
+phi         = 60                                        # [deg] bank angle

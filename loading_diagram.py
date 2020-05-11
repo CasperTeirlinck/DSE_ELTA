@@ -75,6 +75,20 @@ def climbgradient(etap, cV, CD, CL, rho, WS):
     """
     return etap/(np.sqrt(WS)*(cV + CD/CL)*np.sqrt((2/rho)*(1/CL)))
 
+def turnrate(rho, V, CD0, phi, A, e, WS):
+    """
+    :param rho: air density cruise, scalar
+    :param V: cruise speed, scalar
+    :param CD0: zero drag coefficient, scalar
+    :param phi: bank angle, scalar
+    :param A: aspect ratio, scalar
+    :param e: oswald efficiency factor
+    :param WS: plot x values, array
+    :return: plot y values, array
+    """
+    
+    return WS/( 0.5*rho*V**3*( CD0 + WS**2/( (0.5*rho*V**2*np.cos( np.radians(phi)))**2 * np.pi*A*e ) ) )
+
 ## Determining design point
 # Calculate W/S value of vertical limits
 WS_s = stallspeed(CLmax=variables.CLmaxclean[1], Vs=variables.Vs, rho=variables.rho) # Stallspeed
@@ -102,12 +116,16 @@ WP_climbgrad1 = climbgradient(etap=variables.etap, cV=variables.c/variables.V, C
 WP_climbgrad2 = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[1], CL=variables.CLclimb, rho=variables.rho, WS=WS_limit) # Neutral climb rate
 WP_climbgrad3 = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[2], CL=variables.CLclimb, rho=variables.rho, WS=WS_limit) # Optimistic climb rate
 
+WP_turnrate1 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi, A=variables.A[0], e=variables.e, WS=WS_limit)
+WP_turnrate2 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi, A=variables.A[1], e=variables.e, WS=WS_limit)
+WP_turnrate3 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi, A=variables.A[2], e=variables.e, WS=WS_limit)
+
 # Calculate limiting W/P values
-WP_limit = min([WP_to1,WP_to2,WP_to3,WP_cruise1,WP_cruise2,WP_cruise3,WP_climbrate1,WP_climbrate2,WP_climbrate3,WP_climbgrad1,WP_climbgrad2,WP_climbgrad3])
+WP_limit = min([WP_to1,WP_to2,WP_to3,WP_cruise1,WP_cruise2,WP_cruise3,WP_climbrate1,WP_climbrate2,WP_climbrate3,WP_climbgrad1,WP_climbgrad2,WP_climbgrad3,WP_turnrate1,WP_turnrate2,WP_turnrate3])
 
 
 ## Plotting
-plt.figure(figsize=(9,4))
+plt.figure(figsize=(9,4.5))
 
 WS_plot = np.arange(100, 1500, 0.1)
 
@@ -165,6 +183,18 @@ plt.plot(WS_plot, WP_climbgrad_2, label = f"Climb gradient, A = {variables.A[1]}
 WP_climbgrad_3 = climbgradient(etap=variables.etap, cV=variables.c/variables.V, CD=variables.CDclimb[2], CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
 plt.plot(WS_plot, WP_climbgrad_3, label = f"Climb gradient, A = {variables.A[2]}", color='gold')
 
+# turnrate
+WP_turnrate_1 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi, A=variables.A[0], e=variables.e, WS=WS_plot)
+plt.plot(WS_plot, WP_turnrate_1, label = f"Turn rate, A = {variables.A[0]}", color='red')
+
+WP_turnrate_2 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi, A=variables.A[1], e=variables.e, WS=WS_plot)
+plt.plot(WS_plot, WP_turnrate_2, label = f"Turn rate, A = {variables.A[1]}", color='orangered')
+
+WP_turnrate_3 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi, A=variables.A[2], e=variables.e, WS=WS_plot)
+plt.plot(WS_plot, WP_turnrate_3, label = f"Turn rate, A = {variables.A[2]}", color='tomato')
+
+
+# plot DP
 WP_1 = np.minimum(WP_to_1, WP_cruise_1)
 i = (np.abs(WS_plot - WS_s)).argmin()
 plt.fill_between(WS_plot[:i], WP_1[:i], 1000*(WS_plot[:i] - WS_s), color='green', alpha=0.5)
