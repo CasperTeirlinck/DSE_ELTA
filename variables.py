@@ -100,6 +100,10 @@ class CurrentVariables():
         self.phi         = 60                                           # [deg] bank angle
         self.WP          = 0.1218                                       # [N/W] power loading
         self.WS          = 465                                          # [N/m2] wing loading
+        self.WTO         = 750                                          # [N] take-off weight
+        self.Wbat        = 0                                            # [N] Battery weight
+        self.Woew        = 0                                            # [N] Operational empty weight
+        self.WPL         = 200*9.80665                                  # [N] Payload weight
 
     def init_single_engine(self):
         self.CLmaxto = np.array([1.7, 1.8, 1.9])                # CLmax take-off
@@ -112,3 +116,8 @@ class CurrentVariables():
         self.CLmaxland   = np.array([ 1.8, 2.1, 2.4 ])               # CLmax landing
         self.CLmaxclean  = np.array([ 1.8, 1.8, 1.8 ])               # CLmax clean
         self.k           = 93                                        # [N2/m2W] take-off parameter
+
+
+if __name__ == "__main__":
+    variables = CurrentVariables()
+    print(variables.WS)

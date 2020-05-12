@@ -71,7 +71,7 @@ if __name__ == "__main__":
     m_PL = 200 # kg
     rho_battery = 1800000 # J/L
 
-    bat1 = flight_profile_energy_per_WTO(variables, range_m=range_m, endurance_s=0, climb=1)
+    bat1, variables = flight_profile_energy_per_WTO(variables, range_m=range_m, endurance_s=0, climb=1)
     bat2 = flight_profile_energy_per_WTO(variables, range_m=0, endurance_s=endurance_s, climb=1)
     bat3 = flight_profile_energy_per_WTO(variables, range_m=0, endurance_s=endurance_s*(2+12.5/60)/2.5, climb=1)
 
