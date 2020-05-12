@@ -1,7 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from variables import *
 
-def wing_planform(S,A,drawing=False):
+def wing_planform(variables,A,drawing=False):
+    S = variables.WTO/variables.WS
+
     # Sweep
     sweep = np.rad2deg(np.arccos(1)) # [deg]
 
@@ -14,7 +17,7 @@ def wing_planform(S,A,drawing=False):
     # Chord
     cr = 2*S/((1+taper)*b)
     ct = taper*cr
-    mac = (2/3)*cr*((1+taper+taper**2)/(1+taper))
+    MAC = (2/3)*cr*((1+taper+taper**2)/(1+taper))
 
     # Wing drawing
     if drawing:
@@ -49,4 +52,18 @@ def wing_planform(S,A,drawing=False):
     else:
         pass
 
-    return sweep,taper,b,cr,ct,mac
+    return sweep,taper,b,cr,ct,MAC
+
+if __name__ == "__main__":
+    n_engines = 1
+    variables = CurrentVariables(n_engines=n_engines)
+    A = 12
+
+    sweep, taper, b, cr, ct, MAC = wing_planform(variables,A)
+
+    variables.sweep = sweep
+    variables.taper = taper
+    variables.b = b
+    variables.cr = cr
+    variables.ct = ct
+    variables.MAC = MAC

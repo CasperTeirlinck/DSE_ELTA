@@ -105,16 +105,21 @@ class CurrentVariables():
         self.phi         = 60                                           # [deg] bank angle
         self.WP          = 0.1218                                       # [N/W] power loading
         self.WS          = 465                                          # [N/m2] wing loading
-        self.WTO         = 750                                          # [N] take-off weight
+        self.WTO         = 750*9.81                                     # [N] take-off weight
         self.Wbat        = 0                                            # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
         self.WPL         = 200*9.80665                                  # [N] Payload weight
         self.P           = self.WTO/self.WP                             # [W] Engine power
-        self.propefficiency = self.WP*(sqrt(2*self.WS/self.rho/self.CLto)+self.climbrate) # [-] propeller efficiency (Pa to thrust)
+        #self.propefficiency = self.WP*(sqrt(2*self.WS/self.rho/self.CLto)+self.climbrate) # [-] propeller efficiency (Pa to thrust)
         self.update_engine_power()
         self.n_blades    = 6                                            # [-] Number of propeller blades single prop
         self.prop_d      = 20 * (self.P*0.00134102209)**0.25 * 0.3048   # [m] Propeller diameter
-
+        self.sweep       = 0                                            # [deg] Quarter chord sweep angle
+        self.taper       = 0.4                                          # [-] Taper ratio
+        self.b           = 13.78                                        # [m] Wing span
+        self.cr          = 1.64                                         # [m] Root chord
+        self.ct          = 0.66                                         # [m] Tip chord
+        self.MAC         = 1.22                                         # [m] Mean aerodynamic chord
 
 
     def init_single_engine(self):
