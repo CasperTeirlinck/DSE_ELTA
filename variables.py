@@ -1,4 +1,5 @@
 import numpy as np
+from math import sqrt, pi
 
 def IAS_TAS(h, V_IAS):
     """
@@ -77,18 +78,22 @@ def IAS_TAS(h, V_IAS):
 
 class CurrentVariables():
     def __init__(self, n_engines=1):
+        self.n_engines   = n_engines                                    # [-] amount of engines
         self.sto         = 500                                          # [m] take-off distance
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
         self.A           = np.array([8, 10, 12])                        # aspect ratio
         self.e           = 0.83                                         # oswald efficiency factor
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
         self.CD0to       = 0.0380                                       # drag constant
+        self.CDto = self.CD0to + self.CLto**2/(pi*self.A*self.e)        # drag during takeoff
         self.CD0clean    = 0.0280                                       # drag constant
         self.CD0 = self.CD0clean
         self.CLclimb     = self.CLmaxto[1] - 0.2                        # CLmax - safety margin fo crimb gradient
         self.CDclimb     = self.CD0to + (self.CLclimb**2)/(np.pi*self.A*self.e) # CD for climb gradient
+        self.climbrate   = 2                                            # [m/s] climb rate
         self.Vs          = IAS_TAS(1700, 23.15)                         # [m/s] stall speed (45 kts calibrated)
-        self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] velocity
+        self.Vmax        = 120*0.514444444                              # IAS [m/s] max speed
+        self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
         self.rho         = 1.04                                         # [kg/m3] airdensity take-off and landing
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
         self.rho0        = 1.225                                        # [kg/m3] density at sealvl
@@ -104,6 +109,13 @@ class CurrentVariables():
         self.Wbat        = 0                                            # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
         self.WPL         = 200*9.80665                                  # [N] Payload weight
+        self.P           = self.WTO/self.WP                             # [W] Engine power
+        self.propefficiency = self.WP*(sqrt(2*self.WS/self.rho/self.CLto)+self.climbrate) # [-] propeller efficiency (Pa to thrust)
+        self.update_engine_power()
+        self.n_blades    = 6                                            # [-] Number of propeller blades single prop
+        self.prop_d      = 20 * (self.P*0.00134102209)**0.25 * 0.3048   # [m] Propeller diameter
+
+
 
     def init_single_engine(self):
         self.CLmaxto = np.array([1.7, 1.8, 1.9])                # CLmax take-off
@@ -116,6 +128,9 @@ class CurrentVariables():
         self.CLmaxland   = np.array([ 1.8, 2.1, 2.4 ])               # CLmax landing
         self.CLmaxclean  = np.array([ 1.8, 1.8, 1.8 ])               # CLmax clean
         self.k           = 93                                        # [N2/m2W] take-off parameter
+
+    def update_engine_power(self):
+        self.P_single_engine = self.P/self.n_engines
 
 
 if __name__ == "__main__":
