@@ -11,7 +11,6 @@ import numpy as np
 ################################################################################
 
 
-a_classI, b_classI = 0.548, 55.899
 g0 = 9.80665
 
 
@@ -26,7 +25,7 @@ def battery_ratio(R, A, e, E, eff, n=1, SwetS=3.7, Cfe_dict = [0.0055, 0.0045]):
     E = E*3600
     return R/(LD_optr*1/g0*E*eff)
 
-def calc_W_TO(W_PL, WbatWTO):
+def calc_W_TO(W_PL, WbatWTO, a_classI=0.548, b_classI=55.899):
     # Returns: Take-off, OE, and bat weights in N, W_PL input in kg and WbatWTO dimensionless
     WTO = (W_PL+b_classI)/(1-a_classI-WbatWTO)
     return g0*WTO, g0*(a_classI*WTO+b_classI), g0*WbatWTO*WTO
