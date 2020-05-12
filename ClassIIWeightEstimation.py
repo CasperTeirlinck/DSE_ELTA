@@ -13,50 +13,50 @@ import numpy as np
 
 #General aircraft parameters
 
-W_to    = 750 #[kg]   take-off weight
-W_l     = 750 #[kg]   landing weight
-n_ult   = 5.7 #[-]    ultimate load factor
-n_ult_l = 5.7 #[-]  ultimate load factor during landing, may be taken as 5.7 according to Cessna method from Roskam
-pax     = 2 #[-]    number of pax
-l_fn    = 5 #[m]    length fuselage excluding engine
-d_fus   = 1.5 #[m] depth of fuselage
-V_max   = 120 #[kts] max speed
+W_to    = 750   #[kg]   take-off weight
+W_l     = 750   #[kg]   landing weight
+n_ult   = 5.7   #[-]    ultimate load factor
+n_ult_l = 5.7   #[-]    ultimate load factor during landing, may be taken as 5.7 according to Cessna method from Roskam
+pax     = 2     #[-]    number of pax
+l_fn    = 5     #[m]    length fuselage excluding engine
+d_fus   = 1.5   #[m]    depth of fuselage
+V_max   = 120   #[kts]  max speed
 
 #Powerplant
-P_to    = 80 #[kW]   take-off power
-W_b     = 30 #[kg]   battery weight
+P_to    = 80    #[kW]   take-off power
+W_b     = 30    #[kg]   battery weight
 
 #Thrust
-W_prop  = 5 #[kg]   propeller weight
-K_p     = 2.5 #[kW/kg]
+W_prop  = 5     #[kg]   propeller weight
+K_p     = 2.5   #[kW/kg]Engine specific parameter
 ductedfan = False
 
 #Main Wing
-S_w      = 14 #[m**2] surface
-A_w      = 8 #[-]    Aspect ratio
-Strut    = True #   Strut braced wing, if False: it is a cantilever wing
+S_w      = 14   #[m**2] surface
+A_w      = 8    #[-]    Aspect ratio
+Strut    = True #       Strut braced wing, if False: it is a cantilever wing
 
 #Empennage
 #Horizontal stabilizer
-S_h      = 2 #[m**2] Surface
-A_h      = 4 #[-]    Aspect ratio
-t_r_h   = 0.1 #[m]    max root thickness
+S_h      = 2    #[m**2] Surface
+A_h      = 4    #[-]    Aspect ratio
+t_r_h   = 0.1   #[m]    max root thickness
 
 #Vertical tail
-S_v      = 1.044230 #[m**2] Surface
+S_v      = 1.04 #[m**2] Surface
 A_v      = 1.41 #[-]    Aspect ratio
-t_r_v   = 0.15 #[m]    max root thickness
-qsweep_v= 30 #[deg] quarter chord sweep
+t_r_v   = 0.15  #[m]    max root thickness
+qsweep_v= 30    #[deg]  quarter chord sweep
 
 #Landing Gear
-Retract = True #    retractable landing gear True or False
-W_wsn   = 5 #[kg]   Nose wheel weight + its strut assembly
-W_wsm   = 7 #[kg]   Main wheel weight + its strut assembly
-l_sn    = 0.2 #[m]    Shock strut length nose wheel
-l_sm    = 0.2 #[m]    Shock strut length main wheel
+Retract = True  #       retractable landing gear True or False
+W_wsn   = 5     #[kg]   Nose wheel weight + its strut assembly
+W_wsm   = 7     #[kg]   Main wheel weight + its strut assembly
+l_sn    = 0.2   #[m]    Shock strut length nose wheel
+l_sm    = 0.2   #[m]    Shock strut length main wheel
 
 #Training Enhancement
-W_avion = 15 #[kg] avionic weight
+W_avion = 15    #[kg] avionic weight
 
 
 
