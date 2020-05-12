@@ -42,7 +42,8 @@ def wing_planform(S,A,drawing=False):
         plt.plot(xle,yle,color='k')
         plt.plot(xte,yte,color='k')
         plt.plot(xc4,yc4,'k:')
-        plt.ylim(cr/2-b/2,cr/2+b/2)
+        plt.xlim(-b/2-2, b/2+2)
+        plt.ylim(-b/2-2, b/2+2)
         plt.show()
 
     else:
