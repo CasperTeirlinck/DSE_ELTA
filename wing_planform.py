@@ -59,7 +59,7 @@ if __name__ == "__main__":
     variables = CurrentVariables(n_engines=n_engines)
     A = 12
 
-    sweep, taper, b, cr, ct, MAC = wing_planform(variables,A)
+    sweep, taper, b, cr, ct, MAC = wing_planform(variables,A,drawing=True)
 
     variables.sweep = sweep
     variables.taper = taper
