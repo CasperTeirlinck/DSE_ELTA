@@ -126,6 +126,13 @@ class CurrentVariables():
         self.contrarotate= True
         self.duct_t_over_c= 0.0001
         self.do_engine_sizing(self.contrarotate, self.duct_t_over_c)
+        self.sweep       = 0                                            # [deg] Quarter chord sweep angle
+        self.taper       = 0.4                                          # [-] Taper ratio
+        self.b           = 13.78                                        # [m] Wing span
+        self.cr          = 1.64                                         # [m] Root chord
+        self.ct          = 0.66                                         # [m] Tip chord
+        self.MAC         = 1.22                                         # [m] Mean aerodynamic chord
+
 
 
 
