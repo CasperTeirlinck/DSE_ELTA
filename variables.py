@@ -123,7 +123,7 @@ class CurrentVariables():
         self.rps_cruise  = 2700 / 60                                    # [rps] revolution speed of prop at cruise
         self.C_d_prop    = 0.012                                        # [-] 2D airfoil drag of propeller
         self.prop_A_ratio= (81836-12446)/372230                         # [-] propeller area ratio: Lockheed YO-3 estimation
-        self.contrarotate= True
+        self.contrarotate= False
         self.duct_t_over_c= 0.0001
         self.do_engine_sizing(self.contrarotate, self.duct_t_over_c)
         self.sweep       = 0                                            # [deg] Quarter chord sweep angle
@@ -133,6 +133,8 @@ class CurrentVariables():
         self.ct          = 0.66                                         # [m] Tip chord
         self.MAC         = 1.22                                         # [m] Mean aerodynamic chord
 
+        self.R_e         = self.V*self.cr/(1.46*0.00001)                # Reynolds number
+        print(self.R_e)
 
 
 
@@ -150,23 +152,23 @@ class CurrentVariables():
         self.CLmaxclean  = np.array([ 1.8, 1.8, 1.8 ])               # CLmax clean
         self.k           = 93                                        # [N2/m2W] take-off parameter
 
-    def calc_engine_efficiency(self, tolerance=1e-3, maxiterations=1000):
-        for _ in range(maxiterations):
-            eta2 = 1 - 4 / pi**3 * self.eta1 * self.C_P / self.J
-            print("eta2", eta2)
-            phi = atan(self.J/pi/self.eta1/eta2)
-            eta3 = 1 - pi*pi*pi*pi*eta2*eta2*self.prop_A_ratio*self.C_d_prop*glauert_function(phi)/8/self.C_P
-            print("eta3", eta3)
-            eta1 = 1 - 2/pi * self.C_P * eta2 * eta3 * (self.eta1/self.J)**3
-            print("eta1", eta1)
-            if abs(eta2-self.eta2) < tolerance and abs(eta1-self.eta1) < tolerance and abs(eta3-self.eta3) < tolerance:
-                self.eta1, self.eta2, self.eta3 = eta1, eta2, eta3
-                return eta1*eta2*eta3
-            self.eta1, self.eta2, self.eta3 = eta1, eta2, eta3
-
-        else:
-            print("Process did not converge.")
-            return 0.0
+    # def calc_engine_efficiency(self, tolerance=1e-3, maxiterations=1000):
+    #     for _ in range(maxiterations):
+    #         eta2 = 1 - 4 / pi**3 * self.eta1 * self.C_P / self.J
+    #         print("eta2", eta2)
+    #         phi = atan(self.J/pi/self.eta1/eta2)
+    #         eta3 = 1 - pi*pi*pi*pi*eta2*eta2*self.prop_A_ratio*self.C_d_prop*glauert_function(phi)/8/self.C_P
+    #         print("eta3", eta3)
+    #         eta1 = 1 - 2/pi * self.C_P * eta2 * eta3 * (self.eta1/self.J)**3
+    #         print("eta1", eta1)
+    #         if abs(eta2-self.eta2) < tolerance and abs(eta1-self.eta1) < tolerance and abs(eta3-self.eta3) < tolerance:
+    #             self.eta1, self.eta2, self.eta3 = eta1, eta2, eta3
+    #             return eta1*eta2*eta3
+    #         self.eta1, self.eta2, self.eta3 = eta1, eta2, eta3
+    #
+    #     else:
+    #         print("Process did not converge.")
+    #         return 0.0
 
 
     def do_engine_sizing(self, contra, t_over_c_duct, s=1.2, z=0.075):
@@ -191,7 +193,6 @@ class CurrentVariables():
         self.CT          = self.T / (self.rho * self.rps_cruise**2 * self.prop_d**4)
         self.CQ          = self.CP*0.5/pi
         self.prop_eff    = self.J * self.CT / self.CP
-        print(self.J, "This")
 
         self.speedfactor = 1
         if t_over_c_duct != 0:
@@ -201,8 +202,6 @@ class CurrentVariables():
             K = 1
             CT_noduct = self.T/(0.5*self.rho*self.V**2*pi*self.prop_d**2*0.25)
             delta_i = K * (sqrt(1+CT_noduct)-1)
-            print(delta_i)
-            print(delta_d)
             self.speedfactor = 1+(delta_d+delta_i)
 
 
@@ -222,6 +221,3 @@ if __name__ == "__main__":
     variables = CurrentVariables()
     # print(variables.prop_d3)
     print(variables.speedfactor)
-    variables.do_engine_sizing(variables.contrarotate, variables.duct_t_over_c, s=2., z=0.1)
-    print(variables.speedfactor)
-    print()
