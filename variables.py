@@ -110,7 +110,7 @@ class CurrentVariables():
         self.c           = 2                                            # [m/s] climb rate
         self.phi         = 60                                           # [deg] bank angle
         self.WP          = 0.1218                                       # [N/W] power loading
-        self.WS          = 592                                          # [N/m2] wing loading
+        self.WS          = 465                                          # [N/m2] wing loading
         self.WTO         = 750*9.81                                     # [N] take-off weight
         self.Wbat        = 0                                            # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
