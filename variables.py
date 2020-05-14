@@ -138,6 +138,9 @@ class CurrentVariables():
         self.MAC         = 1.22                                         # [m] Mean aerodynamic chord
 
         self.R_e         = self.V*self.cr/(1.46*0.00001)                # Reynolds number
+        self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
+        self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
+        self.eff_tot_prop= 0.95*0.8                                     # Total propulsion efficiency (motor and bat)
         # print(self.R_e)
 
 
