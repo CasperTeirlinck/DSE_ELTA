@@ -109,8 +109,12 @@ class CurrentVariables():
         self.etap        = 0.7                                          # propeller efficiency
         self.c           = 2                                            # [m/s] climb rate
         self.phi         = 60                                           # [deg] bank angle
-        self.WP          = 0.1218                                       # [N/W] power loading
-        self.WS          = 592                                          # [N/m2] wing loading
+        if n_engines == 1:
+            self.WP      = 0.1218                                       # [N/W] power loading
+            self.WS      = 465                                          # [N/m2] wing loading
+        else:
+            self.WP      = 0.149                                        # [N/W] power loading
+            self.WS      = 592                                          # [N/m2] wing loading
         self.WTO         = 750*9.81                                     # [N] take-off weight
         self.Wbat        = 0                                            # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
@@ -123,16 +127,18 @@ class CurrentVariables():
         self.rps_cruise  = 2700 / 60                                    # [rps] revolution speed of prop at cruise
         self.C_d_prop    = 0.012                                        # [-] 2D airfoil drag of propeller
         self.prop_A_ratio= (81836-12446)/372230                         # [-] propeller area ratio: Lockheed YO-3 estimation
-        self.contrarotate= True
+        self.contrarotate= False
         self.duct_t_over_c= 0.0001
         self.do_engine_sizing(self.contrarotate, self.duct_t_over_c)
         self.sweep       = 0                                            # [deg] Quarter chord sweep angle
         self.taper       = 0.4                                          # [-] Taper ratio
-        self.b           = 13.78                                        # [m] Wing span
-        self.cr          = 1.64                                         # [m] Root chord
-        self.ct          = 0.66                                         # [m] Tip chord
-        self.MAC         = 1.22                                         # [m] Mean aerodynamic chord
+        self.b           = 12.2                                         # [m] Wing span
+        self.cr          = 1.5                                          # [m] Root chord
+        self.ct          = 0.6                                          # [m] Tip chord
+        self.MAC         = 1.1                                         # [m] Mean aerodynamic chord
 
+        self.R_e         = self.V*self.cr/(1.46*0.00001)                # Reynolds number
+        # print(self.R_e)
 
 
 
@@ -150,23 +156,23 @@ class CurrentVariables():
         self.CLmaxclean  = np.array([ 1.8, 1.8, 1.8 ])               # CLmax clean
         self.k           = 93                                        # [N2/m2W] take-off parameter
 
-    def calc_engine_efficiency(self, tolerance=1e-3, maxiterations=1000):
-        for _ in range(maxiterations):
-            eta2 = 1 - 4 / pi**3 * self.eta1 * self.C_P / self.J
-            print("eta2", eta2)
-            phi = atan(self.J/pi/self.eta1/eta2)
-            eta3 = 1 - pi*pi*pi*pi*eta2*eta2*self.prop_A_ratio*self.C_d_prop*glauert_function(phi)/8/self.C_P
-            print("eta3", eta3)
-            eta1 = 1 - 2/pi * self.C_P * eta2 * eta3 * (self.eta1/self.J)**3
-            print("eta1", eta1)
-            if abs(eta2-self.eta2) < tolerance and abs(eta1-self.eta1) < tolerance and abs(eta3-self.eta3) < tolerance:
-                self.eta1, self.eta2, self.eta3 = eta1, eta2, eta3
-                return eta1*eta2*eta3
-            self.eta1, self.eta2, self.eta3 = eta1, eta2, eta3
-
-        else:
-            print("Process did not converge.")
-            return 0.0
+    # def calc_engine_efficiency(self, tolerance=1e-3, maxiterations=1000):
+    #     for _ in range(maxiterations):
+    #         eta2 = 1 - 4 / pi**3 * self.eta1 * self.C_P / self.J
+    #         print("eta2", eta2)
+    #         phi = atan(self.J/pi/self.eta1/eta2)
+    #         eta3 = 1 - pi*pi*pi*pi*eta2*eta2*self.prop_A_ratio*self.C_d_prop*glauert_function(phi)/8/self.C_P
+    #         print("eta3", eta3)
+    #         eta1 = 1 - 2/pi * self.C_P * eta2 * eta3 * (self.eta1/self.J)**3
+    #         print("eta1", eta1)
+    #         if abs(eta2-self.eta2) < tolerance and abs(eta1-self.eta1) < tolerance and abs(eta3-self.eta3) < tolerance:
+    #             self.eta1, self.eta2, self.eta3 = eta1, eta2, eta3
+    #             return eta1*eta2*eta3
+    #         self.eta1, self.eta2, self.eta3 = eta1, eta2, eta3
+    #
+    #     else:
+    #         print("Process did not converge.")
+    #         return 0.0
 
 
     def do_engine_sizing(self, contra, t_over_c_duct, s=1.2, z=0.075):
@@ -191,7 +197,6 @@ class CurrentVariables():
         self.CT          = self.T / (self.rho * self.rps_cruise**2 * self.prop_d**4)
         self.CQ          = self.CP*0.5/pi
         self.prop_eff    = self.J * self.CT / self.CP
-        print(self.J, "This")
 
         self.speedfactor = 1
         if t_over_c_duct != 0:
@@ -201,8 +206,6 @@ class CurrentVariables():
             K = 1
             CT_noduct = self.T/(0.5*self.rho*self.V**2*pi*self.prop_d**2*0.25)
             delta_i = K * (sqrt(1+CT_noduct)-1)
-            print(delta_i)
-            print(delta_d)
             self.speedfactor = 1+(delta_d+delta_i)
 
 
@@ -219,9 +222,6 @@ class CurrentVariables():
 
 
 if __name__ == "__main__":
-    variables = CurrentVariables()
+    variables = CurrentVariables(n_engines=12)
     # print(variables.prop_d3)
-    print(variables.speedfactor)
-    variables.do_engine_sizing(variables.contrarotate, variables.duct_t_over_c, s=2., z=0.1)
-    print(variables.speedfactor)
-    print()
+    print(variables.prop_d)
