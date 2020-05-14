@@ -77,16 +77,17 @@ if __name__ == "__main__":
     Pmax = (variables.WTO / variables.WP) / 1000  # kW
     E_bat = (max(bat_endurance, bat_range) * variables.WTO * (variables.Especif_bat/9.81))/1000
 
-    print("start\n=======================================")
-    print("Num engines =", n_engines)
-    print("Pmax [kW] =", Pmax)
-    print("E battery [kJ]", E_bat)
-    print("Wbat/WTO range =", round(bat_range, 4))
-    print("Wbat/WTO endurance =", round(bat_endurance, 4))
-    print("Battery volume [L] =", (E_bat*1000)/variables.rho_bat)
-    print("Motor weight [kg] =", Pmax/2.5)
-    print("Motor volume [L]  =", Pmax/7)
-    print("=======================================\nend")
+    print("start\n=============================================")
+    print("Num engines            =  ", n_engines)
+    print("Pmax [kW]              =  ", Pmax)
+    print("E battery [kJ]         =  ", E_bat)
+    print("Wbat/WTO range         =  ", round(bat_range, 4))
+    print("Wbat/WTO endurance     =  ", round(bat_endurance, 4))
+    print("Battery volume [L]     =  ", (E_bat*1000)/variables.rho_bat)
+    print("Motor weight [kg]      =  ", Pmax/2.5)
+    print("Motor volume [L]       =  ", Pmax/7)
+    print("Motor*bat efficiency   =  ", variables.eff_tot_prop)
+    print("=============================================\nend")
 
 
 
