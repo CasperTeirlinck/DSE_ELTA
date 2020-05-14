@@ -132,10 +132,10 @@ class CurrentVariables():
         self.do_engine_sizing(self.contrarotate, self.duct_t_over_c)
         self.sweep       = 0                                            # [deg] Quarter chord sweep angle
         self.taper       = 0.4                                          # [-] Taper ratio
-        self.b           = 13.78                                        # [m] Wing span
-        self.cr          = 1.64                                         # [m] Root chord
-        self.ct          = 0.66                                         # [m] Tip chord
-        self.MAC         = 1.22                                         # [m] Mean aerodynamic chord
+        self.b           = 12.2                                         # [m] Wing span
+        self.cr          = 1.5                                          # [m] Root chord
+        self.ct          = 0.6                                          # [m] Tip chord
+        self.MAC         = 1.1                                         # [m] Mean aerodynamic chord
 
         self.R_e         = self.V*self.cr/(1.46*0.00001)                # Reynolds number
         self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
