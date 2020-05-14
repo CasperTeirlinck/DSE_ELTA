@@ -25,6 +25,13 @@ def oew_fraction(WTO, A, powerloading, wingloading, Vmax_kts):
     print(1/(1/powerloading*hp_to_W/kg_to_pound))
     return a + b*(WTO*N_to_lbf)**C1*A**C2*(1/powerloading*hp_to_W/N_to_lbf)**C3*(N_to_lbf*wingloading/0.09290304)**C4*(Vmax_kts*kts_to_fps)**C5
 
+def ductweight(AR_duct):
+    # AR_duct = 5.0  D_fan/l_fan
+    D_fan = 1.09
+    rho_material = 1.5 # Mg/m^3 CFRP from materials book
+    V_duct = np.pi*(D_fan/AR_duct)*(((D_fan/2)+0.005)**2 - (D_fan/2)**2)
+    return (V_duct*rho_material)*1000
+
 
 if __name__ == "__main__":
     WTO = 750*g0
@@ -33,4 +40,6 @@ if __name__ == "__main__":
     wingloading = 465
     Vmax_kts = 120
 
-    print(oew_fraction(WTO, A, powerloading, wingloading, Vmax_kts))
+    #print(oew_fraction(WTO, A, powerloading, wingloading, Vmax_kts))
+
+    print("mass duct:", ductweight(2))
