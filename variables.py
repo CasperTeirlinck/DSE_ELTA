@@ -109,8 +109,12 @@ class CurrentVariables():
         self.etap        = 0.7                                          # propeller efficiency
         self.c           = 2                                            # [m/s] climb rate
         self.phi         = 60                                           # [deg] bank angle
-        self.WP          = 0.1218                                       # [N/W] power loading
-        self.WS          = 465                                          # [N/m2] wing loading
+        if n_engines == 1:
+            self.WP      = 0.1218                                       # [N/W] power loading
+            self.WS      = 465                                          # [N/m2] wing loading
+        else:
+            self.WP      = 0.149                                        # [N/W] power loading
+            self.WS      = 592                                          # [N/m2] wing loading
         self.WTO         = 750*9.81                                     # [N] take-off weight
         self.Wbat        = 0                                            # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
@@ -134,7 +138,7 @@ class CurrentVariables():
         self.MAC         = 1.22                                         # [m] Mean aerodynamic chord
 
         self.R_e         = self.V*self.cr/(1.46*0.00001)                # Reynolds number
-        print(self.R_e)
+        # print(self.R_e)
 
 
 
@@ -218,6 +222,6 @@ class CurrentVariables():
 
 
 if __name__ == "__main__":
-    variables = CurrentVariables()
+    variables = CurrentVariables(n_engines=12)
     # print(variables.prop_d3)
-    print(variables.speedfactor)
+    print(variables.prop_d)
