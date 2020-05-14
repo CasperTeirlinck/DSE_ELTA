@@ -77,7 +77,7 @@ if __name__ == "__main__":
     Pmax = (variables.WTO / variables.WP) / 1000  # kW
     E_bat = (max(bat_endurance, bat_range) * variables.WTO * (variables.Especif_bat/9.81))/1000
 
-    print("=======================================")
+    print("start\n=======================================")
     print("Num engines =", n_engines)
     print("Pmax [kW] =", Pmax)
     print("E battery [kJ]", E_bat)
@@ -86,7 +86,8 @@ if __name__ == "__main__":
     print("Battery volume [L] =", (E_bat*1000)/variables.rho_bat)
     print("Motor weight [kg] =", Pmax/2.5)
     print("Motor volume [L]  =", Pmax/7)
-    print("=======================================")
+    print("=======================================\nend")
+
 
 
 
