@@ -1,6 +1,5 @@
 import numpy as np
 from math import sqrt, pi
-from class_I import *
 from variables import *
 
 range_m = 250000

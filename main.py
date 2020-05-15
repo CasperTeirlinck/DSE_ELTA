@@ -10,7 +10,10 @@ from propulsion import *
 
 
 def loop(v: CurrentVariables):
-    v = classI(v)
+    v.WS, v.WP = get_design_point(v)
+    v = classIestimation(v)
+    print("Here")
+
     v = function1(v)
     v = function2(v)
     v = function3(v)

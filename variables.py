@@ -113,6 +113,7 @@ class CurrentVariables():
             self.WP      = 0.149                                        # [N/W] power loading
             self.WS      = 592                                          # [N/m2] wing loading
         self.WTO         = 750*9.81                                     # [N] take-off weight
+        self.bmf         = None                                         # [-] Battery mass fraction
         self.Wbat        = 0                                            # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
         self.Woew_classII= 1000 * 9.81                                  # [N] Operational empty weight
