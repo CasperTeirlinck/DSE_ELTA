@@ -88,7 +88,9 @@ class CurrentVariables():
         self.T_tail = False                                             # Condition whether a t-tail configuration is used (otherwise, conventional tail)
         self.sto         = 500                                          # [m] take-off distance
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
-        self.A           = 12                                           # aspect ratio
+        self.A           = 12                                           # aspect ratio of the main wing
+        self.A_h         = 12                                           # aspect ratio of the horizontal tailplane
+        self.A_v         = 12                                           # aspect ratio of the vertical tailplane
         self.e           = 0.83                                         # oswald efficiency factor
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
         self.CD0to       = 0.0380                                       # drag constant
@@ -136,9 +138,11 @@ class CurrentVariables():
         self.duct_t_over_c= 0.0001
         self.do_engine_sizing(self.contrarotate, self.duct_t_over_c)
         self.sweep       = 0                                            # [deg] Quarter chord sweep angle of the main wing
-        self.sweep_h     = 0                                            # [deg] Quarter chord sweep angle of the horizontal tailplane
-        self.sweep_v     = 0                                            # [deg] Quarter chord sweep angle of the vertical tailplane
-        self.taper       = 0.4                                          # [-] Taper ratio
+        self.sweep_h     = 000                                          # [deg] Quarter chord sweep angle of the horizontal tailplane
+        self.sweep_v     = 000                                          # [deg] Quarter chord sweep angle of the vertical tailplane
+        self.taper       = 0.4                                          # [-] Taper ratio of the main wing
+        self.taper_h     = 000                                          # [-] Taper ratio of the horizontal tailplane
+        self.taper_v     = 000                                          # [-] Taper ratio of the vertical tailplane
         self.b           = 12.2                                         # [m] Wing span
         self.cr          = 1.5                                          # [m] Root chord
         self.ct          = 0.6                                          # [m] Tip chord
