@@ -15,6 +15,7 @@ class Test():
         self.b = 12.2
         self.MAC = 1.1
         self.dihedral = 1
+        self.WTO = 750*9.81
 
 
 def size_gear(variables: Test):
@@ -37,13 +38,25 @@ def size_gear(variables: Test):
     fnoverw = 0.12
     d_ng = (variables.xcg_aft - x_landinggear) / fnoverw
     x_nosegear = x_landinggear+d_ng
-    print(variables.zcg/((x_nosegear - variables.xcg_aft)*m.tan(m.radians(57.75))))
+    # print(variables.zcg/((x_nosegear - variables.xcg_aft)*m.tan(m.radians(57.75))))
     y_landinggear = d_ng * m.tan(m.asin(variables.zcg/((x_nosegear - variables.xcg_aft)*m.tan(m.radians(57.75)))))
 
     variables.x_maingear, variables.y_maingear, variables.z_maingear, variables.x_nosegear = \
         x_landinggear, y_landinggear, z_landinggear, x_nosegear
 
-    return x_landinggear, y_landinggear, z_landinggear, x_nosegear
+    noseload = fnoverw*variables.WTO # in N
+    mainload = 0.5*(variables.WTO - noseload)
+
+    # Tire dimentions in meters
+    diameternose, diametermain = 0.01*5.1*noseload**0.349, 0.01*5.1*mainload**0.349
+    widthnose, widthmain = 0.01*2.3*noseload**0.312, 0.01*2.3*mainload**0.312
+
+    variables.maingeardiameter = diametermain
+    variables.maingearwidth = widthmain
+    variables.nosegeardiameter = diameternose
+    variables.nosegearwidth = widthnose
+
+    return x_landinggear, y_landinggear, z_landinggear, x_nosegear, diametermain, diameternose, widthmain, widthnose
 
 
 

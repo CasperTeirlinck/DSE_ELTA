@@ -180,11 +180,15 @@ class CurrentVariables():
         self.S           = self.WTO/self.WS                             # [m] Wing surface area
 
 
-        # print(self.R_e)
+        # Landing gear parameters, to be filled in by function.
         self.x_maingear = None
         self.y_maingear = None
         self.z_maingear = None
         self.x_nosegear = None
+        self.maingeardiameter = None
+        self.maingearwidth = None
+        self.nosegeardiameter = None
+        self.nosegearwidth = None
 
 
 
