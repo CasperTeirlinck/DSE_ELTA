@@ -56,9 +56,7 @@ def size_gear(variables):
     variables.nosegeardiameter = diameternose
     variables.nosegearwidth = widthnose
 
-    return x_landinggear, y_landinggear, z_landinggear, x_nosegear, diametermain, diameternose, widthmain, widthnose
-
-
+    return variables
 
 
 if __name__ == "__main__":

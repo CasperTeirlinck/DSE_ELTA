@@ -51,6 +51,10 @@ def flight_profile_energy_per_WTO(variables: CurrentVariables, taxi=2, climb=1,
         total_energy += range_power_per_WTO(variables, range_m)
     return total_energy * g0 / (variables.Especif_bat * variables.eff_tot_prop)
 
+
+
+
+
 if __name__ == "__main__":
     # Cfes = [0.0055, 0.0045]
     # Cfe = Cfes[n_engines-1] # -

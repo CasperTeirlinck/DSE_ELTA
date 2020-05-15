@@ -31,7 +31,8 @@ def glauert_function(phi):
 
 
 class CurrentVariables():
-    def __init__(self, n_engines=1):
+    def __init__(self, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
+                 x_cg_f = 2.33, ducted=False):
         ## Requirements
         self.sto         = 500                                          # [m] take-off distance
         self.WPL         = 200*9.80665                                  # [N] Payload weight
@@ -50,12 +51,12 @@ class CurrentVariables():
 
         ## Design concept parameters (Concept number: )
         self.n_engines   = n_engines                                    # [-] number of engines
-        self.wing_mounted_engine = False                                # Condition whether engines are mounted on the wing (otherwise, fuselage mounted)
-        self.T_tail = False                                             # Condition whether a t-tail configuration is used (otherwise, conventional tail)
-        self.x_cg_passenger = 0.97                                      # [m] Passenger CG location as measured from aircraft nose
-        self.x_cg_battery = 1.96                                        # [m] Battery CG location as measured from aircraft nose
-        self.x_cg_fuselage = 2.33                                       # [m] Empty fuselage CG location as measured from the aircraft nose
-        self.ducted = False
+        self.wing_mounted_engine = wing_mounted                         # Condition whether engines are mounted on the wing (otherwise, fuselage mounted)
+        self.T_tail = T_tail                                            # Condition whether a t-tail configuration is used (otherwise, conventional tail)
+        self.x_cg_passenger = x_cg_pass                                 # [m] Passenger CG location as measured from aircraft nose
+        self.x_cg_battery = x_cg_batt                                   # [m] Battery CG location as measured from aircraft nose
+        self.x_cg_fuselage = x_cg_f                                     # [m] Empty fuselage CG location as measured from the aircraft nose
+        self.ducted = ducted
         if self.wing_mounted_engine:
             self.x_cg_engine = 0.755                                    # [m] Engine CG location as measured from aircraft nose
         if not self.wing_mounted_engine:
@@ -72,16 +73,16 @@ class CurrentVariables():
         self.CD0clean    = 0.0280                                       # drag constant
 
 
-        # Free design choices (000 means TBD)
+        # Free design choices (None means TBD)
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
         self.sweep_h     = 0                                            # [deg] (0- 0) Quarter chord sweep angle of the horizontal tailplane
-        self.sweep_v     = 000                                          # [deg] (0-50) Quarter chord sweep angle of the vertical tailplane
+        self.sweep_v     = None                                         # [deg] (0-50) Quarter chord sweep angle of the vertical tailplane
         self.A_h         = 3                                            # [-] (3-5)aspect ratio of the horizontal tailplane
         self.A_v         = 12                                           # [-] (1-2) aspect ratio of the vertical tailplane
         self.x_htail     = 4.7                                          # [m] location of the ac of the horizontal tail
         self.x_vtail     = 4.7                                          # [m] location of the ac of the vertical tail
-        self.taper_h     = 000                                          # [-] (0.3-1.0) Taper ratio of the horizontal tailplane
-        self.taper_v     = 000                                          # [-] (0.3-0.7) Taper ratio of the vertical tailplane
+        self.taper_h     = None                                         # [-] (0.3-1.0) Taper ratio of the horizontal tailplane
+        self.taper_v     = None                                         # [-] (0.3-0.7) Taper ratio of the vertical tailplane
         self.A           = 12                                           # aspect ratio of the main wing
         self.e           = 0.83                                         # oswald efficiency factor
         self.n_blades    = 4                                            # [-] Number of propeller blades single prop
@@ -111,6 +112,7 @@ class CurrentVariables():
         self.WTO         = 750*9.81                                     # [N] take-off weight
         self.Wbat        = 0                                            # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
+        self.Woew_classII= 1000 * 9.81                                  # [N] Operational empty weight
         self.Wprop       = 9.81*48.2                                    # [N] Propeller weight
         self.Wmotor      = 9.81*19.75                                   # [N] Motor weight
 
@@ -121,11 +123,11 @@ class CurrentVariables():
         self.ct          = 0.6                                          # [m] Tip chord
         self.MAC         = 1.1                                          # [m] Mean aerodynamic chord
         self.chordwise_cg_oew = 0.25                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
-        self.eff_tot_prop= 0.95*0.8                                     # Total propulsion efficiency (motor and bat)
 
         self.Weng        = self.Wprop + self.Wmotor                     # [N] Total engine weight
         self.S           = self.WTO/self.WS                             # [m] Wing surface area
         self.do_engine_sizing()
+        self.eff_tot_prop= 0.95*self.eff_propeller                      # Total propulsion efficiency (motor and bat)
         self.x_maingear = None                                          # [m] from nose, more negative is further from nose
         self.y_maingear = None                                          # [m] from nose, right wing positive
         self.z_maingear = None                                          # [m] from top of fuselage, down positive
@@ -134,6 +136,11 @@ class CurrentVariables():
         self.maingearwidth = None                                       # [m] width of main gear wheel
         self.nosegeardiameter = None                                    # [m] diameter of nose gear wheel
         self.nosegearwidth = None                                       # [m] width of nose gear wheel
+
+
+        #Miscellaneous
+        self.eff_propeller = None
+        self.T_propeller = None
 
 
 
@@ -166,15 +173,21 @@ class CurrentVariables():
             factor = 0.49
 
         self.prop_d      = factor*(self.P*0.001)**0.25
-        if self.ducted:
-            print("Use Javaprop to find efficiency. Parameters to use are P={} W, blades={} [-], V={} m/s, rpm={}, c/R={} [-], angle={} deg".format(self.P, self.n_blades, self.Vmax, self.rps_TO*60, self.coverR, self.angleduct))
+        self.estimate_eff_T()
+
+    def estimate_eff_T(self):
+        if self.eff_propeller == None:
+            self.eff_propeller = 0.8
+            self.T_propeller = 800
         else:
-            print("Use Javaprop to find efficiency. Parameters to use are P={} W, blades={} [-], V={} m/s, rpm={}.".format(self.P, self.n_blades, self.Vmax, self.rps_TO*60))
-        self.eff_propeller = float(input("Efficiency [%]: "))/100       # [-] Efficiency of a propeller
-        self.T_propeller = input("Thrust [N]: ")                        # [N] Thrust of a single engine
+            if self.ducted:
+                print("Use Javaprop to find efficiency. Parameters to use are P={} W, blades={} [-], V={} m/s, rpm={}, c/R={} [-], angle={} deg".format(self.P, self.n_blades, self.Vmax, self.rps_TO*60, self.coverR, self.angleduct))
+            else:
+                print("Use Javaprop to find efficiency. Parameters to use are P={} W, blades={} [-], V={} m/s, rpm={}.".format(self.P, self.n_blades, self.Vmax, self.rps_TO*60))
+            self.eff_propeller = float(input("Efficiency [%]: "))/100       # [-] Efficiency of a propeller
+            self.T_propeller = input("Thrust [N]: ")                        # [N] Thrust of a single engine
         self.T_total = self.T_propeller * self.n_engines                # [N] Total thrust of aircraft
 
 
 if __name__ == "__main__":
     variables = CurrentVariables(n_engines=1)
-    print("2Print P: ", variables.P)
