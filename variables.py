@@ -88,15 +88,17 @@ class CurrentVariables():
         self.WPL         = 200*9.80665                                  # [N] Payload weight
         self.c           = 2                                            # [m/s] climb rate
         self.phi         = 60                                           # [deg] Maximum bank angle
+        self.climbrate   = 2                                            # [m/s] climb rate
 
-        ## Design concept parameters
+        ## Design concept parameters (Concept number: )
         self.n_engines   = n_engines                                    # [-] number of engines
         self.wing_mounted_engine = False                                # Condition whether engines are mounted on the wing (otherwise, fuselage mounted)
         self.T_tail = False                                             # Condition whether a t-tail configuration is used (otherwise, conventional tail)
-        self.x_cg_passenger = 000                                       # [m] Passenger CG location as measured from aircraft nose
-        self.x_cg_battery = 000                                         # [m] Battery CG location as measured from aircraft nose
+        self.x_cg_passenger = 0.97                                      # [m] Passenger CG location as measured from aircraft nose
+        self.x_cg_battery = 1.96                                        # [m] Battery CG location as measured from aircraft nose
+        self.x_cg_fuselage = 2.33                                       # [m] Empty fuselage CG location as measured from the aircraft nose    
         if self.wing_mounted_engine:
-            self.x_cg_engine = 000                                      # [m] Engine CG location as measured from aircraft nose
+            self.x_cg_engine = 0.755                                      # [m] Engine CG location as measured from aircraft nose
         if not self.wing_mounted_engine:
             self.chordwise_cg_engine = 000                              # [-] Engine CG location as measured from LEMAC%
 
@@ -114,14 +116,10 @@ class CurrentVariables():
         self.sweep_v     = 000                                          # [deg] (0-50) Quarter chord sweep angle of the vertical tailplane
         self.A_h         = 3                                            # [-] (3-5)aspect ratio of the horizontal tailplane
         self.A_v         = 12                                           # [-] (1-2) aspect ratio of the vertical tailplane
-        self.x_htail = 000                                              # [m] location of the ac of the horizontal tail
-        self.x_vtail = 000                                              # [m] location of the ac of the vertical tail
+        self.x_htail     = 4.7                                          # [m] location of the ac of the horizontal tail
+        self.x_vtail     = 4.7                                          # [m] location of the ac of the vertical tail
         self.taper_h     = 000                                          # [-] (0.3-1.0) Taper ratio of the horizontal tailplane
         self.taper_v     = 000                                          # [-] (0.3-0.7) Taper ratio of the vertical tailplane
-
-        ## Calculated values
-        self.Weng        = self.Wprop + self.Wmotor                     # [N] Total engine weight
-        self.S           = self.WTO/self.WS                             # [m] Wing surface area
 
 
         ## Unassigned
@@ -135,7 +133,6 @@ class CurrentVariables():
         self.CD0 = self.CD0clean
         self.CLclimb     = self.CLmaxto - 0.2                           # CLmax - safety margin fo crimb gradient
         self.CDclimb     = self.CD0to + (self.CLclimb**2)/(np.pi*self.A*self.e) # CD for climb gradient
-        self.climbrate   = 2                                            # [m/s] climb rate
         self.Vs          = IAS_TAS(1700, 23.15)                         # [m/s] stall speed (45 kts calibrated)
         self.Vmax_kts    = 120                                          # [KIAS] Max speed in knots
         self.Vmax        = self.Vmax_kts*0.514444444                    # IAS [m/s] max speed
@@ -178,7 +175,9 @@ class CurrentVariables():
         self.R_e         = self.V*self.cr/(1.46*0.00001)                # Reynolds number
         self.eff_tot_prop= 0.95*0.8                                     # Total propulsion efficiency (motor and bat)
 
-
+        ## Calculated values
+        self.Weng        = self.Wprop + self.Wmotor                     # [N] Total engine weight
+        self.S           = self.WTO/self.WS                             # [m] Wing surface area
 
 
         # print(self.R_e)
