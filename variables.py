@@ -94,6 +94,9 @@ class CurrentVariables():
         self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
 
+        # Miscellaneous
+        self.eff_propeller = None
+        self.T_propeller = None
 
         ## Calculated values
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
@@ -138,9 +141,6 @@ class CurrentVariables():
         self.nosegearwidth = None                                       # [m] width of nose gear wheel
 
 
-        #Miscellaneous
-        self.eff_propeller = None
-        self.T_propeller = None
 
 
 

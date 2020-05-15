@@ -10,23 +10,23 @@ from propulsion import *
 
 
 def loop(v: CurrentVariables):
+    v = classI(v)
+    v = function1(v)
+    v = function2(v)
+    v = function3(v)
+    v = classII(v)
+    return v
 
 
-
-def do_loop(v: CurrentVariables, sdifference=35, maxiterations=10):
+def do_loop(v: CurrentVariables, difference=35, maxiterations=10):
     for iteration in range(maxiterations):
-        if abs(v.Woew - v.Woew_classII)<35*9.81:
+        if abs(v.Woew - v.Woew_classII) < difference*9.81:
             return v
         else:
             v = loop(v)
     else:
         print("Did not converge within {} iterations".format(maxiterations))
         return v
-
-
-
-
-
 
 
 if __name__ == "__main__":
