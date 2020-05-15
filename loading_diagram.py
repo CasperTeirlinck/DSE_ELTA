@@ -102,58 +102,57 @@ def get_design_point(variables, plot_result=False):
     # Calculate limiting W/S value
     WS_limit = min([WS_s, WS_landing1, WS_landing2, WS_landing3])
 
-    # Calculate W/P value of curved limits
-    # WP_to1 = takeoff(k=variables.k, CLto=variables.CLto[0], sigma=variables.sigma, WS=WS_limit)  # Pessimistic take-off
-    # WP_to2 = takeoff(k=variables.k, CLto=variables.CLto[1], sigma=variables.sigma, WS=WS_limit)  # Neutral take-off
-    # WP_to3 = takeoff(k=variables.k, CLto=variables.CLto[2], sigma=variables.sigma, WS=WS_limit)  # Optimistic take-off
-    WP_tofinal = takeoff(k=variables.k, CLto=variables.CLto, sigma=variables.sigma, WS=WS_limit)  # Optimistic take-off
+    # Define single-input calculations
+    def calcWP_to(WSinput):
+        return takeoff(k=variables.k, CLto=variables.CLto, sigma=variables.sigma, WS=WSinput)
+    
+    def calcWP_cruise(WSinput):
+        return cruisspeed(etap=variables.initial_etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
+                            V=variables.V, A=variables.A, e=variables.e, WS=WSinput)
 
-    # WP_cruise1 = cruisspeed(etap=variables.initial_etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
-    #                         V=variables.V, A=variables.A[0], e=variables.e, WS=WS_limit)  # Pessimistic cruise
-    # WP_cruise2 = cruisspeed(etap=variables.initial_etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
-    #                         V=variables.V, A=variables.A[1], e=variables.e, WS=WS_limit)  # Neutral cruise
-    # WP_cruise3 = cruisspeed(etap=variables.initial_etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
-    #                         V=variables.V, A=variables.A[2], e=variables.e, WS=WS_limit)  # Optimistic cruise
+    def calcWP_climbrate(WSinput):
+        return climbrate(etap=variables.initial_etap, rho=variables.rho, A=variables.A, e=variables.e,
+                              CD0=variables.CD0to, c=variables.c, WS=WSinput)
 
-    WP_cruisefinal = cruisspeed(etap=variables.initial_etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
-                            V=variables.V, A=variables.A, e=variables.e, WS=WS_limit)  # Final cruise
+    def calcWP_climbgrad(WSinput):
+        return climbgradient(etap=variables.initial_etap, cV=variables.c / variables.V, CD=variables.CDclimb,
+                                  CL=variables.CLclimb, rho=variables.rho, WS=WSinput)
 
-    # WP_climbrate1 = climbrate(etap=variables.initial_etap, rho=variables.rho, A=variables.A[0], e=variables.e,
-    #                           CD0=variables.CD0to, c=variables.c, WS=WS_limit)  # Pessimistic climb rate
-    # WP_climbrate2 = climbrate(etap=variables.initial_etap, rho=variables.rho, A=variables.A[1], e=variables.e,
-    #                           CD0=variables.CD0to, c=variables.c, WS=WS_limit)  # Neutral climb rate
-    # WP_climbrate3 = climbrate(etap=variables.initial_etap, rho=variables.rho, A=variables.A[2], e=variables.e,
-    #                           CD0=variables.CD0to, c=variables.c, WS=WS_limit)  # Optimistic climb rate
+    def calcWP_turnrate(WSinput):
+        return turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
+                            A=variables.A, e=variables.e, WS=WSinput)             
 
-    WP_climbratefinal = climbrate(etap=variables.initial_etap, rho=variables.rho, A=variables.A, e=variables.e,
-                              CD0=variables.CD0to, c=variables.c, WS=WS_limit)  # final climb rate
+    # Calculate initial list of limits
+    WPlimitlist = [calcWP_to(WS_limit), calcWP_cruise(WS_limit), calcWP_climbrate(WS_limit), calcWP_climbgrad(WS_limit), calcWP_turnrate(WS_limit)]
 
-    # WP_climbgrad1 = climbgradient(etap=variables.initial_etap, cV=variables.c / variables.V, CD=variables.CDclimb[0],
-    #                               CL=variables.CLclimb, rho=variables.rho, WS=WS_limit)  # Pessimistic climb gradient
-    # WP_climbgrad2 = climbgradient(etap=variables.initial_etap, cV=variables.c / variables.V, CD=variables.CDclimb[1],
-    #                               CL=variables.CLclimb, rho=variables.rho, WS=WS_limit)  # Neutral climb rate
-    # WP_climbgrad3 = climbgradient(etap=variables.initial_etap, cV=variables.c / variables.V, CD=variables.CDclimb[2],
-    #                               CL=variables.CLclimb, rho=variables.rho, WS=WS_limit)  # Optimistic climb rate
+    # Define calculator of the WP value of the initial limiting WP case
+    def limcasecalc(WSinput2):
+        if min(WPlimitlist) == WPlimitlist[0]:
+            return calcWP_to(WSinput2)
 
-    WP_climbgradfinal = climbgradient(etap=variables.initial_etap, cV=variables.c / variables.V, CD=variables.CDclimb,
-                                  CL=variables.CLclimb, rho=variables.rho, WS=WS_limit)  # Final climb rate
+        elif min(WPlimitlist) == WPlimitlist[1]:
+            return calcWP_cruise(WSinput2)
 
-    # WP_turnrate1 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
-    #                         A=variables.A[0], e=variables.e, WS=WS_limit)
-    # WP_turnrate2 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
-    #                         A=variables.A[1], e=variables.e, WS=WS_limit)
-    # WP_turnrate3 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
-    #                         A=variables.A[2], e=variables.e, WS=WS_limit)
+        elif min(WPlimitlist) == WPlimitlist[2]:
+            return calcWP_climbrate(WSinput2)
 
-    WP_turnratefinal = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
-                            A=variables.A, e=variables.e, WS=WS_limit)
+        elif min(WPlimitlist) == WPlimitlist[3]:
+            return calcWP_climbgrad(WSinput2)
+        
+        elif min(WPlimitlist) == WPlimitlist[4]:
+            return calcWP_turnrate(WSinput2)
+     
 
-    # Calculate limiting W/P values
-    # WP_limit = min(
-    #     [WP_to1, WP_to2, WP_to3, WP_cruise1, WP_cruise2, WP_cruise3, WP_climbrate1, WP_climbrate2, WP_climbrate3,
-    #      WP_climbgrad1, WP_climbgrad2, WP_climbgrad3, WP_turnrate1, WP_turnrate2, WP_turnrate3])
-    WP_limit = min(
-        [WP_tofinal, WP_cruisefinal, WP_climbratefinal, WP_climbgradfinal, WP_turnratefinal])
+    # Calculate actual limiting case
+    i = 0
+    dWS = -5.
+    WS0 = WS_limit
+    while i < 5: #limcasecalc(WS0+i*dWS):
+        limcasecalc = WS0 + i*dWS
+        i += 1
+
+    WS_limit = WS0 + i*dWS
+    WP_limit = limcasecalc(WS_limit)
 
     ## Plotting
     if plot_result:
@@ -180,8 +179,7 @@ def get_design_point(variables, plot_result=False):
 
         # landing
         WP_landing_1 = landing(CLmax=variables.CLmaxland[0], rho=variables.rho, sland=variables.sland, f=variables.f)
-        plt.plot([WP_landing_1, WP_landing_1], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[0]}",
-                 color='forestgreen')
+        plt.plot([WP_landing_1, WP_landing_1], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[0]}", color='forestgreen')
 
         WP_landing_2 = landing(CLmax=variables.CLmaxland[1], rho=variables.rho, sland=variables.sland, f=variables.f)
         plt.plot([WP_landing_2, WP_landing_2], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[1]}", color='limegreen')
