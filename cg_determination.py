@@ -46,3 +46,9 @@ def x_forwardCG(variables):
 
 def x_aftCG(variables):
     return max((variables.WPL*variables.x_cg_passenger + (winggroup_weight(variables) + fuselagegroup_weight(variables)) * x_OEWCG(variables)) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL), x_OEWCG)
+
+
+def cg_calculations(variables):
+    variables.xcg_frw = x_forwardCG(variables)
+    variables.xcg_aft = x_aftCG(variables)
+    return variables

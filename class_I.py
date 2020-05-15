@@ -38,16 +38,19 @@ def iterate_wo(wo, wpl, bmf, WeWo):
 
 
 def classIestimation(variables, a=0.656, b=-109, maxiterations=100):
-    bat_range = flight_profile_energy_per_WTO(variables, range_m=range_m, endurance_s=0.0)
-    bat_endurance = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=endurance_s)
-    variables.bmf = max(bat_range, bat_endurance)
+    # bat_range = flight_profile_energy_per_WTO(variables, range_m=range_m, endurance_s=0.0)
+    # bat_endurance = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=endurance_s)
+    # variables.bmf = max(bat_range, bat_endurance)
+    variables.bmf = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=endurance_s)
+    # print(variables.bmf)
     if variables.Woew_classII == 0 or variables.Woew_classII == None:
         WeWo = lambda Wo: a*Wo + b
     else:
         WeWo = lambda Wo: variables.Woew_classII/Wo
     Wo_previous = variables.WTO
+    # print(Wo_previous)
     Wo_new = iterate_wo(Wo_previous, variables.WPL, variables.bmf, WeWo(Wo_previous))
-    for _ in range(maxiterations):
+    for i in range(maxiterations):
         if abs(Wo_new-Wo_previous)<0.001*Wo_previous:
             variables.WTO = Wo_new
             variables.Woew = a*Wo_new + b
@@ -56,6 +59,7 @@ def classIestimation(variables, a=0.656, b=-109, maxiterations=100):
                                                                                variables.Wbat, variables.bmf))
             return variables
         Wo_previous, Wo_new = Wo_new, iterate_wo(Wo_new, variables.WPL, variables.bmf, WeWo(Wo_previous))
+        print(i, Wo_previous, Wo_new)
     else:
         print("Class I did not converge, please check the precision.")
         return variables

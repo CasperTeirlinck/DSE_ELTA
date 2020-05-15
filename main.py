@@ -5,6 +5,9 @@ import math as m
 from loading_diagram import *
 from class_I import *
 from wing_planform import *
+from AileronflapsizingUSETHISONE import *
+from cg_determination import *
+from gear import *
 from ClassIIWeightEstimation import *
 from propulsion import *
 
@@ -12,9 +15,11 @@ from propulsion import *
 def loop(v: CurrentVariables):
     v.WS, v.WP = get_design_point(v)
     v = classIestimation(v)
+    v = wing_planform(v)
+    # Control surface sizing here
+    v = cg_calculations(v)
+    v = size_gear(v)
     print("Here")
-
-    v = function1(v)
     v = function2(v)
     v = function3(v)
     v = classII(v)

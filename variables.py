@@ -116,9 +116,12 @@ class CurrentVariables():
         self.bmf         = None                                         # [-] Battery mass fraction
         self.Wbat        = 0                                            # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
-        self.Woew_classII= 1000 * 9.81                                  # [N] Operational empty weight
+        self.Woew_classII= None                                         # [N] Operational empty weight
         self.Wprop       = 9.81*48.2                                    # [N] Propeller weight
         self.Wmotor      = 9.81*19.75                                   # [N] Motor weight
+        self.xcg_aft     = None                                         # [m] Aft-most cg location
+        self.xcg_fwr     = None                                         # [m] Forward-most cg location
+
 
         self.sweep       = 0                                            # [deg] Quarter chord sweep angle of the main wing
         self.taper       = 0.4                                          # [-] Taper ratio of the main wing
@@ -129,7 +132,9 @@ class CurrentVariables():
         self.chordwise_cg_oew = 0.25                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
 
         self.Weng        = self.Wprop + self.Wmotor                     # [N] Total engine weight
-        self.S           = self.WTO/self.WS                             # [m] Wing surface area
+        self.S           = self.WTO/self.WS                             # [m2] Wing surface area
+        self.Sh          = None                                         # [m2] Horizontal tail surface area
+        self.Sv          = None                                         # [m2] Vertical tail surface area
         self.do_engine_sizing()
         self.eff_tot_prop= 0.95*self.eff_propeller                      # Total propulsion efficiency (motor and bat)
         self.x_maingear = None                                          # [m] from nose, more negative is further from nose
