@@ -102,58 +102,41 @@ def get_design_point(variables, plot_result=False):
     # Calculate limiting W/S value
     WS_limit = min([WS_s, WS_landing1, WS_landing2, WS_landing3])
 
-    # Calculate W/P value of curved limits
-    # WP_to1 = takeoff(k=variables.k, CLto=variables.CLto[0], sigma=variables.sigma, WS=WS_limit)  # Pessimistic take-off
-    # WP_to2 = takeoff(k=variables.k, CLto=variables.CLto[1], sigma=variables.sigma, WS=WS_limit)  # Neutral take-off
-    # WP_to3 = takeoff(k=variables.k, CLto=variables.CLto[2], sigma=variables.sigma, WS=WS_limit)  # Optimistic take-off
-    WP_tofinal = takeoff(k=variables.k, CLto=variables.CLto, sigma=variables.sigma, WS=WS_limit)  # Optimistic take-off
+    # Define single-input calculations for W/P
+    def calcWP_to(WSinput):
+        return takeoff(k=variables.k, CLto=variables.CLto, sigma=variables.sigma, WS=WSinput)
+    
+    def calcWP_cruise(WSinput):
+        return cruisspeed(etap=variables.initial_etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
+                            V=variables.V, A=variables.A, e=variables.e, WS=WSinput)
 
-    # WP_cruise1 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
-    #                         V=variables.V, A=variables.A[0], e=variables.e, WS=WS_limit)  # Pessimistic cruise
-    # WP_cruise2 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
-    #                         V=variables.V, A=variables.A[1], e=variables.e, WS=WS_limit)  # Neutral cruise
-    # WP_cruise3 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
-    #                         V=variables.V, A=variables.A[2], e=variables.e, WS=WS_limit)  # Optimistic cruise
+    def calcWP_climbrate(WSinput):
+        return climbrate(etap=variables.initial_etap, rho=variables.rho, A=variables.A, e=variables.e,
+                              CD0=variables.CD0to, c=variables.c, WS=WSinput)
 
-    WP_cruisefinal = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
-                            V=variables.V, A=variables.A, e=variables.e, WS=WS_limit)  # Final cruise
+    def calcWP_climbgrad(WSinput):
+        return climbgradient(etap=variables.initial_etap, cV=variables.c / variables.V, CD=variables.CDclimb,
+                                  CL=variables.CLclimb, rho=variables.rho, WS=WSinput)
 
-    # WP_climbrate1 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[0], e=variables.e,
-    #                           CD0=variables.CD0to, c=variables.c, WS=WS_limit)  # Pessimistic climb rate
-    # WP_climbrate2 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[1], e=variables.e,
-    #                           CD0=variables.CD0to, c=variables.c, WS=WS_limit)  # Neutral climb rate
-    # WP_climbrate3 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[2], e=variables.e,
-    #                           CD0=variables.CD0to, c=variables.c, WS=WS_limit)  # Optimistic climb rate
+    def calcWP_turnrate(WSinput):
+        return turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
+                            A=variables.A, e=variables.e, WS=WSinput)             
 
-    WP_climbratefinal = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A, e=variables.e,
-                              CD0=variables.CD0to, c=variables.c, WS=WS_limit)  # final climb rate
+    # Calculate initial list of limits
+    def WPlimitcase(WSinput):
+        return min([calcWP_to(WSinput), calcWP_cruise(WSinput), calcWP_climbrate(WSinput), calcWP_climbgrad(WSinput), calcWP_turnrate(WSinput)])
 
-    # WP_climbgrad1 = climbgradient(etap=variables.etap, cV=variables.c / variables.V, CD=variables.CDclimb[0],
-    #                               CL=variables.CLclimb, rho=variables.rho, WS=WS_limit)  # Pessimistic climb gradient
-    # WP_climbgrad2 = climbgradient(etap=variables.etap, cV=variables.c / variables.V, CD=variables.CDclimb[1],
-    #                               CL=variables.CLclimb, rho=variables.rho, WS=WS_limit)  # Neutral climb rate
-    # WP_climbgrad3 = climbgradient(etap=variables.etap, cV=variables.c / variables.V, CD=variables.CDclimb[2],
-    #                               CL=variables.CLclimb, rho=variables.rho, WS=WS_limit)  # Optimistic climb rate
+    # Calculate actual limiting case
+    i = 0
+    dWS = -5.   
+    while i < 10000:
+        if WPlimitcase(WS_limit + (i+1)*dWS) - WPlimitcase(WS_limit + i*dWS) < 0: #Check if d(WS)/d(iteration) is positive, else stop
+            WS_limit += i*dWS
+            WP_limit = WPlimitcase(WS_limit)
+            break
+        else:
+            i +=1
 
-    WP_climbgradfinal = climbgradient(etap=variables.etap, cV=variables.c / variables.V, CD=variables.CDclimb,
-                                  CL=variables.CLclimb, rho=variables.rho, WS=WS_limit)  # Final climb rate
-
-    # WP_turnrate1 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
-    #                         A=variables.A[0], e=variables.e, WS=WS_limit)
-    # WP_turnrate2 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
-    #                         A=variables.A[1], e=variables.e, WS=WS_limit)
-    # WP_turnrate3 = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
-    #                         A=variables.A[2], e=variables.e, WS=WS_limit)
-
-    WP_turnratefinal = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
-                            A=variables.A, e=variables.e, WS=WS_limit)
-
-    # Calculate limiting W/P values
-    # WP_limit = min(
-    #     [WP_to1, WP_to2, WP_to3, WP_cruise1, WP_cruise2, WP_cruise3, WP_climbrate1, WP_climbrate2, WP_climbrate3,
-    #      WP_climbgrad1, WP_climbgrad2, WP_climbgrad3, WP_turnrate1, WP_turnrate2, WP_turnrate3])
-    WP_limit = min(
-        [WP_tofinal, WP_cruisefinal, WP_climbratefinal, WP_climbgradfinal, WP_turnratefinal])
 
     ## Plotting
     if plot_result:
@@ -180,8 +163,7 @@ def get_design_point(variables, plot_result=False):
 
         # landing
         WP_landing_1 = landing(CLmax=variables.CLmaxland[0], rho=variables.rho, sland=variables.sland, f=variables.f)
-        plt.plot([WP_landing_1, WP_landing_1], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[0]}",
-                 color='forestgreen')
+        plt.plot([WP_landing_1, WP_landing_1], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[0]}", color='forestgreen')
 
         WP_landing_2 = landing(CLmax=variables.CLmaxland[1], rho=variables.rho, sland=variables.sland, f=variables.f)
         plt.plot([WP_landing_2, WP_landing_2], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[1]}", color='limegreen')
@@ -190,54 +172,54 @@ def get_design_point(variables, plot_result=False):
         plt.plot([WP_landing_3, WP_landing_3], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[2]}", color='darkgreen')
 
         # cruise
-        # WP_cruise_1 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
+        # WP_cruise_1 = cruisspeed(etap=variables.initial_etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
         #                          V=variables.V, A=variables.A[0], e=variables.e, WS=WS_plot)
         # plt.plot(WS_plot, WP_cruise_1, label=f"Cruise, A = {variables.A[0]}", color='darkorchid')
         #
-        # WP_cruise_2 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
+        # WP_cruise_2 = cruisspeed(etap=variables.initial_etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
         #                          V=variables.V, A=variables.A[1], e=variables.e, WS=WS_plot)
         # plt.plot(WS_plot, WP_cruise_2, label=f"Cruise, A = {variables.A[1]}", color='mediumorchid')
         #
-        # WP_cruise_3 = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
+        # WP_cruise_3 = cruisspeed(etap=variables.initial_etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
         #                          V=variables.V, A=variables.A[2], e=variables.e, WS=WS_plot)
         # plt.plot(WS_plot, WP_cruise_3, label=f"Cruise, A = {variables.A[2]}", color='plum')
 
-        WP_cruise_final = cruisspeed(etap=variables.etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
+        WP_cruise_final = cruisspeed(etap=variables.initial_etap, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
                                  V=variables.V, A=variables.A, e=variables.e, WS=WS_plot)
         plt.plot(WS_plot, WP_cruise_final, label=f"Cruise, A = {variables.A}", color='plum')
 
         # climbrate
-        # WP_climbrate_1 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[0], e=variables.e,
+        # WP_climbrate_1 = climbrate(etap=variables.initial_etap, rho=variables.rho, A=variables.A[0], e=variables.e,
         #                            CD0=variables.CD0to, c=variables.c, WS=WS_plot)
         # plt.plot(WS_plot, WP_climbrate_1, label=f"Climb rate, A = {variables.A[0]}", color='mediumblue')
         #
-        # WP_climbrate_2 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[1], e=variables.e,
+        # WP_climbrate_2 = climbrate(etap=variables.initial_etap, rho=variables.rho, A=variables.A[1], e=variables.e,
         #                            CD0=variables.CD0to, c=variables.c, WS=WS_plot)
         # plt.plot(WS_plot, WP_climbrate_2, label=f"Climb rate, A = {variables.A[1]}", color='royalblue')
         #
-        # WP_climbrate_3 = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A[2], e=variables.e,
+        # WP_climbrate_3 = climbrate(etap=variables.initial_etap, rho=variables.rho, A=variables.A[2], e=variables.e,
         #                            CD0=variables.CD0to, c=variables.c, WS=WS_plot)
         # plt.plot(WS_plot, WP_climbrate_3, label=f"Climb rate, A = {variables.A[2]}", color='cornflowerblue')
 
-        WP_climbrate_final = climbrate(etap=variables.etap, rho=variables.rho, A=variables.A, e=variables.e,
+        WP_climbrate_final = climbrate(etap=variables.initial_etap, rho=variables.rho, A=variables.A, e=variables.e,
                                    CD0=variables.CD0to, c=variables.c, WS=WS_plot)
         plt.plot(WS_plot, WP_climbrate_final, label=f"Climb rate, A = {variables.A}", color='cornflowerblue')
 
         # climbgrad
-        # WP_climbgrad_1 = climbgradient(etap=variables.etap, cV=variables.c / variables.V, CD=variables.CDclimb[0],
+        # WP_climbgrad_1 = climbgradient(etap=variables.initial_etap, cV=variables.c / variables.V, CD=variables.CDclimb[0],
         #                                CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
         # plt.plot(WS_plot, WP_climbgrad_1, label=f"Climb gradient, A = {variables.A[0]}", color='darkorange')
         #
-        # WP_climbgrad_2 = climbgradient(etap=variables.etap, cV=variables.c / variables.V, CD=variables.CDclimb[1],
+        # WP_climbgrad_2 = climbgradient(etap=variables.initial_etap, cV=variables.c / variables.V, CD=variables.CDclimb[1],
         #                                CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
         # plt.plot(WS_plot, WP_climbgrad_2, label=f"Climb gradient, A = {variables.A[1]}", color='orange')
         #
-        # WP_climbgrad_3 = climbgradient(etap=variables.etap, cV=variables.c / variables.V, CD=variables.CDclimb[2],
+        # WP_climbgrad_3 = climbgradient(etap=variables.initial_etap, cV=variables.c / variables.V, CD=variables.CDclimb[2],
         #                                CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
         # plt.plot(WS_plot, WP_climbgrad_3, label=f"Climb gradient, A = {variables.A[2]}", color='gold')
 
 
-        WP_climbgrad_final = climbgradient(etap=variables.etap, cV=variables.c / variables.V, CD=variables.CDclimb,
+        WP_climbgrad_final = climbgradient(etap=variables.initial_etap, cV=variables.c / variables.V, CD=variables.CDclimb,
                                        CL=variables.CLclimb, rho=variables.rho, WS=WS_plot)
         plt.plot(WS_plot, WP_climbgrad_final, label=f"Climb gradient, A = {variables.A}", color='gold')
 
