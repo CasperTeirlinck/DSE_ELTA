@@ -84,6 +84,7 @@ def glauert_function(phi):
 class CurrentVariables():
     def __init__(self, n_engines=1):
         self.n_engines   = n_engines                                    # [-] amount of engines
+        self.wing_mounted_engine = False                                # Condition whether engines are mounted on the wing
         self.sto         = 500                                          # [m] take-off distance
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
         self.A           = 12                                           # aspect ratio
@@ -119,6 +120,9 @@ class CurrentVariables():
         self.Wbat        = 0                                            # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
         self.WPL         = 200*9.80665                                  # [N] Payload weight
+        self.Wprop       = 9.81*48.2                                    # [N] Propeller weight
+        self.Wmotor      = 9.81*19.75                                   # [N] Motor weight
+        self.Weng        = self.Wprop + self.Wmotor                     # [N] Total engine weight
         self.S           = self.WTO/self.WS                             # [m] Wing surface area
         self.n_blades    = 4                                            # [-] Number of propeller blades single prop
         self.M_tip       = 0.7                                          # [-] Tip mach (non-helical, only rotation)
@@ -136,11 +140,16 @@ class CurrentVariables():
         self.cr          = 1.5                                          # [m] Root chord
         self.ct          = 0.6                                          # [m] Tip chord
         self.MAC         = 1.1                                         # [m] Mean aerodynamic chord
-
+        self.chordwise_cg_oew = 0.25                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
         self.R_e         = self.V*self.cr/(1.46*0.00001)                # Reynolds number
         self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
         self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
         self.eff_tot_prop= 0.95*0.8                                     # Total propulsion efficiency (motor and bat)
+        if wing_mounted_engine:
+            self.x_cg_engine = 000                                      # Engine CG location as measured from aircraft nose
+        if not wing_mounted_engine:
+            self.chordwise_cg_engine = 000                              # Engine CG location as measured from LEMAC
+        x_cg_passenger = 000
         # print(self.R_e)
 
 
