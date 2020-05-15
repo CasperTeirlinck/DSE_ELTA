@@ -85,6 +85,7 @@ class CurrentVariables():
     def __init__(self, n_engines=1):
         self.n_engines   = n_engines                                    # [-] amount of engines
         self.wing_mounted_engine = False                                # Condition whether engines are mounted on the wing
+        self.T_tail = False                                             # Condition whether a t-tail configuration is used (otherwise, conventional tail)
         self.sto         = 500                                          # [m] take-off distance
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
         self.A           = 12                                           # aspect ratio
@@ -145,11 +146,12 @@ class CurrentVariables():
         self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
         self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
         self.eff_tot_prop= 0.95*0.8                                     # Total propulsion efficiency (motor and bat)
-        if wing_mounted_engine:
+        if self.wing_mounted_engine:
             self.x_cg_engine = 000                                      # Engine CG location as measured from aircraft nose
-        if not wing_mounted_engine:
+        if not self.wing_mounted_engine:
             self.chordwise_cg_engine = 000                              # Engine CG location as measured from LEMAC
-        x_cg_passenger = 000
+        self.x_cg_passenger = 000
+        self.x_cg_battery = 000
         # print(self.R_e)
 
 
