@@ -86,8 +86,9 @@ class CurrentVariables():
         ## Requirements
         self.sto         = 500                                          # [m] take-off distance
         self.WPL         = 200*9.80665                                  # [N] Payload weight
+        self.c           = 2                                            # [m/s] climb rate
+        self.phi         = 60                                           # [deg] Maximum bank angle
 
-        
         ## Design concept parameters
         self.n_engines   = n_engines                                    # [-] number of engines
         self.wing_mounted_engine = False                                # Condition whether engines are mounted on the wing (otherwise, fuselage mounted)
@@ -104,20 +105,28 @@ class CurrentVariables():
         ## Statistical values
         self.htail_volume = 0.8                                         # [-] Horizontal tail volume
         self.vtail_volume = 0.4                                         # [-] Vertical tail volume
+        self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
+        self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
 
 
-        # Free design choices
-        self.sweep_h     = 000                                          # [deg] Quarter chord sweep angle of the horizontal tailplane
-        self.sweep_v     = 000                                          # [deg] Quarter chord sweep angle of the vertical tailplane
-        self.A_h         = 12                                           # aspect ratio of the horizontal tailplane
-        self.A_v         = 12                                           # aspect ratio of the vertical tailplane
+        # Free design choices (000 means TBD)
+        self.sweep_h     = 0                                            # [deg] (0- 0) Quarter chord sweep angle of the horizontal tailplane
+        self.sweep_v     = 000                                          # [deg] (0-50) Quarter chord sweep angle of the vertical tailplane
+        self.A_h         = 3                                            # [-] (3-5)aspect ratio of the horizontal tailplane
+        self.A_v         = 12                                           # [-] (1-2) aspect ratio of the vertical tailplane
         self.x_htail = 000                                              # [m] location of the ac of the horizontal tail
         self.x_vtail = 000                                              # [m] location of the ac of the vertical tail
+        self.taper_h     = 000                                          # [-] (0.3-1.0) Taper ratio of the horizontal tailplane
+        self.taper_v     = 000                                          # [-] (0.3-0.7) Taper ratio of the vertical tailplane
+
+        ## Calculated values
+        self.Weng        = self.Wprop + self.Wmotor                     # [N] Total engine weight
+        self.S           = self.WTO/self.WS                             # [m] Wing surface area
+
 
         ## Unassigned
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
         self.A           = 12                                           # aspect ratio of the main wing
-
         self.e           = 0.83                                         # oswald efficiency factor
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
         self.CD0to       = 0.0380                                       # drag constant
@@ -138,8 +147,6 @@ class CurrentVariables():
         self.sigma       = self.rho/self.rho0                           # density ratio rho/rho0
         self.f           = 1                                            # WL/WTO
         self.etap        = 0.7                                          # propeller efficiency
-        self.c           = 2                                            # [m/s] climb rate
-        self.phi         = 60                                           # [deg] bank angle
         if n_engines == 1:
             self.WP      = 0.1218                                       # [N/W] power loading
             self.WS      = 465                                          # [N/m2] wing loading
@@ -151,8 +158,6 @@ class CurrentVariables():
         self.Woew        = 0                                            # [N] Operational empty weight
         self.Wprop       = 9.81*48.2                                    # [N] Propeller weight
         self.Wmotor      = 9.81*19.75                                   # [N] Motor weight
-        self.Weng        = self.Wprop + self.Wmotor                     # [N] Total engine weight
-        self.S           = self.WTO/self.WS                             # [m] Wing surface area
         self.n_blades    = 4                                            # [-] Number of propeller blades single prop
         self.M_tip       = 0.7                                          # [-] Tip mach (non-helical, only rotation)
         self.helicaltipmach = 0.75                                      # [-] Helical tip mach number, or critical mach of propeller tip airfoil
@@ -165,16 +170,12 @@ class CurrentVariables():
         self.do_engine_sizing(self.contrarotate, self.duct_t_over_c)
         self.sweep       = 0                                            # [deg] Quarter chord sweep angle of the main wing
         self.taper       = 0.4                                          # [-] Taper ratio of the main wing
-        self.taper_h     = 000                                          # [-] Taper ratio of the horizontal tailplane
-        self.taper_v     = 000                                          # [-] Taper ratio of the vertical tailplane
         self.b           = 12.2                                         # [m] Wing span
         self.cr          = 1.5                                          # [m] Root chord
         self.ct          = 0.6                                          # [m] Tip chord
         self.MAC         = 1.1                                          # [m] Mean aerodynamic chord
         self.chordwise_cg_oew = 0.25                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
         self.R_e         = self.V*self.cr/(1.46*0.00001)                # Reynolds number
-        self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
-        self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
         self.eff_tot_prop= 0.95*0.8                                     # Total propulsion efficiency (motor and bat)
 
 
