@@ -1,0 +1,54 @@
+from variables import *
+import math as m
+
+
+class Test():
+    def __init__(self):
+        self.fuselage_height = 1.5
+        self.tail_height = 0.75
+        self.l_tail = 3
+        self.xcg_aft = -1
+        self.zcg = self.fuselage_height*0.6
+        self.x_lemac = -1
+        self.z_lemac = 0.2
+        self.ct = 0.6
+        self.b = 12.2
+        self.MAC = 1.1
+        self.dihedral = 1
+
+
+def size_gear(variables: Test):
+    tailstrike = m.radians(15.75)  # rad
+    frw_cg_angle = m.radians(5.25) # rad
+
+    h_cg = variables.zcg
+    h_tail = variables.tail_height
+    l0 = variables.l_tail + variables.xcg_aft
+    dist0 = l0 + m.tan(frw_cg_angle) * (h_cg - h_tail)
+    z_landinggear = dist0/(1/m.tan(tailstrike) + m.tan(frw_cg_angle))+h_tail
+    x_landinggear = -(z_landinggear - (h_cg - h_tail))*m.tan(frw_cg_angle)+variables.xcg_aft + (h_cg - h_tail) * m.tan(frw_cg_angle)
+
+    x_aft_tip_wing = variables.x_lemac - variables.MAC*0.25 - variables.ct*0.75
+    z_aft_tip_wing = variables.z_lemac + 0.15*variables.ct-variables.b*0.5*m.tan(m.radians(variables.dihedral))
+    angle = m.atan((z_aft_tip_wing-z_landinggear)/(-x_aft_tip_wing+x_landinggear))
+    if angle > 0 and angle < m.radians(15.75):
+        print("Wing tip strike! Tell Max to change code to account for that further. He did not expect this to occur so did not waste time implementing it.")
+
+    fnoverw = 0.12
+    d_ng = (variables.xcg_aft - x_landinggear) / fnoverw
+    x_nosegear = x_landinggear+d_ng
+    print(variables.zcg/((x_nosegear - variables.xcg_aft)*m.tan(m.radians(57.75))))
+    y_landinggear = d_ng * m.tan(m.asin(variables.zcg/((x_nosegear - variables.xcg_aft)*m.tan(m.radians(57.75)))))
+
+    variables.x_maingear, variables.y_maingear, variables.z_maingear, variables.x_nosegear = \
+        x_landinggear, y_landinggear, z_landinggear, x_nosegear
+
+    return x_landinggear, y_landinggear, z_landinggear, x_nosegear
+
+
+
+
+if __name__ == "__main__":
+    varis = Test()
+
+    print(size_gear(varis))

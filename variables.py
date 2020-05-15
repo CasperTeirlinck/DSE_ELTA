@@ -164,6 +164,11 @@ class CurrentVariables():
         self.vtail_volume = 0.4                                         # [-] Vertical tail volume
 
         # print(self.R_e)
+        self.x_maingear = None
+        self.y_maingear = None
+        self.z_maingear = None
+        self.x_nosegear = None
+
 
 
 
@@ -246,7 +251,7 @@ class CurrentVariables():
         # self.propefficiency = self.calc_engine_efficiency()
 
 
+
 if __name__ == "__main__":
-    variables = CurrentVariables(n_engines=12)
-    # print(variables.prop_d3)
-    print(variables.prop_d)
+    variables = CurrentVariables(n_engines=1)
+    print("2Print P: ", variables.P)
