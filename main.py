@@ -16,6 +16,7 @@ def loop(v: CurrentVariables):
     v.WS, v.WP = get_design_point(v)
     v = classIestimation(v)
     v = wing_planform(v)
+    # TODO: add Wwing, Wfus, etc. to variables class. Also fix Class I bug.
     # Control surface sizing here
     v = cg_calculations(v)
     v = size_gear(v)
@@ -28,7 +29,10 @@ def loop(v: CurrentVariables):
 
 def do_loop(v: CurrentVariables, difference=35, maxiterations=10):
     for iteration in range(maxiterations):
-        if abs(v.Woew - v.Woew_classII) < difference*9.81:
+        if v.Woew_classII != None and abs(v.Woew - v.Woew_classII) < difference*9.81:
+            print(v.Woew)
+            print(v.Woew_classII)
+            print("This")
             return v
         else:
             v = loop(v)

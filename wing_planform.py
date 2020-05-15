@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from variables import *
+from ClassIIWeightEstimation import MainWingEstimation
 
 def wing_planform(variables,drawing=False):
     S = variables.WTO/variables.WS
@@ -57,6 +58,7 @@ def wing_planform(variables,drawing=False):
     variables.cr    = cr
     variables.ct    = ct
     variables.MAC   = MAC
+    variables.Wwing = MainWingEstimation(variables.WTO, S, variables.n_ult, A, Strut=False)
     return variables
 
 if __name__ == "__main__":

@@ -47,7 +47,8 @@ class CurrentVariables():
         self.helicaltipmach = 0.75                                      # [-] Helical tip mach number, or critical mach of propeller tip airfoil
         self.rho0        = 1.225                                        # [kg/m3] density at sealvl
         self.sland       = 500                                          # [m] landing distance
-        self.f           = 1                                            # WL/WTO
+        self.f           = 1                                            # [-] WL/WTO
+        self.n_ult       = 5.7                                          # [-] Ultimate load factor in g
 
         ## Design concept parameters (Concept number: )
         self.n_engines   = n_engines                                    # [-] number of engines
@@ -119,6 +120,8 @@ class CurrentVariables():
         self.Woew_classII= None                                         # [N] Operational empty weight
         self.Wprop       = 9.81*48.2                                    # [N] Propeller weight
         self.Wmotor      = 9.81*19.75                                   # [N] Motor weight
+        self.Wwing       = None                                         # [N] Wing weight
+        self.Wfus        = None                                         # [N] Fuselage weight
         self.xcg_aft     = None                                         # [m] Aft-most cg location
         self.xcg_fwr     = None                                         # [m] Forward-most cg location
 
