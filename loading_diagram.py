@@ -102,7 +102,7 @@ def get_design_point(variables, plot_result=False):
     # Calculate limiting W/S value
     WS_limit = min([WS_s, WS_landing1, WS_landing2, WS_landing3])
 
-    # Define single-input calculations
+    # Define single-input calculations for W/P
     def calcWP_to(WSinput):
         return takeoff(k=variables.k, CLto=variables.CLto, sigma=variables.sigma, WS=WSinput)
     
@@ -123,36 +123,20 @@ def get_design_point(variables, plot_result=False):
                             A=variables.A, e=variables.e, WS=WSinput)             
 
     # Calculate initial list of limits
-    WPlimitlist = [calcWP_to(WS_limit), calcWP_cruise(WS_limit), calcWP_climbrate(WS_limit), calcWP_climbgrad(WS_limit), calcWP_turnrate(WS_limit)]
-
-    # Define calculator of the WP value of the initial limiting WP case
-    def limcasecalc(WSinput2):
-        if min(WPlimitlist) == WPlimitlist[0]:
-            return calcWP_to(WSinput2)
-
-        elif min(WPlimitlist) == WPlimitlist[1]:
-            return calcWP_cruise(WSinput2)
-
-        elif min(WPlimitlist) == WPlimitlist[2]:
-            return calcWP_climbrate(WSinput2)
-
-        elif min(WPlimitlist) == WPlimitlist[3]:
-            return calcWP_climbgrad(WSinput2)
-        
-        elif min(WPlimitlist) == WPlimitlist[4]:
-            return calcWP_turnrate(WSinput2)
-     
+    def WPlimitcase(WSinput):
+        return min([calcWP_to(WSinput), calcWP_cruise(WSinput), calcWP_climbrate(WSinput), calcWP_climbgrad(WSinput), calcWP_turnrate(WSinput)])
 
     # Calculate actual limiting case
     i = 0
-    dWS = -5.
-    WS0 = WS_limit
-    while i < 5: #limcasecalc(WS0+i*dWS):
-        limcasecalc = WS0 + i*dWS
-        i += 1
+    dWS = -5.   
+    while i < 10000:
+        if WPlimitcase(WS_limit + (i+1)*dWS) - WPlimitcase(WS_limit + i*dWS) < 0: #Check if d(WS)/d(iteration) is positive, else stop
+            WS_limit += i*dWS
+            WP_limit = WPlimitcase(WS_limit)
+            break
+        else:
+            i +=1
 
-    WS_limit = WS0 + i*dWS
-    WP_limit = limcasecalc(WS_limit)
 
     ## Plotting
     if plot_result:
