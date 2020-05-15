@@ -42,6 +42,7 @@ def classIestimation(variables, a=0.656, b=-109, maxiterations=100):
     # bat_endurance = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=endurance_s)
     # variables.bmf = max(bat_range, bat_endurance)
     variables.bmf = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=endurance_s)
+    print(variables.bmf)
     # print(variables.bmf)
     if variables.Woew_classII == 0 or variables.Woew_classII == None:
         WeWo = lambda Wo: a*Wo + b
