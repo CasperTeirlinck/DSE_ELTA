@@ -18,7 +18,7 @@ class Test():
         self.WTO = 750*9.81
 
 
-def size_gear(variables: Test):
+def size_gear(variables):
     tailstrike = m.radians(15.75)  # rad
     frw_cg_angle = m.radians(5.25) # rad
 
