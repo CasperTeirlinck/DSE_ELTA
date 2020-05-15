@@ -83,14 +83,41 @@ def glauert_function(phi):
 
 class CurrentVariables():
     def __init__(self, n_engines=1):
-        self.n_engines   = n_engines                                    # [-] amount of engines
+        ## Requirements
+        self.sto         = 500                                          # [m] take-off distance
+        self.WPL         = 200*9.80665                                  # [N] Payload weight
+
+        
+        ## Design concept parameters
+        self.n_engines   = n_engines                                    # [-] number of engines
         self.wing_mounted_engine = False                                # Condition whether engines are mounted on the wing (otherwise, fuselage mounted)
         self.T_tail = False                                             # Condition whether a t-tail configuration is used (otherwise, conventional tail)
-        self.sto         = 500                                          # [m] take-off distance
-        self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
-        self.A           = 12                                           # aspect ratio of the main wing
+        self.x_cg_passenger = 000                                       # [m] Passenger CG location as measured from aircraft nose
+        self.x_cg_battery = 000                                         # [m] Battery CG location as measured from aircraft nose
+        if self.wing_mounted_engine:
+            self.x_cg_engine = 000                                      # [m] Engine CG location as measured from aircraft nose
+        if not self.wing_mounted_engine:
+            self.chordwise_cg_engine = 000                              # [-] Engine CG location as measured from LEMAC%
+
+
+
+        ## Statistical values
+        self.htail_volume = 0.8                                         # [-] Horizontal tail volume
+        self.vtail_volume = 0.4                                         # [-] Vertical tail volume
+
+
+        # Free design choices
+        self.sweep_h     = 000                                          # [deg] Quarter chord sweep angle of the horizontal tailplane
+        self.sweep_v     = 000                                          # [deg] Quarter chord sweep angle of the vertical tailplane
         self.A_h         = 12                                           # aspect ratio of the horizontal tailplane
         self.A_v         = 12                                           # aspect ratio of the vertical tailplane
+        self.x_htail = 000                                              # [m] location of the ac of the horizontal tail
+        self.x_vtail = 000                                              # [m] location of the ac of the vertical tail
+
+        ## Unassigned
+        self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
+        self.A           = 12                                           # aspect ratio of the main wing
+
         self.e           = 0.83                                         # oswald efficiency factor
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
         self.CD0to       = 0.0380                                       # drag constant
@@ -122,7 +149,6 @@ class CurrentVariables():
         self.WTO         = 750*9.81                                     # [N] take-off weight
         self.Wbat        = 0                                            # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
-        self.WPL         = 200*9.80665                                  # [N] Payload weight
         self.Wprop       = 9.81*48.2                                    # [N] Propeller weight
         self.Wmotor      = 9.81*19.75                                   # [N] Motor weight
         self.Weng        = self.Wprop + self.Wmotor                     # [N] Total engine weight
@@ -138,8 +164,6 @@ class CurrentVariables():
         self.duct_t_over_c= 0.0001
         self.do_engine_sizing(self.contrarotate, self.duct_t_over_c)
         self.sweep       = 0                                            # [deg] Quarter chord sweep angle of the main wing
-        self.sweep_h     = 000                                          # [deg] Quarter chord sweep angle of the horizontal tailplane
-        self.sweep_v     = 000                                          # [deg] Quarter chord sweep angle of the vertical tailplane
         self.taper       = 0.4                                          # [-] Taper ratio of the main wing
         self.taper_h     = 000                                          # [-] Taper ratio of the horizontal tailplane
         self.taper_v     = 000                                          # [-] Taper ratio of the vertical tailplane
@@ -152,16 +176,9 @@ class CurrentVariables():
         self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
         self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
         self.eff_tot_prop= 0.95*0.8                                     # Total propulsion efficiency (motor and bat)
-        if self.wing_mounted_engine:
-            self.x_cg_engine = 000                                      # [m] Engine CG location as measured from aircraft nose
-        if not self.wing_mounted_engine:
-            self.chordwise_cg_engine = 000                              # [-] Engine CG location as measured from LEMAC%
-        self.x_cg_passenger = 000                                       # [m] Passenger CG location as measured from aircraft nose
-        self.x_cg_battery = 000                                         # [m] Battery CG location as measured from aircraft nose
-        self.x_htail = 000                                              # [m] location of the ac of the horizontal tail
-        self.x_vtail = 000                                              # [m] location of the ac of the vertical tail
-        self.htail_volume = 0.8                                         # [-] Horizontal tail volume
-        self.vtail_volume = 0.4                                         # [-] Vertical tail volume
+
+
+
 
         # print(self.R_e)
         self.x_maingear = None
