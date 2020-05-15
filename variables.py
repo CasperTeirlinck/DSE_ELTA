@@ -30,57 +30,6 @@ def glauert_function(phi):
     return (2+5*tan(phi)**2)/(8*cos(phi)) - 3 / 16 * tan(phi)**4*log((1-cos(phi))/(1+cos(phi)), 10)
 
 
-# Single engine
-# A           = np.array([8, 10, 12])                     # aspect ratio
-# e           = 0.83                                      # oswald efficiency factor
-# CLmaxto     = np.array([ 1.7, 1.8, 1.9 ])               # CLmax take-off
-# CLmaxland   = np.array([ 1.7, 2.0, 2.3 ])               # CLmax landing
-# CLmaxclean  = np.array([ 1.7, 1.8, 1.9 ])               # CLmax clean
-# CLto        = np.array(CLmaxto/(1.1**2)).round(1)       # take-off CL, = CLmax,TO/1.1^2
-# CD0to       = 0.0380                                    # drag constant
-# CD0clean    = 0.0280                                    # drag constant
-# CLclimb     = CLmaxto[1] - 0.2                          # CLmax - safety margin fo crimb gradient
-# CDclimb     = CD0to + (CLclimb**2)/(np.pi*A*e)          # CD for climb gradient
-# Vs          = IAS_TAS(1700, 23.15)                      # [m/s] stall speed (45 kts calibrated)
-# V           = IAS_TAS(914.4, 48.87)                     # [m/s] velocity
-# rho         = 1.04                                      # [kg/m3] airdensity take-off and landing
-# rhocruise   = 1.12                                      # [kg/m3] airdensity cruise
-# rho0        = 1.225                                     # [kg/m3] density at sealvl
-# sland       = 500                                       # [m] landing distance
-# sto         = 500                                       # [m] take-off distance
-# k           = np.sqrt(5647.9 + 17.331 * sto) - 75.153   # [N2/m2W] take-off parameter
-# sigma       = rho/rho0                                  # density ratio rho/rho0
-# f           = 1                                         # WL/WTO
-# etap        = 0.7                                       # propeller efficiency
-# c           = 2                                         # [m/s] climb rate
-# phi         = 60                                        # [deg] bank angle
-
-# Twin engine
-# A           = np.array([8, 10, 12])                     # aspect ratio
-# e           = 0.83                                      # oswald efficiency factor
-# CLmaxto     = np.array([ 1.8, 1.9, 2.0 ])               # CLmax take-off
-# CLmaxland   = np.array([ 1.8, 2.1, 2.4 ])               # CLmax landing
-# CLmaxclean  = np.array([ 1.8, 1.8, 1.8 ])               # CLmax clean
-# CLto        = np.array(CLmaxto/(1.1**2)).round(1)       # take-off CL, = CLmax,TO/1.1^2
-# CD0to       = 0.0380                                    # drag constant
-# CD0clean    = 0.0280                                    # drag constant
-# CLclimb     = CLmaxto[1] - 0.2                          # CLmax - safety margin fo crimb gradient
-# CDclimb     = CD0to + (CLclimb**2)/(np.pi*A*e)          # CD for climb gradient
-# Vs          = IAS_TAS(1700, 23.15)                      # [m/s] stall speed (45 kts calibrated)
-# V           = IAS_TAS(914.4, 48.87)                     # [m/s] velocity
-# rho         = 1.04                                      # [kg/m3] airdensity take-off and landing
-# rhocruise   = 1.12                                      # [kg/m3] airdensity cruise
-# rho0        = 1.225                                     # [kg/m3] density at sealvl
-# sland       = 500                                       # [m] landing distance
-# sto         = 500                                       # [m] take-off distance
-# k           = 93                                        # [N2/m2W] take-off parameter
-# sigma       = rho/rho0                                  # density ratio rho/rho0
-# f           = 1                                         # WL/WTO
-# etap        = 0.7                                       # propeller efficiency
-# c           = 2                                         # [m/s] climb rate
-# phi         = 60                                        # [deg] bank angle
-
-
 class CurrentVariables():
     def __init__(self, n_engines=1):
         ## Requirements
@@ -89,6 +38,15 @@ class CurrentVariables():
         self.c           = 2                                            # [m/s] climb rate
         self.phi         = 60                                           # [deg] Maximum bank angle
         self.climbrate   = 2                                            # [m/s] climb rate
+        self.Vmax_kts    = 120                                          # [KIAS] Max speed in knots
+        self.Vmax        = self.Vmax_kts*0.514444444                    # IAS [m/s] max speed
+        self.Vs          = IAS_TAS(1700, 23.15)                         # [m/s] stall speed (45 kts calibrated)
+        self.rho         = 1.04                                         # [kg/m3] airdensity take-off and landing
+        self.M_tip       = 0.7                                          # [-] Tip mach (non-helical, only rotation)
+        self.helicaltipmach = 0.75                                      # [-] Helical tip mach number, or critical mach of propeller tip airfoil
+        self.rho0        = 1.225                                        # [kg/m3] density at sealvl
+        self.sland       = 500                                          # [m] landing distance
+        self.f           = 1                                            # WL/WTO
 
         ## Design concept parameters (Concept number: )
         self.n_engines   = n_engines                                    # [-] number of engines
@@ -96,9 +54,10 @@ class CurrentVariables():
         self.T_tail = False                                             # Condition whether a t-tail configuration is used (otherwise, conventional tail)
         self.x_cg_passenger = 0.97                                      # [m] Passenger CG location as measured from aircraft nose
         self.x_cg_battery = 1.96                                        # [m] Battery CG location as measured from aircraft nose
-        self.x_cg_fuselage = 2.33                                       # [m] Empty fuselage CG location as measured from the aircraft nose    
+        self.x_cg_fuselage = 2.33                                       # [m] Empty fuselage CG location as measured from the aircraft nose
+        self.ducted = False
         if self.wing_mounted_engine:
-            self.x_cg_engine = 0.755                                      # [m] Engine CG location as measured from aircraft nose
+            self.x_cg_engine = 0.755                                    # [m] Engine CG location as measured from aircraft nose
         if not self.wing_mounted_engine:
             self.chordwise_cg_engine = 000                              # [-] Engine CG location as measured from LEMAC%
 
@@ -109,9 +68,12 @@ class CurrentVariables():
         self.vtail_volume = 0.4                                         # [-] Vertical tail volume
         self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
         self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
+        self.CD0to       = 0.0380                                       # drag constant
+        self.CD0clean    = 0.0280                                       # drag constant
 
 
         # Free design choices (000 means TBD)
+        self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
         self.sweep_h     = 0                                            # [deg] (0- 0) Quarter chord sweep angle of the horizontal tailplane
         self.sweep_v     = 000                                          # [deg] (0-50) Quarter chord sweep angle of the vertical tailplane
         self.A_h         = 3                                            # [-] (3-5)aspect ratio of the horizontal tailplane
@@ -120,30 +82,26 @@ class CurrentVariables():
         self.x_vtail     = 4.7                                          # [m] location of the ac of the vertical tail
         self.taper_h     = 000                                          # [-] (0.3-1.0) Taper ratio of the horizontal tailplane
         self.taper_v     = 000                                          # [-] (0.3-0.7) Taper ratio of the vertical tailplane
-
-
-        ## Unassigned
-        self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
         self.A           = 12                                           # aspect ratio of the main wing
         self.e           = 0.83                                         # oswald efficiency factor
+        self.n_blades    = 4                                            # [-] Number of propeller blades single prop
+        self.rps_TO      = 2400 / 60                                    # [rps] revolution speed of prop at TO
+        self.rps_cruise  = 2700 / 60                                    # [rps] revolution speed of prop at cruise
+        self.coverR      = 0.5                                          # [-] Chord of duct to radius of fan ratio
+        self.angleduct   = 2                                            # [deg] angle of the chordline of the duct
+        self.initial_etap        = 0.7                                  # propeller efficiency
+        self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
+        self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
+
+
+        ## Calculated values
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
-        self.CD0to       = 0.0380                                       # drag constant
         self.CDto = self.CD0to + self.CLto**2/(pi*self.A*self.e)        # drag during takeoff
-        self.CD0clean    = 0.0280                                       # drag constant
         self.CD0 = self.CD0clean
         self.CLclimb     = self.CLmaxto - 0.2                           # CLmax - safety margin fo crimb gradient
         self.CDclimb     = self.CD0to + (self.CLclimb**2)/(np.pi*self.A*self.e) # CD for climb gradient
-        self.Vs          = IAS_TAS(1700, 23.15)                         # [m/s] stall speed (45 kts calibrated)
-        self.Vmax_kts    = 120                                          # [KIAS] Max speed in knots
-        self.Vmax        = self.Vmax_kts*0.514444444                    # IAS [m/s] max speed
-        self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
-        self.rho         = 1.04                                         # [kg/m3] airdensity take-off and landing
-        self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
-        self.rho0        = 1.225                                        # [kg/m3] density at sealvl
-        self.sland       = 500                                          # [m] landing distance
+
         self.sigma       = self.rho/self.rho0                           # density ratio rho/rho0
-        self.f           = 1                                            # WL/WTO
-        self.etap        = 0.7                                          # propeller efficiency
         if n_engines == 1:
             self.WP      = 0.1218                                       # [N/W] power loading
             self.WS      = 465                                          # [N/m2] wing loading
@@ -155,16 +113,7 @@ class CurrentVariables():
         self.Woew        = 0                                            # [N] Operational empty weight
         self.Wprop       = 9.81*48.2                                    # [N] Propeller weight
         self.Wmotor      = 9.81*19.75                                   # [N] Motor weight
-        self.n_blades    = 4                                            # [-] Number of propeller blades single prop
-        self.M_tip       = 0.7                                          # [-] Tip mach (non-helical, only rotation)
-        self.helicaltipmach = 0.75                                      # [-] Helical tip mach number, or critical mach of propeller tip airfoil
-        self.rps_TO      = 2400 / 60                                    # [rps] revolution speed of prop at TO
-        self.rps_cruise  = 2700 / 60                                    # [rps] revolution speed of prop at cruise
-        self.C_d_prop    = 0.012                                        # [-] 2D airfoil drag of propeller
-        self.prop_A_ratio= (81836-12446)/372230                         # [-] propeller area ratio: Lockheed YO-3 estimation
-        self.contrarotate= False
-        self.duct_t_over_c= 0.0001
-        self.do_engine_sizing(self.contrarotate, self.duct_t_over_c)
+
         self.sweep       = 0                                            # [deg] Quarter chord sweep angle of the main wing
         self.taper       = 0.4                                          # [-] Taper ratio of the main wing
         self.b           = 12.2                                         # [m] Wing span
@@ -172,66 +121,42 @@ class CurrentVariables():
         self.ct          = 0.6                                          # [m] Tip chord
         self.MAC         = 1.1                                          # [m] Mean aerodynamic chord
         self.chordwise_cg_oew = 0.25                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
-        self.R_e         = self.V*self.cr/(1.46*0.00001)                # Reynolds number
         self.eff_tot_prop= 0.95*0.8                                     # Total propulsion efficiency (motor and bat)
 
-        ## Calculated values
         self.Weng        = self.Wprop + self.Wmotor                     # [N] Total engine weight
         self.S           = self.WTO/self.WS                             # [m] Wing surface area
-
-
-        # Landing gear parameters, to be filled in by function.
-        self.x_maingear = None
-        self.y_maingear = None
-        self.z_maingear = None
-        self.x_nosegear = None
-        self.maingeardiameter = None
-        self.maingearwidth = None
-        self.nosegeardiameter = None
-        self.nosegearwidth = None
+        self.do_engine_sizing()
+        self.x_maingear = None                                          # [m] from nose, more negative is further from nose
+        self.y_maingear = None                                          # [m] from nose, right wing positive
+        self.z_maingear = None                                          # [m] from top of fuselage, down positive
+        self.x_nosegear = None                                          # [m] from nose, more negative is further from nose
+        self.maingeardiameter = None                                    # [m] diameter of main gear wheel
+        self.maingearwidth = None                                       # [m] width of main gear wheel
+        self.nosegeardiameter = None                                    # [m] diameter of nose gear wheel
+        self.nosegearwidth = None                                       # [m] width of nose gear wheel
 
 
 
 
     def init_single_engine(self):
-        # self.CLmaxto = np.array([1.7, 1.8, 1.9])                # CLmax take-off
-        self.CLmaxto = 1.8                                      # CLmax take-off
-        self.CLmaxland = np.array([1.7, 2.0, 2.3])              # CLmax landing
-        self.CLmaxclean = np.array([1.7, 1.8, 1.9])             # CLmax clean
-        self.k = np.sqrt(5647.9 + 17.331 * self.sto) - 75.153   # [N2/m2W] take-off parameter
+        # self.CLmaxto = np.array([1.7, 1.8, 1.9])                      # CLmax take-off
+        self.CLmaxto = 1.8                                              # CLmax take-off
+        self.CLmaxland = np.array([1.7, 2.0, 2.3])                      # CLmax landing
+        self.CLmaxclean = np.array([1.7, 1.8, 1.9])                     # CLmax clean
+        self.k = np.sqrt(5647.9 + 17.331 * self.sto) - 75.153           # [N2/m2W] take-off parameter
 
     def init_multi_engine(self):
-        # self.CLmaxto     = np.array([ 1.8, 1.9, 2.0 ])               # CLmax take-off
-        self.CLmaxto     = 1.9                                       # CLmax take-off
-        self.CLmaxland   = np.array([ 1.8, 2.1, 2.4 ])               # CLmax landing
-        self.CLmaxclean  = np.array([ 1.8, 1.8, 1.8 ])               # CLmax clean
-        self.k           = 93                                        # [N2/m2W] take-off parameter
-
-    # def calc_engine_efficiency(self, tolerance=1e-3, maxiterations=1000):
-    #     for _ in range(maxiterations):
-    #         eta2 = 1 - 4 / pi**3 * self.eta1 * self.C_P / self.J
-    #         print("eta2", eta2)
-    #         phi = atan(self.J/pi/self.eta1/eta2)
-    #         eta3 = 1 - pi*pi*pi*pi*eta2*eta2*self.prop_A_ratio*self.C_d_prop*glauert_function(phi)/8/self.C_P
-    #         print("eta3", eta3)
-    #         eta1 = 1 - 2/pi * self.C_P * eta2 * eta3 * (self.eta1/self.J)**3
-    #         print("eta1", eta1)
-    #         if abs(eta2-self.eta2) < tolerance and abs(eta1-self.eta1) < tolerance and abs(eta3-self.eta3) < tolerance:
-    #             self.eta1, self.eta2, self.eta3 = eta1, eta2, eta3
-    #             return eta1*eta2*eta3
-    #         self.eta1, self.eta2, self.eta3 = eta1, eta2, eta3
-    #
-    #     else:
-    #         print("Process did not converge.")
-    #         return 0.0
+        # self.CLmaxto     = np.array([ 1.8, 1.9, 2.0 ])                # CLmax take-off
+        self.CLmaxto     = 1.9                                          # CLmax take-off
+        self.CLmaxland   = np.array([ 1.8, 2.1, 2.4 ])                  # CLmax landing
+        self.CLmaxclean  = np.array([ 1.8, 1.8, 1.8 ])                  # CLmax clean
+        self.k           = 93                                           # [N2/m2W] take-off parameter
 
 
-    def do_engine_sizing(self, contra, t_over_c_duct, s=1.2, z=0.075):
+    def do_engine_sizing(self):
         # Using methods from Rik's book
-        self.P_total           = self.WTO/self.WP                           # [W] Engine power
-        self.P           = self.P_total/self.n_engines                            # Single engine thrust
-        PBHP             = self.P * 0.0013410220888           # [BPH] Engine power
-        CL, CD = sqrt(pi * self.A * self.e * self.CD0clean), 2 * self.CD0clean
+        self.P_total           = self.WTO/self.WP                       # [W] Engine power
+        self.P           = self.P_total/self.n_engines                  # Single engine thrust
 
         if self.n_blades == 2:
             factor = 0.56
@@ -239,38 +164,15 @@ class CurrentVariables():
             factor = 0.52
         else:
             factor = 0.49
+
         self.prop_d      = factor*(self.P*0.001)**0.25
-        self.T_static = 78.034*PBHP**(2/3)*(self.rho*self.prop_d*self.prop_d)**(1/3)
-        self.T = 0.5*self.rho*self.V**2*self.WTO/self.WS*CD
-        self.J           = self.Vmax / self.rps_TO / self.prop_d        # [-] Advance ratio
-        self.CP          = self.P / (self.rho * self.rps_cruise**3 * self.prop_d**5)
-        self.CT_static   = self.T_static / (self.rho * self.rps_cruise**2 * self.prop_d**4)
-        self.CT          = self.T / (self.rho * self.rps_cruise**2 * self.prop_d**4)
-        self.CQ          = self.CP*0.5/pi
-        self.prop_eff    = self.J * self.CT / self.CP
-
-        self.speedfactor = 1
-        if t_over_c_duct != 0:
-            c = 0.5*self.prop_d*(1/(1/s-t_over_c_duct))
-            Re = 0.5*self.prop_d+0.5*c*t_over_c_duct
-            delta_d = 1 - sqrt(2*Re/self.prop_d)*((0.458+4.431*s)/(1+1.089*s)*z+(2.033+4.88*s)/(1+0.893*s)*s*z*z)
-            K = 1
-            CT_noduct = self.T/(0.5*self.rho*self.V**2*pi*self.prop_d**2*0.25)
-            delta_i = K * (sqrt(1+CT_noduct)-1)
-            self.speedfactor = 1+(delta_d+delta_i)
-
-
-
-        self.propefficiency = self.WP**(sqrt(2*self.WS/self.rho/self.CLto)+self.climbrate) # [-] propeller efficiency (Pa to thrust)
-        self.Vclimb      = sqrt(self.WS/(0.5*self.rho*self.CLto))
-        self.M_to        = self.Vclimb/331                              # [-] Take-off mach number (critical for noise)
-        # self.prop_d      = 331/pi/self.engine_rps*sqrt(self.helicaltipmach**2-self.M_to**2) # [m] Propeller diameter
-        self.prop_d     = 0.49 * (self.P/1000)**0.25
-        self.C_P         = self.P / self.rho / self.prop_d ** 3 / self.rps_TO ** 5
-        # Using 'Maximum Propeller Efficiency Estimation' - Ohad Gur
-        self.eta1, self.eta2, self.eta3 = 0.5, 0.5, 0.5
-        # self.propefficiency = self.calc_engine_efficiency()
-
+        if self.ducted:
+            print("Use Javaprop to find efficiency. Parameters to use are P={} W, blades={} [-], V={} m/s, rpm={}, c/R={} [-], angle={} deg".format(self.P, self.n_blades, self.Vmax, self.rps_TO*60, self.coverR, self.angleduct))
+        else:
+            print("Use Javaprop to find efficiency. Parameters to use are P={} W, blades={} [-], V={} m/s, rpm={}.".format(self.P, self.n_blades, self.Vmax, self.rps_TO*60))
+        self.eff_propeller = float(input("Efficiency [%]: "))/100       # [-] Efficiency of a propeller
+        self.T_propeller = input("Thrust [N]: ")                        # [N] Thrust of a single engine
+        self.T_total = self.T_propeller * self.n_engines                # [N] Total thrust of aircraft
 
 
 if __name__ == "__main__":
