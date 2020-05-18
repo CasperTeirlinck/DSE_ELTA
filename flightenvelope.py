@@ -1,38 +1,57 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-VS = 80
-VA = 165
-VC = 250
-VD = 300
-
-n_VA = { 'mnvr': [3.8, -1.5],   'gst': [None, None] }
-n_VC = { 'mnvr': [3.8, -1.5],   'gst': [4.5, -3.5] }
-n_VD = { 'mnvr': [3.8, 0],      'gst': [3.5, -1] }
+# all eas !!
+V_s = 80
+V_c = 200
+V_d = 250
 
 """ MANOUVER ENVELOPE """
-plt.plot(np.arange(0, VA, 0.1), n_VA['mnvr'][0]/VA**2 * np.arange(0, VA, 0.1)**2, linestyle='--', color='black', linewidth=1)
-plt.plot([VA, VD], [n_VA['mnvr'][0], n_VD['mnvr'][0]], linestyle='--', color='black', linewidth=1)
+n_max = 2.5
+n_min = -1
+# STALL
+plt.plot(np.arange(0, V_s*np.sqrt(n_max), 0.1), (np.arange(0, V_s*np.sqrt(n_max), 0.1)/V_s)**2, linestyle='--', color='black', linewidth=1)
+plt.plot(np.arange(0, V_s*np.sqrt(-n_min), 0.1), -(np.arange(0, V_s*np.sqrt(-n_min), 0.1)/V_s)**2, linestyle='--', color='black', linewidth=1)
 
-plt.plot(np.arange(0, VA, 0.1), n_VA['mnvr'][1]/VA**2 * np.arange(0, VA, 0.1)**2, linestyle='--', color='black', linewidth=1)
-plt.plot([VA, VC], [n_VA['mnvr'][1], n_VC['mnvr'][1]], linestyle='--', color='black', linewidth=1)
-plt.plot([VC, VD], [n_VC['mnvr'][1], n_VD['mnvr'][1]], linestyle='--', color='black', linewidth=1)
+plt.plot([V_s, V_s], [-1, 1], linestyle='-', color='black', linewidth=1.5)
+plt.annotate('VS', (V_s, 0), xytext=(5,5), textcoords='offset points', ha='left')
+# TOP
+plt.plot([V_s*np.sqrt(n_max), V_d], [n_max, n_max], linestyle='--', color='black', linewidth=1)
+# BOTTOM
+plt.plot([V_s*np.sqrt(-n_min), V_c], [n_min, n_min], linestyle='--', color='black', linewidth=1)
+plt.plot([V_c, V_d], [n_min, 0], linestyle='--', color='black', linewidth=1)
+# DIVE
+plt.plot([V_d, V_d], [0, n_max], linestyle='--', color='black', linewidth=1)
 
 """ GUST ENVELOPE """
-plt.plot([0, VD], [1, n_VD['gst'][0]], linestyle='-.', color='black', linewidth=1)
-plt.plot([0, VC], [1, n_VC['gst'][0]], linestyle='-.', color='black', linewidth=1)
-plt.plot([VC, VD], [n_VC['gst'][0], n_VD['gst'][0]], linestyle='-.', color='black', linewidth=1)
+dCLda = 0.3
+rho = 1.225
+S = 14 # m2
+W = 1200 # [N]
+U_c = 5 # gust velocity
+U_d = 3 # gust velocity
+K_c = dCLda*(rho/2)*(S/W)*U_c
+K_d = dCLda*(rho/2)*(S/W)*U_d
+# CRUISE
+plt.plot(np.arange(0, V_c, 0.1), 1+K_c*np.arange(0, V_c, 0.1), linestyle='-.', color='black', linewidth=1)
+plt.plot(np.arange(0, V_c, 0.1), 1-K_c*np.arange(0, V_c, 0.1), linestyle='-.', color='black', linewidth=1)
+# DIVE
+plt.plot(np.arange(0, V_d, 0.1), 1+K_d*np.arange(0, V_d, 0.1), linestyle='-.', color='black', linewidth=1)
+plt.plot(np.arange(0, V_d, 0.1), 1-K_d*np.arange(0, V_d, 0.1), linestyle='-.', color='black', linewidth=1)
 
-plt.plot([0, VD], [1, n_VD['gst'][1]], linestyle='-.', color='black', linewidth=1)
-plt.plot([0, VC], [1, n_VC['gst'][1]], linestyle='-.', color='black', linewidth=1)
-plt.plot([VC, VD], [n_VC['gst'][1], n_VD['gst'][1]], linestyle='-.', color='black', linewidth=1)
+plt.plot(np.linspace(V_c, V_d, 2), np.linspace(1+K_c*V_c, 1+K_d*V_d, 2), linestyle='-.', color='black', linewidth=1)
+plt.plot(np.linspace(V_c, V_d, 2), np.linspace(1-K_c*V_c, 1-K_d*V_d, 2), linestyle='-.', color='black', linewidth=1)
 
-plt.plot([VD, VD], [min(n_VD['mnvr'][1], n_VD['gst'][1]), max(n_VD['mnvr'][0], n_VD['gst'][0])], linestyle='--', color='black', linewidth=1)
+plt.plot([V_c, V_c], [1-K_c*V_c, 1+K_c*V_c], linestyle='-', color='black', linewidth=1.5)
+plt.annotate('VC', (V_c, 0), xytext=(5,5), textcoords='offset points', ha='left')
+
+plt.plot([V_d, V_d], [1-K_d*V_d, 1+K_d*V_d], linestyle='-', color='black', linewidth=1.5)
+plt.annotate('VD', (V_d, 0), xytext=(5,5), textcoords='offset points', ha='left')
 
 """ FINAL PLOT """
-plt.plot([0, 350], [0, 0], color='black')
-plt.ylim(-4, 6)
-plt.xlim(0, 350)
+plt.plot([0, 300], [0, 0], color='black')
+plt.ylim(-2, 4)
+plt.xlim(0, 300)
 plt.ylabel('Load Factor n [-]')
 plt.xlabel('Speed V [kts]')
 plt.tight_layout()
