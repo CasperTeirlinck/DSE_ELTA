@@ -72,7 +72,7 @@ class CurrentVariables():
         self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
         self.CD0to       = 0.0380                                       # drag constant
         self.CD0clean    = 0.0280                                       # drag constant
-
+        self.chordwise_wing_cg = 0.30                                   # [-] 100*%MAC of wing centre of gravity
 
         # Free design choices (None means TBD)
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
