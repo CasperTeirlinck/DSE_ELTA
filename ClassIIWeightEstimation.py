@@ -10,6 +10,7 @@ Outputs only the empty weight, not yet the c.g. locations!
 """
 import numpy as np
 from variables import *
+from propulsion import ductweight
 #----------------Input parameters----------------------------------
 """
 #General aircraft parameters
@@ -93,16 +94,28 @@ def FuselageEstimation(variables):
     W_f = 200*((variables.n_ult*variables.WTO*kglbs/10**5)**0.286*(variables.l_fus*mft/10)**0.857*((variables.l_fus+variables.d_fus)*mft/10)*(variables.Vmax/100)**0.338)**1.1
     return W_f/kglbs
     
+#def EngineEstimation(variables):
+#    W_e = variables.P_total/K_p
+#    
+#    if ductedfan == False:
+#        W_n = 0.24*W_to*0.5 #0.5 is scaling factor due to electric engine! electric engine = 55 kg, piston = 144, more than 50% difference, but want to be conservative for the nacelle weight
+#    else:
+#        W_n = 0.24*W_to*0.6 #0.6 is engineering judgement
+#        
+#    return W_e, W_n #already in kg
+#    return 100.
+
 def EngineEstimation(variables):
-    #W_e = variables.P_total/K_p
-    
-    #if ductedfan == False:
-        #W_n = 0.24*W_to*0.5 #0.5 is scaling factor due to electric engine! electric engine = 55 kg, piston = 144, more than 50% difference, but want to be conservative for the nacelle weight
-    #else:
-        #W_n = 0.24*W_to*0.6 #0.6 is engineering judgement
-        
-    #return W_e, W_n #already in kg
-    return 100.
+#    Pmax = (variables.WTO / variables.WP) / 1000    # kW
+#    motor_mass = Pmax/variables.motor_spec_mass     # kg
+#    motor_volume = Pmax/variables.motor_spec_volume # L
+#
+#    # Setting the motor weight in variables class
+#    variables.Wmotor = motor_mass * 9.80665
+#
+#    return variables
+    return variables.Weng
+
 
 def LandingGearEstimation(variables):
     W_frontgear = 0.013*(variables.WTO*kglbs)+0.146*(variables.WTO*kglbs)**0.417*variables.n_ult**0.950*(variables.l_sm*mft)**0.183 + variables.W_wsm*kglbs
