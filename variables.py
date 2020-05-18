@@ -59,9 +59,9 @@ class CurrentVariables():
         self.x_cg_fuselage = x_cg_f                                     # [m] Empty fuselage CG location as measured from the aircraft nose
         self.ducted = ducted
         if self.wing_mounted_engine:
-            self.x_cg_engine = 0.755                                    # [m] Engine CG location as measured from aircraft nose
-        if not self.wing_mounted_engine:
             self.chordwise_cg_engine = 000                              # [-] Engine CG location as measured from LEMAC%
+        if not self.wing_mounted_engine:
+            self.x_cg_engine = 0.755                                    # [m] Engine CG location as measured from aircraft nose
 
 
 
@@ -98,6 +98,7 @@ class CurrentVariables():
         # Miscellaneous
         self.eff_propeller = None
         self.T_propeller = None
+        self.tail_ready = False
 
         ## Calculated values
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
@@ -122,6 +123,7 @@ class CurrentVariables():
         self.Wmotor      = 9.81*19.75                                   # [N] Motor weight
         self.Wwing       = None                                         # [N] Wing weight
         self.Wfus        = None                                         # [N] Fuselage weight
+        self.Wfus        = 100.                                         # [N] Fuselage weight TODO: implement properly
         self.xcg_aft     = None                                         # [m] Aft-most cg location
         self.xcg_fwr     = None                                         # [m] Forward-most cg location
 

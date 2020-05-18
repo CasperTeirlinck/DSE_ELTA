@@ -14,16 +14,14 @@ from propulsion import *
 
 def loop(v: CurrentVariables):
     v.WS, v.WP = get_design_point(v)
-    v = classIestimation(v)
+    v = classIestimation_alt(v)
     v = wing_planform(v)
-    # TODO: add Wwing, Wfus, etc. to variables class. Also fix Class I bug.
+    # TODO: add Wwing, Wfus, etc. to variables class. Also fix Class I bug. Discuss TE weight addition in code.
     # Control surface sizing here
-    v = cg_calculations(v)
+    v = cg_calculations_total(v)
     v = size_gear(v)
     print("Here")
-    v = function2(v)
-    v = function3(v)
-    v = classII(v)
+    v = classIIestimation(v)
     return v
 
 
