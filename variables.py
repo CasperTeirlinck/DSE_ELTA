@@ -92,6 +92,7 @@ class CurrentVariables():
         self.coverR      = 0.5                                          # [-] Chord of duct to radius of fan ratio
         self.angleduct   = 2                                            # [deg] angle of the chordline of the duct
         self.initial_etap        = 0.7                                  # propeller efficiency
+        self.V_eas       = 48.87                                        # [m/s] cruise velocity EAS
         self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
 
