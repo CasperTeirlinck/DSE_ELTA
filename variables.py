@@ -30,8 +30,8 @@ def glauert_function(phi):
     return (2+5*tan(phi)**2)/(8*cos(phi)) - 3 / 16 * tan(phi)**4*log((1-cos(phi))/(1+cos(phi)), 10)
 
 
-class CurrentVariables():
-    def __init__(self, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
+class CurrentVariables:
+    def __init__(self, conceptnumber=1, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
                  x_cg_f = 2.33, ducted=False):
         ## Requirements
         self.sto         = 500                                          # [m] take-off distance
@@ -51,8 +51,10 @@ class CurrentVariables():
         self.f           = 1                                            # [-] WL/WTO
         self.n_ult       = 5.7                                          # [-] Ultimate load factor in g
         self.rollrate    = 15*np.pi/180                                 # [rad/s] roll rate requirement
+        self.propclear   = 0.23                                         # [m] Minimum clearance of the propeller or fuselage
 
         ## Design concept parameters (Concept number: )
+        self.concept_number = conceptnumber                             # [-] Number of the concept design
         self.n_engines   = n_engines                                    # [-] number of engines
         self.wing_mounted_engine = wing_mounted                         # Condition whether engines are mounted on the wing (otherwise, fuselage mounted)
         self.T_tail = T_tail                                            # Condition whether a t-tail configuration is used (otherwise, conventional tail)
@@ -79,6 +81,8 @@ class CurrentVariables():
         self.max_controlsurface_deflection = 20                         # [deg] maximum deflection of control surfaces
         self.c_l_a       = 5.729578                                     # [1/rad] lift slope
         self.c_l_delta_a = 0.046825*180/(np.pi)                         # [1/rad] change in the airfoil’s lift coefficient with aileron deflection
+        self.fus_height  = 1.725                                        # [m] height from lowes point floor until heighest point of the fuselage
+        self.prop_spin   = 0.365                                        # [m] Length of the propeller spinner
 
         # Free design choices (None means TBD)
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
@@ -97,15 +101,23 @@ class CurrentVariables():
         self.rps_cruise  = 2700 / 60                                    # [rps] revolution speed of prop at cruise
         self.coverR      = 0.5                                          # [-] Chord of duct to radius of fan ratio
         self.angleduct   = 2                                            # [deg] angle of the chordline of the duct
-        self.initial_etap        = 0.7                                  # propeller efficiency
+        self.initial_etap= 0.7                                          # propeller efficiency
         self.V_eas       = 48.87                                        # [m/s] cruise velocity EAS
         self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
+        self.tailtiplength= 3.325                                       # [m] from LE of main wing to most aft point of aircraft
+        self.prop_spin   = 0.3650                                       # [m] length of the propeller spinner
+        self.fuselage_len= 4.595                                        # [m] Length of the fuselage, nose to tail.
+        self.bulkhead    = 0.6                                          # [m] Location of the bulkhead in the nose.
+        self.cabinlength = 1.3                                          # [m] Length of the cabin of the pilot from bulkhead
+        self.enginelength= 1                                            # [m] Length of the propellers on the wing
+        self.eng_perc_rootchord = 20                                    # [%] engine cg in percentage of root chord
+        self.eng_height_above_w = 0.3                                   # [m] engine cg in m above the main wing
 
         # Miscellaneous
         self.eff_propeller = None
         self.T_propeller = None
-        self.tail_ready = False
+        self.tail_ready  = False
 
         ## Calculated values
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
@@ -131,9 +143,15 @@ class CurrentVariables():
         self.Wwing       = None                                         # [N] Wing weight
         self.Wfus        = None                                         # [N] Fuselage weight
         self.Wfus        = 100.                                         # [N] Fuselage weight TODO: implement properly
+        self.Wgear_front = None                                         # [N] Front landing gear weight       
+        self.Wgear_main  = None                                         # [N] Main landing gear weight
+        self.Wgear       = None                                         # [N] Total landing gear weight
+        self.W_htail     = None                                         # [N] Horizontal tailplane weight
+        self.W_vtail     = None                                         # [N] Vertical tailplane weight
         self.xcg_aft     = None                                         # [m] Aft-most cg location
         self.xcg_fwr     = None                                         # [m] Forward-most cg location
 
+        self.wingpos     = 1.27                                         # [m] Location of root chord LE from nose
 
         self.sweep       = 0                                            # [deg] Quarter chord sweep angle of the main wing
         self.taper       = 0.4                                          # [-] Taper ratio of the main wing
@@ -164,6 +182,18 @@ class CurrentVariables():
         self.nosegeardiameter = None                                    # [m] diameter of nose gear wheel
         self.nosegearwidth = None                                       # [m] width of nose gear wheel
 
+        self.propcg_x    = None
+        self.propcg_z    = None
+        self.enginecg_x  = None
+        self.enginecg_z  = None
+        self.batterycg_x = None
+        self.batterycg_z = None
+        self.baggagecg_x = None
+        self.baggagecg_z = None
+        self.payloadcg_x = None
+        self.payloadcg_z = None
+        self.fuselagecg_x= None
+        self.fuselagecg_z= None
 
 
 

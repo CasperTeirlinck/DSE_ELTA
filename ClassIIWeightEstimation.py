@@ -9,8 +9,9 @@ Class II Weight Estimation Method based on the Cessna Method
 Outputs only the empty weight, not yet the c.g. locations!
 """
 import numpy as np
+from variables import *
 #----------------Input parameters----------------------------------
-
+"""
 #General aircraft parameters
 
 W_to    = 750   #[kg]   take-off weight
@@ -58,7 +59,7 @@ l_sm    = 0.2   #[m]    Shock strut length main wheel
 #Training Enhancement
 W_avion = 15    #[kg] avionic weight
 
-
+"""
 
 
 
@@ -103,15 +104,16 @@ def EngineAndNacelleEstimation(W_to, ductedfan):
     else:
         W_n = 0.24*W_to*0.6 #0.6 is engineering judgement
         
-    return W_e, W_n #already in kg
+    return W_e, W_n #already in kg TODO: Kijk hiernaar, assess accuracy
 
 def LandingGearEstimation(W_to,W_l, n_ult_l, l_sn,l_sm,W_wsn,W_wsm):
-    W_g = 0.013*(W_to*kglbs)+0.146*(W_l*kglbs)**0.417*n_ult_l**0.950*(l_sm*mft)**0.183+W_wsm*kglbs + 6.2 + 0.0013*(W_to*kglbs) + 0.000143*(W_l*kglbs)**0.749*n_ult_l*(l_sn*mft)**0.788 + W_wsn*kglbs
-      
+    W_frontgear = 0.013*(W_to*kglbs)+0.146*(W_l*kglbs)**0.417*n_ult_l**0.950*(l_sm*mft)**0.183+W_wsm*kglbs
+    W_maingear = 6.2 + 0.0013*(W_to*kglbs) + 0.000143*(W_l*kglbs)**0.749*n_ult_l*(l_sn*mft)**0.788 + W_wsn*kglbs
+    W_g = W_frontgear + W_maingear
     if Retract == True:
-        W_g += 0.014*(W_to*kglbs)
+        W_g += 0.014*(W_to*kglbs)   
         
-    return W_g/kglbs
+    return W_frontgear/kglbs, W_maingear/kglbs, W_g/kglbs
     
 def FlightControlSystemEstimation(W_to):
     W_fc = 0.0168*W_to
@@ -131,9 +133,23 @@ def EmptyWeight(W_to,W_l,n_ult,n_ult_l,pax,l_fn,P_to,W_b,W_prop,K_p,ductedfan,S_
     #W_b is not included as it is part of the payload
     return OEW
 
+def CalculateClassII(variables):
+    variables.Wwing = 9.81*MainWingEstimation(variables)
+    variables.W_htail, variables.W_vtail = 9.81*EmpennageEstimation(variables)
+    variables.Wfus = 9.81*FuselageEstimation(variables)
+    variables.Weng = 9.81*Engine(variables)
+    variables.Wgear_front,variables.Wgear_main,variables.Wgear = 9.81*LandingGearEstimation(variables) 
+    variables.Wfcs = 9.81*FlightControlSystemEstimation(variables)
+    variables.Wels = 9.81*ElectricalSystemEstimation(variables)
+    variables.Woew_classII = 9.81*EmptyWeight(variables)
+
+    return variables
 
 
-
+## TEST
+if __name__ == "__main__":
+    variables = CurrentVariables()
+    variables = CalculateClassII(variables)
 
 
 

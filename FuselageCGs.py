@@ -7,9 +7,10 @@ Created on Fri May 15 16:46:57 2020
 CG POSITIONS OF FUSELAGE + ENGINE + PAX + BATTERY
 """
 import numpy as np
+from variables import *
 ##################INPUT PARAMETERS###############################
 #All positions should be measured from the nose cone towards the back
-LG_nose_pos     = 1.058 #[m] position of nose landing gear
+LG_nose_pos     = 0.6 #[m] position of nose landing gear
 LG_main_pos     = 2.395 #[m] position of main landing gear
 prop_clearance  = 0.230 #[m] ground clearance of the propeller (concept 2 and 3) or fuselage (Concept 1, 4 and 5)
 prop_diameter   = 1.090 #[m] diameter of propeller
@@ -37,116 +38,107 @@ Concept = 4
 
 
 
-if Concept == 1:
+def calculate_cg_groups(variables):
+    Concept = variables.concept_number
+    if Concept == 1:
+        def PropellerCG(variables, engine_plac_concept_1=3.9):
+            CGy = engine_plac_concept_1 - 0.985/2
+            CGz = variables.propclear + 0.5261904761904761 + np.tan(11.5/180*np.pi)*(0.402+variables.tailtiplength)
+            return CGy, CGz
 
+        def EngineCG(variables, engine_plac_concept_1=3.9):
+            CGy = engine_plac_concept_1
+            CGz = variables.propclear + 0.5261904761904761 + np.tan(11.5/180*np.pi)*(0.402+variables.tailtiplength)
+            return CGy, CGz
 
-    def PropellerCG(engine_plac_concept_1, prop_clearance, l_wt):
-        CGy = engine_plac_concept_1 - 0.985/2
-        CGz = prop_clearance + 0.5261904761904761 + np.tan(11.5/180*np.pi)*(0.402+l_wt)
-        return CGy, CGz
-    
-    def EngineCG(engine_plac_concept_1, prop_clearance, l_wt):
-        CGy = engine_plac_concept_1
-        CGz = prop_clearance + 0.5261904761904761 + np.tan(11.5/180*np.pi)*(0.402+l_wt)
-        return CGy, CGz
-    
-    def BatteryCG(LG_nose_pos, prop_clearance):
-        CGy = LG_nose_pos/2
-        CGz = prop_clearance + 0.402
-        return CGy, CGz
-    
-    def Baggage(LG_nose_pos, prop_clearance, cab_l,l_wt):
-        CGy = LG_nose_pos + cab_l + 0.155
-        CGz = prop_clearance + 0.526 + np.tan(11.5/180*np.pi)*(0.402+l_wt)
-        return CGy, CGz
-    
-    def Payload(prop_clearance, LG_nose_pos,l_wt):
-        CGy = LG_nose_pos + 0.907
-        CGz = prop_clearance + 0.526 + np.tan(11.5/180*np.pi)*(0.402+l_wt)
-        return CGy, CGz
-    
-    def FuselageEmptyStructure(W_main_pos, l_wt, prop_clearance):
-        CGy = (W_main_pos + l_wt )/2
-        CGz = prop_clearance + 0.3095 + np.tan(10/180*np.pi)*(l_wt + W_main_pos)
-        return CGy, CGz
+        def BatteryCG(variables):
+            CGy = variables.bulkhead/2
+            CGz = variables.propclear + 0.402
+            return CGy, CGz
 
+        def Baggage(variables):
+            CGy = variables.bulkhead + variables.cabinlength + 0.155
+            CGz = variables.propclear + 0.526 + np.tan(11.5/180*np.pi)*(0.402+variables.tailtiplength)
+            return CGy, CGz
 
+        def Payload(variables):
+            CGy = variables.bulkhead + 0.907
+            CGz = variables.propclear + 0.526 + np.tan(11.5/180*np.pi)*(0.402+variables.tailtiplength)
+            return CGy, CGz
 
+        def FuselageEmptyStructure(variables):
+            CGy = variables.fuselage_len/2
+            CGz = variables.propclear + 0.3095 + np.tan(10/180*np.pi)*(variables.fuselage_len)
+            return CGy, CGz
 
+    if Concept == 2 or Concept == 3:
 
-if Concept == 2 or Concept == 3:
+        def PropellerCG(variables):
+            CGy = variables.prop_spin/2 #[m] fixed value
+            CGz = variables.propclear + variables.prop_d/2
+            return CGy, CGz
 
-    def PropellerCG(prop_clearance,prop_diameter, prop_spin):
-        CGy = prop_spin/2 #[m] fixed value
-        CGz = prop_clearance + prop_diameter/2
-        return CGy, CGz
-    
-    def EngineCG(prop_spin, LG_nose_pos):
-        CGy = prop_spin + (LG_nose_pos - prop_spin)/2
-        CGz = prop_clearance + prop_diameter/2 - 0.09
-        return CGy, CGz
-    
-    def BatteryCG(W_main_pos, W_main_chord, prop_clearance,prop_diameter, prop_spin):
-        CGy = W_main_pos + (W_main_chord/2)
-        CGz = PropellerCG(prop_clearance,prop_diameter, prop_spin)[1] - 0.76 + 0.2 #+ 0.121 + prop_clearance
-        return CGy, CGz
-    
-    def Baggage(LG_nose_pos, prop_clearance, cab_l,prop_diameter, prop_spin):
-        CGy = LG_nose_pos + cab_l + 0.151
-        CGz = PropellerCG(prop_clearance,prop_diameter, prop_spin)[1] - 0.76 + 0.302
-        return CGy, CGz
-    
-    def Payload(LG_nose_pos, prop_clearance,prop_diameter, prop_spin):
-        CGy = LG_nose_pos + 0.907
-        CGz = PropellerCG(prop_clearance,prop_diameter, prop_spin)[1] - 0.76 + 0.7558
-        return CGy, CGz
-    
-    def FuselageEmptyStructure(prop_spin, W_main_pos, l_wt, prop_clearance, prop_diameter):
-        CGy = prop_spin + ((W_main_pos - prop_spin) + l_wt )/2
-        CGz = prop_clearance + prop_diameter/2
-        return CGy, CGz
-    
-    
-    
-    
-    
-if Concept == 4 or Concept == 5:
+        def EngineCG(variables):
+            CGy = variables.prop_spin + (variables.bulkhead - variables.prop_spin)/2
+            CGz = variables.propclear + variables.prop_d/2 - 0.09
+            return CGy, CGz
 
+        def BatteryCG(variables):
+            CGy = variables.wingpos + (variables.cr/2)
+            CGz = PropellerCG(variables)[1] - 0.76 + 0.2
+            return CGy, CGz
 
-    def PropellerCG(l_eng,W_main_pos,eng_perc_rootchord,W_main_chord,fus_height,eng_height_above_w,  prop_clearance):
-        CGy = W_main_pos + eng_perc_rootchord*W_main_chord/100 - l_eng
-        CGz = prop_clearance + fus_height + eng_height_above_w
-        return CGy, CGz
-    
-    def EngineCG(W_main_pos,eng_perc_rootchord,W_main_chord,fus_height,eng_height_above_w,  prop_clearance):
-        CGy = W_main_pos + eng_perc_rootchord*W_main_chord/100
-        CGz = prop_clearance + fus_height + eng_height_above_w
-        return CGy, CGz
-    
-    def BatteryCG(prop_clearance):
-        CGy = 1.8365384615384617
-        CGz = prop_clearance + 0.2
-        return CGy, CGz
-    
-    def Baggage(cab_l):
-        CGy = 0.875 + cab_l + 0.385
-        CGz = prop_clearance + 0.481
-        return CGy, CGz
-    
-    def Payload(prop_clearance):
-        CGy = 0.875 + 0.907
-        CGz = prop_clearance + 0.526
-        return CGy, CGz
-    
-    def FuselageEmptyStructure(W_main_pos , l_wt, prop_clearance):
-        CGy = (W_main_pos + l_wt)/2
-        CGz = prop_clearance + 0.526
-        return CGy, CGz  
+        def Baggage(variables):
+            CGy = variables.bulkhead + variables.cabinlength + 0.151
+            CGz = PropellerCG(variables)[1] - 0.76 + 0.302
+            return CGy, CGz
 
-#def o(x):
-#    return (1250/6.5*x)/1000
-#
-##def BatteryCG():
-##    CGy = 
-##    CGz = 
-##    return CGy, CGz
+        def Payload(variables):
+            CGy = variables.bulkhead + 0.907
+            CGz = PropellerCG(variables)[1] - 0.76 + 0.7558
+            return CGy, CGz
+
+        def FuselageEmptyStructure(variables):
+            CGy = variables.prop_spin + (variables.fuselage_len - variables.prop_spin)/2
+            CGz = variables.propclear + variables.prop_d/2
+            return CGy, CGz
+
+    if Concept == 4 or Concept == 5:
+
+        def PropellerCG(variables):
+            CGy = variables.wingpos + variables.eng_perc_rootchord*variables.cr/100 - variables.enginelength
+            CGz = variables.propclear + variables.fus_height + variables.eng_height_above_w
+            return CGy, CGz
+
+        def EngineCG(variables):
+            CGy = variables.wingpos + variables.eng_perc_rootchord*variables.cr/100
+            CGz = variables.propclear + variables.fus_height + variables.eng_height_above_w
+            return CGy, CGz
+
+        def BatteryCG(variables):
+            CGy = 1.8365384615384617
+            CGz = variables.propclear + 0.2
+            return CGy, CGz
+
+        def Baggage(variables):
+            CGy = 0.875 + variables.cabinlength + 0.385
+            CGz = variables.propclear + 0.481
+            return CGy, CGz
+
+        def Payload(variables):
+            CGy = 0.875 + 0.907
+            CGz = variables.propclear + 0.526
+            return CGy, CGz
+
+        def FuselageEmptyStructure(variables):
+            CGy = variables.fuselage_len/2
+            CGz = variables.propclear + 0.526
+            return CGy, CGz
+
+    variables.propcg_y, variables.propcg_z = PropellerCG(variables)
+    variables.enginecg_y, variables.enginecg_z = EngineCG(variables)
+    variables.batterycg_y, variables.batterycg_z = BatteryCG(variables)
+    variables.baggagecg_y, variables.baggagecg_z = Baggage(variables)
+    variables.payloadcg_y, variables.payloadcg_z = Payload(variables)
+    variables.fuselagecg_y, variables.fuselagecg_z = FuselageEmptyStructure(variables)
+    return variables

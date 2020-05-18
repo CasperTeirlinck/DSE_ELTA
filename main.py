@@ -5,6 +5,7 @@ import math as m
 from loading_diagram import *
 from class_I import *
 from wing_planform import *
+from FuselageCGs import *
 from AileronflapsizingUSETHISONE import *
 from cg_determination import *
 from gear import *
@@ -21,7 +22,7 @@ def subloop(v):
     return v
 
 
-def dosubloop(v: CurrentVariables, subdifference=0.05, maxsubiteration=20):
+def dosubloop(v: CurrentVariables, subdifference=0.05, maxsubiterations=20):
     XTAIL = [0]
     for subiteration in range(maxsubiterations):
         XTAIL.append(v.x_htail)
@@ -38,9 +39,11 @@ def loop(v: CurrentVariables):
     v.WS, v.WP = get_design_point(v)
     v = classIestimation_alt(v)
     v = wing_planform(v)
+    v = calculate_cg_groups(v)
     # TODO: Discuss TE weight addition in code.
+    print("before")
     v = size_control_surfaces(v)
-    
+    print("After")
     v = subloop(v)
     v = dosubloop(v)    
     print("here2")
@@ -63,6 +66,7 @@ def do_loop(v: CurrentVariables, difference=35, maxiterations=10):
 
 if __name__ == "__main__":
 
+    conceptnumber = 1
     n_engines = 1
     wing_mounted = False
     T_tail = False
@@ -72,7 +76,7 @@ if __name__ == "__main__":
     ducted=False
 
 
-    v = CurrentVariables(n_engines=n_engines, wing_mounted=wing_mounted, T_tail=T_tail, x_cg_pass=x_cg_pass,
+    v = CurrentVariables(conceptnumber=conceptnumber, wing_mounted=wing_mounted, T_tail=T_tail, x_cg_pass=x_cg_pass,
                          x_cg_batt=x_cg_batt, x_cg_f=x_cg_f, ducted=ducted)
 
 

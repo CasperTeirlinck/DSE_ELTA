@@ -4,11 +4,11 @@ import math as m
 
 class Test():
     def __init__(self):
-        self.fuselage_height = 1.5
+        self.fus_height = 1.5
         self.tail_height = 0.75
         self.l_tail = 3
         self.xcg_aft = -1
-        self.zcg = self.fuselage_height*0.6
+        self.zcg = self.fus_height*0.6
         self.x_lemac = -1
         self.z_lemac = 0.2
         self.ct = 0.6
@@ -42,7 +42,7 @@ def size_gear(variables):
     y_landinggear = d_ng * m.tan(m.asin(variables.zcg/((x_nosegear - variables.xcg_aft)*m.tan(m.radians(57.75)))))
 
     variables.x_maingear, variables.y_maingear, variables.z_maingear, variables.x_nosegear = \
-        x_landinggear, y_landinggear, z_landinggear, x_nosegear
+        -x_landinggear, y_landinggear, z_landinggear, -x_nosegear
 
     noseload = fnoverw*variables.WTO # in N
     mainload = 0.5*(variables.WTO - noseload)
