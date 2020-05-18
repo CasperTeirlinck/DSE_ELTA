@@ -132,9 +132,10 @@ class CurrentVariables():
         self.Wfus        = None                                         # [N] Fuselage weight
         self.Wfus        = 100.                                         # [N] Fuselage weight TODO: implement properly
         self.Wgear_front = None                                         # [N] Front landing gear weight       
-        self.Wgear_main   = None                                        # [N] Main landing gear weight
-        self.W_htail = None                                             # [N] Horizontal tailplane weight
-        self.W_vtail = None                                             # [N] Vertical tailplane weight
+        self.Wgear_main  = None                                         # [N] Main landing gear weight
+        self.Wgear       = None                                         # [N] Total landing gear weight
+        self.W_htail     = None                                         # [N] Horizontal tailplane weight
+        self.W_vtail     = None                                         # [N] Vertical tailplane weight
         self.xcg_aft     = None                                         # [m] Aft-most cg location
         self.xcg_fwr     = None                                         # [m] Forward-most cg location
 
@@ -161,7 +162,7 @@ class CurrentVariables():
         self.eff_tot_prop= 0.95*self.eff_propeller                      # Total propulsion efficiency (motor and bat)
         self.x_maingear = None                                          # [m] from nose, more negative is further from nose
         self.y_maingear = None                                          # [m] from nose, right wing positive
-        self.z_main gear = None                                         # [m] from top of fuselage, down positive
+        self.z_maingear = None                                          # [m] from top of fuselage, down positive
         self.x_nosegear = None                                          # [m] from nose, more negative is further from nose
         self.maingeardiameter = None                                    # [m] diameter of main gear wheel
         self.maingearwidth = None                                       # [m] width of main gear wheel
