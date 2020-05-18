@@ -9,6 +9,7 @@ Class II Weight Estimation Method based on the Cessna Method
 Outputs only the empty weight, not yet the c.g. locations!
 """
 import numpy as np
+from variables import *
 #----------------Input parameters----------------------------------
 
 #General aircraft parameters
@@ -132,9 +133,15 @@ def EmptyWeight(W_to,W_l,n_ult,n_ult_l,pax,l_fn,P_to,W_b,W_prop,K_p,ductedfan,S_
     #W_b is not included as it is part of the payload
     return OEW
 
+def CalculateClassII(variables):
+    variables.Wwing = MainWingEstimation(variables)
+    return variables
 
 
-
+## TEST
+if __name__ == "__main__":
+    variables = CurrentVariables()
+    variables = CalculateClassII(variables)
 
 
 

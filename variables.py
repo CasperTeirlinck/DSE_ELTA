@@ -161,7 +161,7 @@ class CurrentVariables():
         self.eff_tot_prop= 0.95*self.eff_propeller                      # Total propulsion efficiency (motor and bat)
         self.x_maingear = None                                          # [m] from nose, more negative is further from nose
         self.y_maingear = None                                          # [m] from nose, right wing positive
-        self.z_main gear = None                                          # [m] from top of fuselage, down positive
+        self.z_main gear = None                                         # [m] from top of fuselage, down positive
         self.x_nosegear = None                                          # [m] from nose, more negative is further from nose
         self.maingeardiameter = None                                    # [m] diameter of main gear wheel
         self.maingearwidth = None                                       # [m] width of main gear wheel
