@@ -71,7 +71,8 @@ def cg_calculations_total(variables):
         variables.xcg_frw = x_forwardCG_total(variables)
         variables.xcg_aft = x_aftCG_total(variables)
         return variables
-    else: cg_calculations_tailless(variables)
+    else:
+        return cg_calculations_tailless(variables)
 
 
 ## TESTING

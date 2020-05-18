@@ -30,9 +30,9 @@ def glauert_function(phi):
     return (2+5*tan(phi)**2)/(8*cos(phi)) - 3 / 16 * tan(phi)**4*log((1-cos(phi))/(1+cos(phi)), 10)
 
 
-class CurrentVariables():
-    def __init__(self, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
-                 x_cg_f = 2.33, ducted=False):
+class CurrentVariables:
+    def __init__(self, conceptnumber=1, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
+                 x_cg_f = 2.33, ducted=False, lowwing=False):
         ## Requirements
         self.sto         = 500                                          # [m] take-off distance
         self.WPL         = 200*9.80665                                  # [N] Payload weight
@@ -51,8 +51,10 @@ class CurrentVariables():
         self.f           = 1                                            # [-] WL/WTO
         self.n_ult       = 5.7                                          # [-] Ultimate load factor in g
         self.rollrate    = 15*np.pi/180                                 # [rad/s] roll rate requirement
+        self.propclear   = 0.23                                         # [m] Minimum clearance of the propeller or fuselage
 
         ## Design concept parameters (Concept number: )
+        self.concept_number = conceptnumber                             # [-] Number of the concept design
         self.n_engines   = n_engines                                    # [-] number of engines
         self.wing_mounted_engine = wing_mounted                         # Condition whether engines are mounted on the wing (otherwise, fuselage mounted)
         self.T_tail = T_tail                                            # Condition whether a t-tail configuration is used (otherwise, conventional tail)
@@ -73,16 +75,21 @@ class CurrentVariables():
         self.vtail_volume = 0.4                                         # [-] Vertical tail volume
         self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
         self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
+        self.motor_spec_mass = 2.5                                      # kW/kg from Maarten
+        self.motor_spec_volume = 7                                      # kW/L from Maarten
         self.CD0to       = 0.0380                                       # drag constant
         self.CD0clean    = 0.0280                                       # drag constant
         self.chordwise_wing_cg = 0.30                                   # [-] 100*%MAC of wing centre of gravity
         self.aileroncutoff = 0.5                                        # [m] fixed position of outer aileron location from wingtip
         self.max_controlsurface_deflection = 20                         # [deg] maximum deflection of control surfaces
         self.c_l_a       = 5.729578                                     # [1/rad] lift slope
-        self.c_l_delta_a = 0.046825*180/(np.pi)                         # [1/rad] change in the airfoil’s lift coefficient with aileron deflection 
+        self.c_l_delta_a = 0.046825*180/(np.pi)                         # [1/rad] change in the airfoil’s lift coefficient with aileron deflection
+        self.fus_height  = 1.725                                        # [m] height from lowes point floor until heighest point of the fuselage
+        self.prop_spin   = 0.365                                        # [m] Length of the propeller spinner
 
         # Free design choices (None means TBD)
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
+        self.lowwing     = lowwing                                      # [-] Boolean low wing or high wing.
         self.sweep_h     = 0                                            # [deg] (0- 0) Quarter chord sweep angle of the horizontal tailplane
         self.sweep_v     = 10                                         # [deg] (0-50) Quarter chord sweep angle of the vertical tailplane
         self.A_h         = 3                                            # [-] (3-5)aspect ratio of the horizontal tailplane
@@ -93,22 +100,33 @@ class CurrentVariables():
         self.taper_v     = None                                         # [-] (0.3-0.7) Taper ratio of the vertical tailplane
         self.A           = 12                                           # aspect ratio of the main wing
         self.e           = 0.83                                         # oswald efficiency factor
+        self.dihedral    = 0                                            # [deg] dihedral, positive upwards.
         self.n_blades    = 4                                            # [-] Number of propeller blades single prop
         self.rps_TO      = 2400 / 60                                    # [rps] revolution speed of prop at TO
         self.rps_cruise  = 2700 / 60                                    # [rps] revolution speed of prop at cruise
         self.coverR      = 0.5                                          # [-] Chord of duct to radius of fan ratio
         self.angleduct   = 2                                            # [deg] angle of the chordline of the duct
-        self.initial_etap        = 0.7                                  # propeller efficiency
+        self.initial_etap= 0.7                                          # propeller efficiency
         self.V_eas       = 48.87                                        # [m/s] cruise velocity EAS
         self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
         self.tcr_h        = 0.14                                         # [-] Thickness-to-rootchord ratio of the horizontal stabiliser
         self.tcr_v        = 0.14                                         # [-] Thickness-to-rootchord ratio of the vertical stabiliser    
 
+        self.tailtiplength= 3.325                                       # [m] from LE of main wing to most aft point of aircraft
+        self.prop_spin   = 0.3650                                       # [m] length of the propeller spinner
+        self.fuselage_len= 4.595                                        # [m] Length of the fuselage, nose to tail.
+        self.bulkhead    = 0.6                                          # [m] Location of the bulkhead in the nose.
+        self.cabinlength = 1.3                                          # [m] Length of the cabin of the pilot from bulkhead
+        self.enginelength= 1                                            # [m] Length of the propellers on the wing
+        self.eng_perc_rootchord = 20                                    # [%] engine cg in percentage of root chord
+        self.eng_height_above_w = 0.3                                   # [m] engine cg in m above the main wing
+        self.tail_height = 0.91                                         # [m] Tail height above ground
+
         # Miscellaneous
         self.eff_propeller = None
         self.T_propeller = None
-        self.tail_ready = False
+        self.tail_ready  = False
 
         ## Calculated values
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
@@ -142,7 +160,6 @@ class CurrentVariables():
         self.xcg_aft     = None                                         # [m] Aft-most cg location
         self.xcg_fwr     = None                                         # [m] Forward-most cg location
 
-
         self.sweep       = 0                                            # [deg] Quarter chord sweep angle of the main wing
         self.taper       = 0.4                                          # [-] Taper ratio of the main wing
         self.b           = 12.2                                         # [m] Wing span
@@ -150,6 +167,11 @@ class CurrentVariables():
         self.ct          = 0.6                                          # [m] Tip chord
         self.MAC         = 1.1                                          # [m] Mean aerodynamic chord
         self.chordwise_cg_oew = 0.25                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
+
+        self.wingpos     = 1.27                                         # [m] Location of root chord LE from nose
+        self.sweep_LE    = atan((self.cr-self.ct)*0.25/self.b*2)        # [rad] Sweep of wing leading edge
+        self.y_mac       = -(self.MAC-self.cr)/(self.cr-self.ct)*self.b*0.5 # [m] spanwise position of MAC
+        self.x_lemac     = self.wingpos-self.y_mac*tan(self.sweep_LE)   # [m] x position from nose of LEMAC.
 
 
         self.aileronend  = None                                         # [m] End of the aileron from the aircraft center
@@ -173,6 +195,18 @@ class CurrentVariables():
         self.nosegeardiameter = None                                    # [m] diameter of nose gear wheel
         self.nosegearwidth = None                                       # [m] width of nose gear wheel
 
+        self.propcg_x    = None
+        self.propcg_z    = None
+        self.enginecg_x  = None
+        self.enginecg_z  = None
+        self.batterycg_x = None
+        self.batterycg_z = None
+        self.baggagecg_x = None
+        self.baggagecg_z = None
+        self.payloadcg_x = None
+        self.payloadcg_z = None
+        self.fuselagecg_x= None
+        self.fuselagecg_z= None
 
 
     def init_single_engine(self):

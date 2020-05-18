@@ -51,6 +51,22 @@ def flight_profile_energy_per_WTO(variables: CurrentVariables, taxi=2, climb=1,
     return total_energy * g0 / (variables.Especif_bat * variables.eff_tot_prop)
 
 
+def motor_mass_volume(variables):
+    """
+    NOTE IT SETS THE MOTOR WEIGHT IN NEWTONS IN THE VARIABLE CLASS!!!
+    :return: The mass of the electric motor in kg
+    """
+    Pmax = (variables.WTO / variables.WP) / 1000    # kW
+    motor_mass = Pmax/variables.motor_spec_mass     # kg
+    motor_volume = Pmax/variables.motor_spec_volume # L
+
+    # Setting the motor weight in variables class
+    variables.Wmotor = motor_mass * 9.80665
+
+    return motor_mass, motor_volume
+
+
+
 
 
 
@@ -91,6 +107,9 @@ if __name__ == "__main__":
     print("Motor volume [L]       =  ", Pmax/7)
     print("Motor*bat efficiency   =  ", variables.eff_tot_prop)
     print("=============================================\nend")
+    print(variables.Wmotor)
+    print(motor_mass_volume(variables)[0]*9.80665)
+    print(variables.Wmotor)
 
 
 
