@@ -41,6 +41,7 @@ class CurrentVariables():
         self.climbrate   = 2                                            # [m/s] climb rate
         self.Vmax_kts    = 120                                          # [KIAS] Max speed in knots
         self.Vmax        = self.Vmax_kts*0.514444444                    # IAS [m/s] max speed
+        self.Vs_eas      = 23.15                                        # [m/s] stall speed (45 kts calibrated)
         self.Vs          = IAS_TAS(1700, 23.15)                         # [m/s] stall speed (45 kts calibrated)
         self.rho         = 1.04                                         # [kg/m3] airdensity take-off and landing
         self.M_tip       = 0.7                                          # [-] Tip mach (non-helical, only rotation)
@@ -97,6 +98,7 @@ class CurrentVariables():
         self.coverR      = 0.5                                          # [-] Chord of duct to radius of fan ratio
         self.angleduct   = 2                                            # [deg] angle of the chordline of the duct
         self.initial_etap        = 0.7                                  # propeller efficiency
+        self.V_eas       = 48.87                                        # [m/s] cruise velocity EAS
         self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
 
