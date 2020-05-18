@@ -49,6 +49,7 @@ class CurrentVariables():
         self.sland       = 500                                          # [m] landing distance
         self.f           = 1                                            # [-] WL/WTO
         self.n_ult       = 5.7                                          # [-] Ultimate load factor in g
+        self.rollrate    = 15*np.pi/180                                 # [rad/s] roll rate requirement
 
         ## Design concept parameters (Concept number: )
         self.n_engines   = n_engines                                    # [-] number of engines
@@ -73,6 +74,10 @@ class CurrentVariables():
         self.CD0to       = 0.0380                                       # drag constant
         self.CD0clean    = 0.0280                                       # drag constant
         self.chordwise_wing_cg = 0.30                                   # [-] 100*%MAC of wing centre of gravity
+        self.aileroncutoff = 0.5                                        # [m] fixed position of outer aileron location from wingtip
+        self.max_controlsurface_deflection = 20                         # [deg] maximum deflection of control surfaces
+        self.c_l_a       = 5.729578                                     # [1/rad] lift slope
+        self.c_l_delta_a = 0.046825*180/(np.pi)                         # [1/rad] change in the airfoil’s lift coefficient with aileron deflection
 
         # Free design choices (None means TBD)
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
@@ -136,6 +141,12 @@ class CurrentVariables():
         self.ct          = 0.6                                          # [m] Tip chord
         self.MAC         = 1.1                                          # [m] Mean aerodynamic chord
         self.chordwise_cg_oew = 0.25                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
+
+        self.aileronend  = None                                         # [m] End of the aileron from the aircraft center
+        self.aileronstart= None                                         # [m] Start of the aileron from the aircraft center
+        self.flapstart   = None                                         # [m] Start of the flap from the aircraft center
+        self.Swf         = None                                         # [m^2] Wetted surface by the flaps
+        self.deltaC_l_max= 1.13                                         # [-] change in C_l due to flaps at max deflection (0.2 chord @ 40 deg flap)
 
         self.Weng        = self.Wprop + self.Wmotor                     # [N] Total engine weight
         self.S           = self.WTO/self.WS                             # [m2] Wing surface area

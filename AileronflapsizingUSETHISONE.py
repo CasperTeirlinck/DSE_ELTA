@@ -8,6 +8,7 @@ Aileron sizing and flap sizing
 """
 
 import numpy as np
+from variables import *
 
 
 
@@ -82,8 +83,34 @@ def Flappos(b,S,c_root,taperrat,b2,delta_a,c_l_delta_a,V,P,c_tip,c_l_a,AR,a_max,
     
     #f11 = (-B+np.sqrt(B**2-4*A*C))/(2*A)
     f12 = (-B-np.sqrt(B**2-4*A*C))/(2*A)
+    print(B**2-4*A*C)
+    print(np.sqrt(B**2-4*A*C))
         
     return f12
+
+
+def size_control_surfaces(variables: CurrentVariables):
+    b = variables.b
+    S = variables.WTO / variables.WS
+    c_root = variables.cr
+    taperrat = variables.taper
+    b2 = variables.b/2-variables.aileroncutoff
+    delta_a = variables.max_controlsurface_deflection*np.pi/180
+    V = variables.Vs*1.1
+    P = variables.rollrate
+    c_tip = c_root*taperrat
+    c_l_a = variables.c_l_a
+    c_l_delta_a = variables.c_l_delta_a
+    AR = variables.A
+    C_L_max_req = np.max(np.concatenate((np.array([variables.CLmaxto]).flatten(), np.array([variables.CLmaxland]).flatten(), np.array([variables.CLmaxclean]).flatten())))
+    a_max = C_L_max_req/(c_l_a - c_l_delta_a)
+    deltaC_l_max = variables.deltaC_l_max
+
+    variables.aileronend = b2
+    variables.aileronstart = aileronstartinner(b, S, c_root, taperrat, b2, delta_a, c_l_delta_a, V, P)
+    variables.flapstart = Flappos(b, S, c_root, taperrat, b2, delta_a, c_l_delta_a, V, P, c_tip, c_l_a, AR, a_max, C_L_max_req, deltaC_l_max)
+    variables.Swf = Flapsurface(c_l_a, AR, a_max, C_L_max_req, S, deltaC_l_max)
+    return variables
 
 
         

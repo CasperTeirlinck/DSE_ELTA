@@ -38,8 +38,8 @@ def loop(v: CurrentVariables):
     v.WS, v.WP = get_design_point(v)
     v = classIestimation_alt(v)
     v = wing_planform(v)
-    # TODO: add Wwing, Wfus, etc. to variables class. Also fix Class I bug. Discuss TE weight addition in code.
-    # Control surface sizing here
+    # TODO: Discuss TE weight addition in code.
+    v = size_control_surfaces(v)
     
     v = subloop(v)
     v = dosubloop(v)    
