@@ -81,10 +81,15 @@ def Flappos(b,S,c_root,taperrat,b2,delta_a,c_l_delta_a,V,P,c_tip,c_l_a,AR,a_max,
     B = -c_root
     C = -(Flapsurface(c_l_a,AR,a_max,C_L_max_req,S,deltaC_l_max)/2 - c_root*f2 + A*f2**2)
     
+    root = B**2-4*A*C
+    
+    if root < 0:
+        f12 = None
+    else:
+        f12 = (-B-np.sqrt(root))/(2*A)
     #f11 = (-B+np.sqrt(B**2-4*A*C))/(2*A)
-    f12 = (-B-np.sqrt(B**2-4*A*C))/(2*A)
-    print(B**2-4*A*C)
-    print(np.sqrt(B**2-4*A*C))
+    
+
         
     return f12
 
