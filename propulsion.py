@@ -53,6 +53,7 @@ def flight_profile_energy_per_WTO(variables: CurrentVariables, taxi=2, climb=1,
 
 def motor_mass_volume(variables):
     """
+    NOTE IT SETS THE MOTOR WEIGHT IN NEWTONS IN THE VARIABLE CLASS!!!
     :return: The mass of the electric motor in kg
     """
     Pmax = (variables.WTO / variables.WP) / 1000    # kW
