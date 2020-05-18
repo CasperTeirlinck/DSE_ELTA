@@ -10,20 +10,40 @@ from cg_determination import *
 from gear import *
 from ClassIIWeightEstimation import *
 from propulsion import *
+from Empennage import *
+
+
+def subloop(v):
+    v = cg_calculations_total(v)
+    v = size_gear(v)
+    v = empennage_sizing(v)
+    v = classIIestimation(v)
+    return v
+
+
+def dosubloop(v: CurrentVariables, subdifference=0.05, maxsubiteration=20):
+    XTAIL = [0]
+    for subiteration in range(maxsubiterations):
+        XTAIL.append(v.x_htail)
+        if abs(XTAIL[subiteration+1] - XTAIL[subiteration]) < subdifference:
+            return v            
+        else:
+            v = subloop(v)
+    else: 
+        print(print("Subloop did not converge within {} iterations".format(maxsubiterations)))
+        return v
 
 
 def loop(v: CurrentVariables):
     v.WS, v.WP = get_design_point(v)
-    v = classIestimation(v)
+    v = classIestimation_alt(v)
     v = wing_planform(v)
-    # TODO: add Wwing, Wfus, etc. to variables class. Also fix Class I bug.
+    # TODO: add Wwing, Wfus, etc. to variables class. Also fix Class I bug. Discuss TE weight addition in code.
     # Control surface sizing here
-    v = cg_calculations(v)
-    v = size_gear(v)
-    print("Here")
-    v = function2(v)
-    v = function3(v)
-    v = classII(v)
+    
+    v = subloop(v)
+    v = dosubloop(v)    
+    print("here2")
     return v
 
 
