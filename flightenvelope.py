@@ -4,6 +4,10 @@ from variables import *
 
 variables = CurrentVariables()
 
+def ClaCLaConverter(c_l_a,AR):
+    CLa = c_l_a*AR/(AR+2)
+    return CLa
+
 # SPEEDS: all eas !!
 # assumtion: VEAS == VIAS
 V_s = variables.Vs_eas
@@ -13,7 +17,8 @@ V_d = variables.Vmax
 n_max = 3.8 # ref: CS-VLA 337
 n_min = -1.5 # ref: CS-VLA 337
 # GUST
-dCLda = 2*np.pi #[1/rad]
+dCLda = ClaCLaConverter(variables.c_l_a, variables.A) #[1/rad]
+print(dCLda)
 rho = variables.rhocruise
 rho0 = variables.rho0
 S = variables.S  # m2
@@ -144,15 +149,32 @@ plt.plot(
 plt.annotate("VD", (V_d, 0), xytext=(5, 5), textcoords="offset points", ha="left")
 
 """ COMBINED ENVELOPE: from left CW """
+# ref: https://www.sciencedirect.com/book/9780123973085/general-aviation-aircraft-design
 if True:
     # stall
+    # plt.plot(
+    #     np.arange(V_s, V_s * np.sqrt(n_max), 0.1),
+    #     (np.arange(V_s, V_s * np.sqrt(n_max), 0.1) / V_s) ** 2,
+    #     linestyle="-",
+    #     color="cornflowerblue",
+    #     linewidth=2,
+    #     label='Combined Envelope'
+    # )
+    _V1 = ( K_c*V_s**2 + np.sqrt( (K_c*V_s**2)**2 + 4*V_s**2 ) )/2
     plt.plot(
-        np.arange(V_s, V_s * np.sqrt(n_max), 0.1),
-        (np.arange(V_s, V_s * np.sqrt(n_max), 0.1) / V_s) ** 2,
+        np.arange(V_s, _V1, 0.1),
+        (np.arange(V_s, _V1, 0.1) / V_s) ** 2,
         linestyle="-",
         color="cornflowerblue",
         linewidth=2,
         label='Combined Envelope'
+    )
+    plt.plot(
+        np.arange(_V1, V_c, 0.1),
+        1 + K_c * np.arange(_V1, V_c, 0.1),
+        linestyle="-",
+        color="cornflowerblue",
+        linewidth=2
     )
     # nmax
     # plt.plot(
@@ -162,20 +184,20 @@ if True:
     #     color="cornflowerblue",
     #     linewidth=2,
     # )
-    plt.plot(
-        [V_s * np.sqrt(n_max), V_c],
-        [n_max, n_max],
-        linestyle="-",
-        color="cornflowerblue",
-        linewidth=2,
-    )
-    plt.plot(
-        [V_c, V_c],
-        [n_max, a * V_c + b_top],
-        linestyle="-",
-        color="cornflowerblue",
-        linewidth=2,
-    )
+    # plt.plot(
+    #     [V_s * np.sqrt(n_max), V_c],
+    #     [n_max, n_max],
+    #     linestyle="-",
+    #     color="cornflowerblue",
+    #     linewidth=2,
+    # )
+    # plt.plot(
+    #     [V_c, V_c],
+    #     [n_max, a * V_c + b_top],
+    #     linestyle="-",
+    #     color="cornflowerblue",
+    #     linewidth=2,
+    # )
     # gust
     # plt.plot(
     #     np.arange((n_max - 1)/K_c, V_c, 0.1),
@@ -208,7 +230,7 @@ if True:
         linewidth=2,
     )
     # gust
-    _V = ( (n_min*V_d)/(V_c-V_d) + b_bottom )/( n_min/(V_c-V_d) + a )
+    # _V = ( (n_min*V_d)/(V_c-V_d) + b_bottom )/( n_min/(V_c-V_d) + a )
     # plt.plot(
     #     np.arange(_V, V_d, 0.1),
     #     -a * np.arange(_V, V_d, 0.1) + b_bottom,
@@ -225,7 +247,21 @@ if True:
     #     linewidth=2,
     # )
     plt.plot(
-        [V_s * np.sqrt(-n_min), V_c],
+        np.arange(V_c, V_d, 0.1),
+        -a * np.arange(V_c, V_d, 0.1) + b_bottom,
+        linestyle="-",
+        color="cornflowerblue",
+        linewidth=2,
+    )
+    plt.plot(
+        np.arange((1-n_min)/K_c, V_c, 0.1),
+        1 - K_c * np.arange((1-n_min)/K_c, V_c, 0.1),
+        linestyle="-",
+        color="cornflowerblue",
+        linewidth=2,
+    )
+    plt.plot(
+        [V_s * np.sqrt(-n_min), (1-n_min)/K_c],
         [n_min, n_min],
         linestyle="-",
         color="cornflowerblue",
@@ -235,7 +271,7 @@ if True:
 """ FINAL PLOT """
 if __name__ == "__main__":
     plt.plot([0, 300], [0, 0], color="black")
-    plt.ylim(-6, 8)
+    plt.ylim(-3, 5)
     plt.xlim(0, 80)
     plt.ylabel("Load Factor n [-]")
     plt.xlabel("Speed V EAS [m/s]")
