@@ -74,6 +74,8 @@ class CurrentVariables:
         self.vtail_volume = 0.4                                         # [-] Vertical tail volume
         self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
         self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
+        self.motor_spec_mass = 2.5                                      # kW/kg from Maarten
+        self.motor_spec_volume = 7                                      # kW/L from Maarten
         self.CD0to       = 0.0380                                       # drag constant
         self.CD0clean    = 0.0280                                       # drag constant
         self.chordwise_wing_cg = 0.30                                   # [-] 100*%MAC of wing centre of gravity
