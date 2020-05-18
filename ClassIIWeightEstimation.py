@@ -106,12 +106,13 @@ def EngineAndNacelleEstimation(W_to, ductedfan):
     return W_e, W_n #already in kg
 
 def LandingGearEstimation(W_to,W_l, n_ult_l, l_sn,l_sm,W_wsn,W_wsm):
-    W_g = 0.013*(W_to*kglbs)+0.146*(W_l*kglbs)**0.417*n_ult_l**0.950*(l_sm*mft)**0.183+W_wsm*kglbs + 6.2 + 0.0013*(W_to*kglbs) + 0.000143*(W_l*kglbs)**0.749*n_ult_l*(l_sn*mft)**0.788 + W_wsn*kglbs
-      
+    W_frontgear = 0.013*(W_to*kglbs)+0.146*(W_l*kglbs)**0.417*n_ult_l**0.950*(l_sm*mft)**0.183+W_wsm*kglbs
+    W_middlegear = 6.2 + 0.0013*(W_to*kglbs) + 0.000143*(W_l*kglbs)**0.749*n_ult_l*(l_sn*mft)**0.788 + W_wsn*kglbs
+    W_g = W_frontgear + W_middlegear
     if Retract == True:
-        W_g += 0.014*(W_to*kglbs)
+        W_g += 0.014*(W_to*kglbs)   
         
-    return W_g/kglbs
+    return W_frontgear/kglbs, W_reargear/kglbs, W_g/kglbs
     
 def FlightControlSystemEstimation(W_to):
     W_fc = 0.0168*W_to
