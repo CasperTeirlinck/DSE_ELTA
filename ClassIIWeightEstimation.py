@@ -93,7 +93,7 @@ def FuselageEstimation(variables):
     W_f = 200*((variables.n_ult*variables.WTO*kglbs/10**5)**0.286*(variables.l_fus*mft/10)**0.857*((variables.l_fus+variables.d_fus)*mft/10)*(variables.Vmax/100)**0.338)**1.1
     return W_f/kglbs
     
-def EngineAndNacelleEstimation(W_to, ductedfan):
+def EngineEstimation(variables):
     #W_e = variables.P_total/K_p
     
     #if ductedfan == False:
@@ -105,11 +105,11 @@ def EngineAndNacelleEstimation(W_to, ductedfan):
     return 100.
 
 def LandingGearEstimation(variables):
-    W_frontgear = 0.013*(variables.WTO*kglbs)+0.146*(variables.WTO*kglbs)**0.417*variables.n_ult**0.950*(variables.l_   sm*mft)**0.183 + variables.W_wsm*kglbs
-    W_maingear = 6.2 + 0.0013*(variables.WTO*kglbs) + 0.000143*(variables.WTO*kglbs)**0.749*variables.n_ult_l*(variables.l_sn*mft)**0.788 + variables.W_wsn*kglbs
+    W_frontgear = 0.013*(variables.WTO*kglbs)+0.146*(variables.WTO*kglbs)**0.417*variables.n_ult**0.950*(variables.l_sm*mft)**0.183 + variables.W_wsm*kglbs
+    W_maingear = 6.2 + 0.0013*(variables.WTO*kglbs) + 0.000143*(variables.WTO*kglbs)**0.749*variables.n_ult*(variables.l_sn*mft)**0.788 + variables.W_wsn*kglbs
     W_g = W_frontgear + W_maingear
-    if Retract == True:
-        W_g += 0.014*(variables.WTO*kglbs)   
+    #if Retractable == True:
+    #    W_g += 0.014*(variables.WTO*kglbs)   
         
     return W_frontgear/kglbs, W_maingear/kglbs, W_g/kglbs
     
@@ -125,18 +125,21 @@ def ElectricalSystemEstimation(variables):
 def EmptyWeight(variables):
     
     OEW = (MainWingEstimation(variables) + EmpennageEstimation(variables)[0] + EmpennageEstimation(variables)[1] +
-           FuselageEstimation(variables) + EngineAndNacelleEstimation(variables)[0] + EngineAndNacelleEstimation(variables)[1] +
-           LandingGearEstimation(variables)[3] + FlightControlSystemEstimation(variables) + ElectricalSystemEstimation(variables) +
-           W_prop + W_avion)
+           FuselageEstimation(variables) + EngineEstimation(variables) +
+           LandingGearEstimation(variables)[2] + FlightControlSystemEstimation(variables) + ElectricalSystemEstimation(variables) +
+           variables.Wprop + variables.W_avion)
     #W_b is not included as it is part of the payload
     return OEW
 
 def CalculateClassII(variables):
     variables.Wwing = 9.81*MainWingEstimation(variables)
-    variables.W_htail, variables.W_vtail = 9.81*EmpennageEstimation(variables)
+    variables.W_htail = 9.81*EmpennageEstimation(variables)[0]
+    variables.W_vtail = 9.81*EmpennageEstimation(variables)[1]
     variables.Wfus = 9.81*FuselageEstimation(variables)
-    variables.Weng = 9.81*Engine(variables)
-    variables.Wgear_front,variables.Wgear_main,variables.Wgear = 9.81*LandingGearEstimation(variables) 
+    variables.Weng = 9.81*EngineEstimation(variables)
+    variables.Wgear_front = 9.81*LandingGearEstimation(variables)[0]
+    variables.Wgear_main = 9.81*LandingGearEstimation(variables)[1]
+    variables.Wgear = 9.81*LandingGearEstimation(variables)[2]
     variables.Wfcs = 9.81*FlightControlSystemEstimation(variables)
     variables.Wels = 9.81*ElectricalSystemEstimation(variables)
     variables.Woew_classII = 9.81*EmptyWeight(variables)

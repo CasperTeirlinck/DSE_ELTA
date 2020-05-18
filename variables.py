@@ -87,6 +87,13 @@ class CurrentVariables:
         self.fus_height  = 1.725                                        # [m] height from lowes point floor until heighest point of the fuselage
         self.prop_spin   = 0.365                                        # [m] Length of the propeller spinner
 
+        self.W_wsn   = 5                                                #[kg]   Nose wheel weight + its strut assembly
+        self.W_wsm   = 7                                                #[kg]   Main wheel weight + its strut assembly
+        self.l_sn    = 0.2                                              #[m]    Shock strut length nose wheel
+        self.l_sm    = 0.2                                              #[m]    Shock strut length main wheel
+
+        self.W_avion = 15                                               #[kg] avionic weight
+
         # Free design choices (None means TBD)
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
         self.lowwing     = lowwing                                      # [-] Boolean low wing or high wing.
