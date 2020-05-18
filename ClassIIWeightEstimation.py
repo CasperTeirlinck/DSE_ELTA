@@ -104,7 +104,7 @@ def EngineAndNacelleEstimation(W_to, ductedfan):
     else:
         W_n = 0.24*W_to*0.6 #0.6 is engineering judgement
         
-    return W_e, W_n #already in kg
+    return W_e, W_n #already in kg TODO: Kijk hiernaar, assess accuracy
 
 def LandingGearEstimation(W_to,W_l, n_ult_l, l_sn,l_sm,W_wsn,W_wsm):
     W_frontgear = 0.013*(W_to*kglbs)+0.146*(W_l*kglbs)**0.417*n_ult_l**0.950*(l_sm*mft)**0.183+W_wsm*kglbs
