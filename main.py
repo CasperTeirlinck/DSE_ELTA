@@ -18,7 +18,7 @@ def subloop(v):
     v = cg_calculations_total(v)
     v = size_gear(v)
     v = empennage_sizing(v)
-    v = classIIestimation(v)
+    v = CalculateClassII(v)
     return v
 
 
@@ -41,12 +41,10 @@ def loop(v: CurrentVariables):
     v = wing_planform(v)
     v = calculate_cg_groups(v)
     # TODO: Discuss TE weight addition in code.
-    print("before")
     v = size_control_surfaces(v)
-    print("After")
+
     v = subloop(v)
-    v = dosubloop(v)    
-    print("here2")
+    v = dosubloop(v)
     return v
 
 
@@ -74,10 +72,11 @@ if __name__ == "__main__":
     x_cg_batt = 1.96
     x_cg_f = 2.33
     ducted=False
+    lowwing=True
 
 
     v = CurrentVariables(conceptnumber=conceptnumber, wing_mounted=wing_mounted, T_tail=T_tail, x_cg_pass=x_cg_pass,
-                         x_cg_batt=x_cg_batt, x_cg_f=x_cg_f, ducted=ducted)
+                         x_cg_batt=x_cg_batt, x_cg_f=x_cg_f, ducted=ducted, lowwing=lowwing)
 
 
     v = do_loop(v)
