@@ -64,8 +64,9 @@ class CurrentVariables():
             self.chordwise_cg_engine = 000                              # [-] Engine CG location as measured from LEMAC%
         if not self.wing_mounted_engine:
             self.x_cg_engine = 0.755                                    # [m] Engine CG location as measured from aircraft nose
-
-
+        self.strutted_wing = False
+        self.l_fus = 5                                                  # [m] Length of fuselage without tail
+        self.d_fus = 1.5                                                # Depth of fuselage (?)
 
         ## Statistical values
         self.htail_volume = 0.8                                         # [-] Horizontal tail volume
@@ -78,14 +79,14 @@ class CurrentVariables():
         self.aileroncutoff = 0.5                                        # [m] fixed position of outer aileron location from wingtip
         self.max_controlsurface_deflection = 20                         # [deg] maximum deflection of control surfaces
         self.c_l_a       = 5.729578                                     # [1/rad] lift slope
-        self.c_l_delta_a = 0.046825*180/(np.pi)                         # [1/rad] change in the airfoil’s lift coefficient with aileron deflection
+        self.c_l_delta_a = 0.046825*180/(np.pi)                         # [1/rad] change in the airfoil’s lift coefficient with aileron deflection 
 
         # Free design choices (None means TBD)
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
         self.sweep_h     = 0                                            # [deg] (0- 0) Quarter chord sweep angle of the horizontal tailplane
-        self.sweep_v     = None                                         # [deg] (0-50) Quarter chord sweep angle of the vertical tailplane
+        self.sweep_v     = 10                                         # [deg] (0-50) Quarter chord sweep angle of the vertical tailplane
         self.A_h         = 3                                            # [-] (3-5)aspect ratio of the horizontal tailplane
-        self.A_v         = 12                                           # [-] (1-2) aspect ratio of the vertical tailplane
+        self.A_v         = 2                                           # [-] (1-2) aspect ratio of the vertical tailplane
         self.x_htail     = 4.7                                          # [m] location of the ac of the horizontal tail
         self.x_vtail     = 4.7                                          # [m] location of the ac of the vertical tail
         self.taper_h     = None                                         # [-] (0.3-1.0) Taper ratio of the horizontal tailplane
@@ -101,6 +102,8 @@ class CurrentVariables():
         self.V_eas       = 48.87                                        # [m/s] cruise velocity EAS
         self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
+        self.tcr_h        = 0.14                                         # [-] Thickness-to-rootchord ratio of the horizontal stabiliser
+        self.tcr_v        = 0.14                                         # [-] Thickness-to-rootchord ratio of the vertical stabiliser    
 
         # Miscellaneous
         self.eff_propeller = None
@@ -148,6 +151,7 @@ class CurrentVariables():
         self.MAC         = 1.1                                          # [m] Mean aerodynamic chord
         self.chordwise_cg_oew = 0.25                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
 
+
         self.aileronend  = None                                         # [m] End of the aileron from the aircraft center
         self.aileronstart= None                                         # [m] Start of the aileron from the aircraft center
         self.flapstart   = None                                         # [m] Start of the flap from the aircraft center
@@ -168,9 +172,6 @@ class CurrentVariables():
         self.maingearwidth = None                                       # [m] width of main gear wheel
         self.nosegeardiameter = None                                    # [m] diameter of nose gear wheel
         self.nosegearwidth = None                                       # [m] width of nose gear wheel
-
-
-
 
 
 
