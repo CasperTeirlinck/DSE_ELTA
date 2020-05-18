@@ -141,4 +141,11 @@ def calculate_cg_groups(variables):
     variables.baggagecg_y, variables.baggagecg_z = Baggage(variables)
     variables.payloadcg_y, variables.payloadcg_z = Payload(variables)
     variables.fuselagecg_y, variables.fuselagecg_z = FuselageEmptyStructure(variables)
+    # print(variables.propcg_y, variables.propcg_z)
+    # print(variables.enginecg_y, variables.enginecg_z)
+    # print(variables.batterycg_y, variables.batterycg_z)
+    # print(variables.baggagecg_y, variables.baggagecg_z)
+    # print(variables.payloadcg_y, variables.payloadcg_z)
+    # print(variables.fuselagecg_y, variables.fuselagecg_z)
+    # print(variables.fuselagecg_z)
     return variables
