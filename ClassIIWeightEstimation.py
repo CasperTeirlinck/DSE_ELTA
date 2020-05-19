@@ -93,7 +93,7 @@ def EmpennageEstimation(variables):
     return W_h/Nlbs, W_v/Nlbs
 
 def FuselageEstimation(variables):
-    W_f = 200*((variables.n_ult*variables.WTO*Nlbs/10**5)**0.286*(variables.l_fus*mft/10)**0.857*((variables.l_fus+variables.d_fus)*mft/10)*(variables.Vmax/100)**0.338)**1.1
+    W_f = 200*((variables.n_ult*variables.WTO*Nlbs/10**5)**0.286*(variables.l_fus*mft/10)**0.857*((variables.l_fus+variables.d_fus)*mft/10)*(variables.Vmax_kts/100)**0.338)**1.1
     return W_f/Nlbs
     
 #def EngineEstimation(variables):
