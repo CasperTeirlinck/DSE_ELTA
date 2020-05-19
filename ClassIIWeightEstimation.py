@@ -10,7 +10,7 @@ Outputs only the empty weight, not yet the c.g. locations!
 """
 import numpy as np
 from variables import *
-from propulsion import ductweight
+from engine import ductweight
 #----------------Input parameters----------------------------------
 """
 #General aircraft parameters
@@ -114,14 +114,16 @@ def EngineEstimation(variables):
 #    variables.Wmotor = motor_mass * 9.80665
 #
 #    return variables
-    return variables.Weng
-
+    if variables.ducted:
+        return variables.Wprop + variables.Wmotor + 9.81*variables.n_engines*variables.ducted*ductweight(variables)
+    else:
+        return variables.Wprop + variables.Wmotor
 
 def LandingGearEstimation(variables):
     W_frontgear = 0.013*(variables.WTO*kglbs)+0.146*(variables.WTO*kglbs)**0.417*variables.n_ult**0.950*(variables.l_sm*mft)**0.183 + variables.W_wsm*kglbs
     W_maingear = 6.2 + 0.0013*(variables.WTO*kglbs) + 0.000143*(variables.WTO*kglbs)**0.749*variables.n_ult*(variables.l_sn*mft)**0.788 + variables.W_wsn*kglbs
     W_g = W_frontgear + W_maingear
-    #if Retractable == True:
+    #if Retractable =   = True:
     #    W_g += 0.014*(variables.WTO*kglbs)   
         
     return W_frontgear/kglbs, W_maingear/kglbs, W_g/kglbs
@@ -149,7 +151,7 @@ def CalculateClassII(variables):
     variables.W_htail = 9.81*EmpennageEstimation(variables)[0]
     variables.W_vtail = 9.81*EmpennageEstimation(variables)[1]
     variables.Wfus = 9.81*FuselageEstimation(variables)
-    variables.Weng = 9.81*EngineEstimation(variables)
+    variables.Weng = EngineEstimation(variables)
     variables.Wgear_front = 9.81*LandingGearEstimation(variables)[0]
     variables.Wgear_main = 9.81*LandingGearEstimation(variables)[1]
     variables.Wgear = 9.81*LandingGearEstimation(variables)[2]

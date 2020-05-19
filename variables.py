@@ -129,6 +129,10 @@ class CurrentVariables:
         self.eng_perc_rootchord = 20                                    # [%] engine cg in percentage of root chord
         self.eng_height_above_w = 0.3                                   # [m] engine cg in m above the main wing
         self.tail_height = 0.91                                         # [m] Tail height above ground
+        if self.ducted:
+            self.ARduct = 5.0
+            self.D_fan = 1.09
+            self.rho_ductmaterial = 1.5
 
         # Miscellaneous
         self.eff_propeller = None

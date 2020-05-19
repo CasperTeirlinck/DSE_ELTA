@@ -56,7 +56,7 @@ def cg_calculations_tailless(variables):
 ## TOTAL AIRCRAFT CG
 # Calculate x-coordinate of total aircraft CG OEW
 def x_OEWCG_total(variables):   
-    return (winggroup_weight(variables)*wing_position(variables) + fuselagegroup_weight(variables)*X_fuselagegroupCG(variables) + variables.W_htail*variables.x_htail + variables.W_vtail*variables.x_vtail + variables.Wgear_main*variables.x_maingear + variables.Wgear_front*variables.x_nosegear) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + W_htail + W_vtail)
+    return (winggroup_weight(variables)*wing_position(variables) + fuselagegroup_weight(variables)*X_fuselagegroupCG(variables) + variables.W_htail*variables.x_htail + variables.W_vtail*variables.x_vtail + variables.Wgear_main*variables.x_maingear + variables.Wgear_front*variables.x_nosegear) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.W_htail + variables.W_vtail)
 
 # Calculate most forward CG of total aircraft
 def x_forwardCG_total(variables):

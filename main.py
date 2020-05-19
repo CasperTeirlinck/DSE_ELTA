@@ -1,6 +1,7 @@
 from variables import *
 import numpy as np
 import math as m
+import matplotlib.pyplot as plt
 
 from loading_diagram import *
 from class_I import *
@@ -22,7 +23,7 @@ def subloop(v):
     return v
 
 
-def dosubloop(v: CurrentVariables, subdifference=0.05, maxsubiterations=20):
+def dosubloop(v: CurrentVariables, subdifference=0.05, maxsubiterations=40):
     XTAIL = [0]
     for subiteration in range(maxsubiterations):
         XTAIL.append(v.x_htail)
@@ -49,6 +50,7 @@ def loop(v: CurrentVariables):
 
 
 def do_loop(v: CurrentVariables, difference=35, maxiterations=10):
+    OEWS = []
     for iteration in range(maxiterations):
         if v.Woew_classII != None and abs(v.Woew - v.Woew_classII) < difference*9.81:
             print(v.Woew)
@@ -57,13 +59,13 @@ def do_loop(v: CurrentVariables, difference=35, maxiterations=10):
             return v
         else:
             v = loop(v)
+            OEWS.append(v.Woew_classII/9.81)
     else:
         print("Did not converge within {} iterations".format(maxiterations))
-        return v
+        return v, OEWS
 
 
 if __name__ == "__main__":
-
     conceptnumber = 1
     n_engines = 1
     wing_mounted = False
@@ -79,5 +81,8 @@ if __name__ == "__main__":
                          x_cg_batt=x_cg_batt, x_cg_f=x_cg_f, ducted=ducted, lowwing=lowwing)
 
 
-    v = do_loop(v)
+    v, O = do_loop(v,35,100)
     print("Done!")
+    print(vars(v))
+    plt.plot(range(len(O)),O)
+    plt.show()
