@@ -5,7 +5,6 @@ from ClassIIWeightEstimation import MainWingEstimation
 
 def wing_planform(variables,drawing=False):
     S = variables.WTO/variables.WS
-    S = variables.S
     A = variables.A
     # Sweep
     sweep = np.rad2deg(np.arccos(1)) # [deg]
@@ -53,6 +52,7 @@ def wing_planform(variables,drawing=False):
 
     else:
         pass
+    variables.S     = S
     variables.sweep = sweep
     variables.taper = taper
     variables.b     = b

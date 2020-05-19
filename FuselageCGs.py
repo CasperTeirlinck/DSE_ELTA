@@ -68,7 +68,7 @@ def calculate_cg_groups(variables):
 
         def FuselageEmptyStructure(variables):
             CGy = variables.fuselage_len/2
-            CGz = variables.propclear + 0.3095 + np.tan(10/180*np.pi)*(variables.fuselage_len)
+            CGz = variables.propclear + 0.3095 + np.tan(10/180*np.pi)*variables.fuselage_len
             return CGy, CGz
 
     if Concept == 2 or Concept == 3:
@@ -135,12 +135,12 @@ def calculate_cg_groups(variables):
             CGz = variables.propclear + 0.526
             return CGy, CGz
 
-    variables.propcg_y, variables.propcg_z = PropellerCG(variables)
-    variables.enginecg_y, variables.enginecg_z = EngineCG(variables)
-    variables.batterycg_y, variables.batterycg_z = BatteryCG(variables)
-    variables.baggagecg_y, variables.baggagecg_z = Baggage(variables)
-    variables.payloadcg_y, variables.payloadcg_z = Payload(variables)
-    variables.fuselagecg_y, variables.fuselagecg_z = FuselageEmptyStructure(variables)
+    variables.propcg_x, variables.propcg_z = PropellerCG(variables)
+    variables.enginecg_x, variables.enginecg_z = EngineCG(variables)
+    variables.batterycg_x, variables.batterycg_z = BatteryCG(variables)
+    variables.baggagecg_x, variables.baggagecg_z = Baggage(variables)
+    variables.payloadcg_x, variables.payloadcg_z = Payload(variables)
+    variables.fuselagecg_x, variables.fuselagecg_z = FuselageEmptyStructure(variables)
     # print(variables.propcg_y, variables.propcg_z)
     # print(variables.enginecg_y, variables.enginecg_z)
     # print(variables.batterycg_y, variables.batterycg_z)

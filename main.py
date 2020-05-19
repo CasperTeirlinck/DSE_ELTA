@@ -41,8 +41,7 @@ def loop(v: CurrentVariables):
     v = classIestimation_alt(v)
     v = wing_planform(v)
     v = calculate_cg_groups(v)
-    # TODO: Discuss TE weight addition in code.
-    v = size_control_surfaces(v)
+    # v = size_control_surfaces(v)
 
     # Do the c.g. related positioning (wing/tail/gear) subloop
     v = subloop(v)
@@ -81,7 +80,7 @@ if __name__ == "__main__":
     lowwing=True
 
 
-    v,O = CurrentVariables(conceptnumber=conceptnumber, wing_mounted=wing_mounted, T_tail=T_tail, x_cg_pass=x_cg_pass,
+    v = CurrentVariables(conceptnumber=conceptnumber, wing_mounted=wing_mounted, T_tail=T_tail, x_cg_pass=x_cg_pass,
                          x_cg_batt=x_cg_batt, x_cg_f=x_cg_f, ducted=ducted, lowwing=lowwing)
 
 
@@ -89,5 +88,5 @@ if __name__ == "__main__":
     print("Done!")
     print(vars(v))
     print("Final weight = ",v.Woew_classII/9.81," kg")
-    plt.plot(range(len(O)),O)
-    plt.show()
+    #plt.plot(range(len(O)),O)
+    #plt.show()

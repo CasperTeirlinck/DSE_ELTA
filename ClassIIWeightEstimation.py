@@ -93,7 +93,7 @@ def EmpennageEstimation(variables):
     return W_h/Nlbs, W_v/Nlbs
 
 def FuselageEstimation(variables):
-    W_f = 200*((variables.n_ult*variables.WTO*Nlbs/10**5)**0.286*(variables.l_fus*mft/10)**0.857*((variables.l_fus+variables.d_fus)*mft/10)*(variables.Vmax/100)**0.338)**1.1
+    W_f = 200*((variables.n_ult*variables.WTO*Nlbs/10**5)**0.286*(variables.l_fus*mft/10)**0.857*((variables.l_fus+variables.d_fus)*mft/10)*(variables.Vmax_kts/100)**0.338)**1.1
     return W_f/Nlbs
     
 #def EngineEstimation(variables):
@@ -122,8 +122,8 @@ def EngineEstimation(variables):
         return variables.Wprop + variables.Wmotor
 
 def LandingGearEstimation(variables):
-    W_frontgear = 0.013*(variables.WTO*Nlbs)+0.146*(variables.WTO*Nlbs)**0.417*variables.n_ult**0.950*(variables.l_sm*mft)**0.183 + variables.W_wsm*Nlbs
-    W_maingear = 6.2 + 0.0013*(variables.WTO*Nlbs) + 0.000143*(variables.WTO*Nlbs)**0.749*variables.n_ult*(variables.l_sn*mft)**0.788 + variables.W_wsn*Nlbs
+    W_frontgear = 0.013*(variables.WTO*Nlbs)+0.146*(variables.WTO*Nlbs)**0.417*variables.n_ult**0.950*(variables.l_sm*mft)**0.183 + variables.W_wsm*kglbs
+    W_maingear = 6.2 + 0.0013*(variables.WTO*Nlbs) + 0.000143*(variables.WTO*Nlbs)**0.749*variables.n_ult*(variables.l_sn*mft)**0.788 + variables.W_wsn*kglbs
     W_g = W_frontgear + W_maingear
     #if Retractable =   = True:
     #    W_g += 0.014*(variables.WTO*kglbs)   
@@ -143,7 +143,7 @@ def EmptyWeight(variables):
     OEW = (MainWingEstimation(variables) + EmpennageEstimation(variables)[0] + EmpennageEstimation(variables)[1] +
            FuselageEstimation(variables) + EngineEstimation(variables) +
            LandingGearEstimation(variables)[2] + FlightControlSystemEstimation(variables) + ElectricalSystemEstimation(variables) +
-           variables.Wprop + variables.W_avion)
+           variables.Wprop + variables.W_avion*kgN)
     #W_b is not included as it is part of the payload
     return OEW
 

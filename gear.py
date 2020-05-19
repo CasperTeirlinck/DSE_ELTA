@@ -16,6 +16,9 @@ class Test():
         self.MAC = 1.1
         self.dihedral = 1
         self.WTO = 750*9.81
+        self.propclear = 0.23
+        self.tailtiplength = 3.325
+        self.lowwing = True
 
 
 def size_gear(variables):
@@ -29,6 +32,7 @@ def size_gear(variables):
 
     h_cg = (variables.fus_height + variables.propclear)-variables.fuselagecg_z
     h_tail = (variables.fus_height + variables.propclear)-variables.tail_height
+
     l0 = variables.tailtiplength + variables.xcg_aft
     dist0 = l0 + m.tan(frw_cg_angle) * (h_cg - h_tail)
     z_landinggear = dist0/(1/m.tan(tailstrike) + m.tan(frw_cg_angle))+h_tail
@@ -37,6 +41,7 @@ def size_gear(variables):
     x_aft_tip_wing = variables.x_lemac - variables.MAC*0.25 - variables.ct*0.75
     z_aft_tip_wing = z_lemac + 0.15*variables.ct-variables.b*0.5*m.tan(m.radians(variables.dihedral))
     angle = m.atan((z_aft_tip_wing-z_landinggear)/(-x_aft_tip_wing+x_landinggear))
+    # print(angle)
     if angle > 0 and angle < m.radians(15.75):
         print("Wing tip strike! Tell Max to change code to account for that further. He did not expect this to occur so did not waste time implementing it.")
 
@@ -66,5 +71,8 @@ def size_gear(variables):
 
 if __name__ == "__main__":
     varis = Test()
-
-    print(size_gear(varis))
+    v = CurrentVariables()
+    v.fuselagecg_z = 1.3497224763553965
+    v.xcg_aft = 2.103121271382179
+    # size_gear(varis)
+    size_gear(v)

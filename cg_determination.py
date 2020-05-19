@@ -41,11 +41,11 @@ def x_OEWCG_tailless(variables):
 
 # Calculate most forward CG of tailless aircraft
 def x_forwardCG_tailless(variables):
-    return min((variables.WPL*variables.x_cg_passenger + (winggroup_weight(variables) + fuselagegroup_weight(variables)) * x_OEWCG_tailless(variables))/ (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL), x_OEWCG_tailless(variables))
+    return min((variables.WPL*variables.payloadcg_x + (winggroup_weight(variables) + fuselagegroup_weight(variables)) * x_OEWCG_tailless(variables))/ (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL), x_OEWCG_tailless(variables))
 
 # Calculate most aft CG of tailless aircraft
 def x_aftCG_tailless(variables):
-    return max((variables.WPL*variables.x_cg_passenger + (winggroup_weight(variables) + fuselagegroup_weight(variables)) * x_OEWCG_tailless(variables)) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL), x_OEWCG_tailless(variables))
+    return max((variables.WPL*variables.payloadcg_x + (winggroup_weight(variables) + fuselagegroup_weight(variables)) * x_OEWCG_tailless(variables)) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL), x_OEWCG_tailless(variables))
 
 def cg_calculations_tailless(variables):
     variables.xcg_frw = x_forwardCG_tailless(variables)
