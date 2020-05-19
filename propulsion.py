@@ -102,6 +102,7 @@ if __name__ == "__main__":
     print("Wbat/WTO range         =  ", round(bat_range, 4))
     print("Wbat/WTO endurance     =  ", round(bat_endurance, 4))
     print("Battery volume [L]     =  ", (E_bat*1000)/variables.rho_bat)
+    print("Battery capacity [kWh] =  ", (max(bat_endurance, bat_range) * (variables.WTO/9.81) * 250)/1000)
     print("Motor weight [kg]      =  ", Pmax/2.5)
     print("Motor volume [L]       =  ", Pmax/7)
     print("Motor*bat efficiency   =  ", variables.eff_tot_prop)

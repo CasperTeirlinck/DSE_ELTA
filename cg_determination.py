@@ -5,14 +5,14 @@ from ClassIIWeightEstimation import EmpennageEstimation, LandingGearEstimation, 
 # Calculate x-coordinate of the fuselage group CG
 def X_fuselagegroupCG(variables):
     if variables.wing_mounted_engine:
-        return (variables.Wfus * variables.fuselagecg_x + variables.Wbat * variables.batterycg_x)/(variables.Wfus + variables.Wbat)
+        return (FuselageEstimation(variables) * variables.fuselagecg_x + variables.Wbat * variables.batterycg_x)/(FuselageEstimation(variables) + variables.Wbat)
     else:
-        return (variables.Weng * variables.enginecg_x + variables.Wfus * variables.fuselagecg_x + variables.Wbat * variables.batterycg_x)/(variables.Weng + variables.Wfus + variables.Wbat)
+        return (variables.Weng * variables.enginecg_x + FuselageEstimation(variables) * variables.fuselagecg_x + variables.Wbat * variables.batterycg_x)/(variables.Weng + FuselageEstimation(variables) + variables.Wbat)
 
 # Calculate the weight of the fuselage group
 def fuselagegroup_weight(variables):
     if variables.wing_mounted_engine:
-        return variables.Wfus + variables.Wbat
+        return FuselageEstimation(variables) + variables.Wbat
     else:
         return variables.Weng + FuselageEstimation(variables) + variables.Wbat
 

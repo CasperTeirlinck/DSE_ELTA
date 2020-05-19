@@ -71,18 +71,6 @@ def do_loop(v: CurrentVariables, difference=5, maxiterations=500):
 
 if __name__ == "__main__":
 
-    # n_engines = 1
-    # wing_mounted = False
-    # T_tail = False
-    # x_cg_pass = 0.97
-    # x_cg_batt = 1.96
-    # x_cg_f = 2.33
-    # ducted=False
-    # lowwing=True
-    #
-    #
-    # v = CurrentVariables(conceptnumber=conceptnumber, wing_mounted=wing_mounted, T_tail=T_tail, x_cg_pass=x_cg_pass,
-    #                      x_cg_batt=x_cg_batt, x_cg_f=x_cg_f, ducted=ducted, lowwing=lowwing)
     conceptnumberlist = [1,2,3,4,5]
 
     for conceptnumber in conceptnumberlist:
