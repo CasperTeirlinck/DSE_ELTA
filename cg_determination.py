@@ -60,11 +60,11 @@ def x_OEWCG_total(variables):
 
 # Calculate most forward CG of total aircraft
 def x_forwardCG_total(variables):
-    return min((variables.WPL*variables.payloadcg_x + (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.W_htail + variables.W_vtail) * x_OEWCG_total(variables)) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL + variables.W_htail + variables.W_vtail), x_OEWCG_total(variables))
+    return min((variables.WPL*variables.payloadcg_x + (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.W_htail + variables.W_vtail + variables.Wgear_main + variables.Wgear_front) * x_OEWCG_total(variables)) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL + variables.W_htail + variables.W_vtail + variables.Wgear_main + variables.Wgear_front), x_OEWCG_total(variables))
 
 # Calculate most aft CG of total aircraft
 def x_aftCG_total(variables):
-    return max((variables.WPL*variables.payloadcg_x + (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.W_htail + variables.W_vtail) * x_OEWCG_total(variables)) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL + variables.W_htail + variables.W_vtail), x_OEWCG_total(variables))
+    return max((variables.WPL*variables.payloadcg_x + (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.W_htail + variables.W_vtail + variables.Wgear_main + variables.Wgear_front) * x_OEWCG_total(variables)) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL + variables.W_htail + variables.W_vtail + variables.Wgear_main + variables.Wgear_front), x_OEWCG_total(variables))
 
 def cg_calculations_total(variables):
     if variables.tail_ready:
