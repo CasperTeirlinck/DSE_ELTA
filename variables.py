@@ -68,15 +68,15 @@ class CurrentVariables:
         if not self.wing_mounted_engine:
             self.x_cg_engine = 0.755                                    # [m] Engine CG location as measured from aircraft nose
         self.strutted_wing = False
-        self.l_fus = 4.3                                                  # [m] Length of fuselage without tail
+        self.l_fus = 4.3                                                # [m] Length of fuselage without tail
         self.d_fus = 1.2                                                # Depth of fuselage (?)
 
         self.tailtiplength= 3.325                                       # [m] from LE of main wing to most aft point of aircraft
         self.prop_spin   = 0.3650                                       # [m] length of the propeller spinner
         self.fuselage_len= 4.300                                        # [m] Length of the fuselage, nose to tail.
-        self.bulkhead    = 1.095                                          # [m] Location of the bulkhead in the nose.
+        self.bulkhead    = 1.095                                        # [m] Location of the bulkhead in the nose.
         self.cabinlength = 1.3                                          # [m] Length of the cabin of the pilot from bulkhead
-        self.enginelength= 0.6                                            # [m] Length of the propellers on the wing
+        self.enginelength= 0.6                                          # [m] Length of the propellers on the wing
         self.eng_perc_rootchord = 20                                    # [%] engine cg in percentage of root chord
         self.eng_height_above_w = 0.3                                   # [m] engine cg in m above the main wing
         self.tail_height = 0.91                                         # [m] Tail height above ground
@@ -121,7 +121,7 @@ class CurrentVariables:
         self.x_vtail     = 6.2                                          # [m] location of the ac of the vertical tail
         self.taper_h     = None                                         # [-] (0.3-1.0) Taper ratio of the horizontal tailplane
         self.taper_v     = None                                         # [-] (0.3-0.7) Taper ratio of the vertical tailplane
-        self.A           = 12                                           # aspect ratio of the main wing
+        self.A           = 9                                           # aspect ratio of the main wing
         self.e           = 0.83                                         # oswald efficiency factor
         self.dihedral    = 0                                            # [deg] dihedral, positive upwards.
         self.n_blades    = 4                                            # [-] Number of propeller blades single prop
@@ -133,9 +133,9 @@ class CurrentVariables:
         self.V_eas       = 48.87                                        # [m/s] cruise velocity EAS
         self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
-        self.tcr_h        = 0.14                                         # [-] Thickness-to-rootchord ratio of the horizontal stabiliser
-        self.tcr_v        = 0.14                                         # [-] Thickness-to-rootchord ratio of the vertical stabiliser    
-
+        self.tcr_h        = 0.14                                        # [-] Thickness-to-rootchord ratio of the horizontal stabiliser
+        self.tcr_v        = 0.14                                        # [-] Thickness-to-rootchord ratio of the vertical stabiliser    
+        self.chordwise_cg_oew = 0.30                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
 
 
         # Miscellaneous
@@ -181,7 +181,6 @@ class CurrentVariables:
         self.cr          = 1.5                                          # [m] Root chord
         self.ct          = 0.6                                          # [m] Tip chord
         self.MAC         = 1.1                                          # [m] Mean aerodynamic chord
-        self.chordwise_cg_oew = 0.25                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
 
         self.wingpos     = 1.27                                         # [m] Location of root chord LE from nose
         self.sweep_LE    = atan((self.cr-self.ct)*0.25/self.b*2)        # [rad] Sweep of wing leading edge

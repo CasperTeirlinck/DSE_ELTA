@@ -85,6 +85,7 @@ if __name__ == "__main__":
     v = do_loop(v,35,100)
     print("Done!")
     print(vars(v))
-    print("Final weight = ",v.Woew_classII/9.81," kg")
+    print("Final OEW = ",v.Woew_classII/9.81," kg")
+    print("Final take-off weight = ",v.WTO/9.81," kg")
     #plt.plot(range(len(O)),O)
     #plt.show()
