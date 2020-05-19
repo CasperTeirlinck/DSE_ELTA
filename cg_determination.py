@@ -5,9 +5,9 @@ from ClassIIWeightEstimation import EmpennageEstimation, LandingGearEstimation
 # Calculate x-coordinate of the fuselage group CG
 def X_fuselagegroupCG(variables):
     if variables.wing_mounted_engine:
-        return (variables.Wfus * variables.x_cg_fuselage + variables.Wbat * variables.x_cg_battery)/(variables.Wfus + variables.Wbat) 
+        return (variables.Wfus * variables.fuselagecg_x + variables.Wbat * variables.batterycg_x)/(variables.Wfus + variables.Wbat)
     else:
-        return (variables.Weng * variables.x_cg_engine + variables.Wfus * variables.x_cg_fuselage + variables.Wbat * variables.x_cg_battery)/(variables.Weng + variables.Wfus + variables.Wbat) 
+        return (variables.Weng * variables.enginecg_x + variables.Wfus * variables.fuselagecg_x + variables.Wbat * variables.batterycg_x)/(variables.Weng + variables.Wfus + variables.Wbat)
 
 # Calculate the weight of the fuselage group
 def fuselagegroup_weight(variables):
@@ -60,16 +60,17 @@ def x_OEWCG_total(variables):
 
 # Calculate most forward CG of total aircraft
 def x_forwardCG_total(variables):
-    return min((variables.WPL*variables.x_cg_passenger + (winggroup_weight(variables) + fuselagegroup_weight(variables)) * x_OEWCG_total(variables)) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL), x_OEWCG_total(variables))
+    return min((variables.WPL*variables.payloadcg_x + (winggroup_weight(variables) + fuselagegroup_weight(variables)) * x_OEWCG_total(variables)) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL), x_OEWCG_total(variables))
 
 # Calculate most aft CG of total aircraft
 def x_aftCG_total(variables):
-    return max((variables.WPL*variables.x_cg_passenger + (winggroup_weight(variables) + fuselagegroup_weight(variables)) * x_OEWCG_total(variables)) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL), x_OEWCG_total(variables))
+    return max((variables.WPL*variables.payloadcg_x + (winggroup_weight(variables) + fuselagegroup_weight(variables)) * x_OEWCG_total(variables)) / (winggroup_weight(variables) + fuselagegroup_weight(variables) + variables.WPL), x_OEWCG_total(variables))
 
 def cg_calculations_total(variables):
     if variables.tail_ready:
         variables.xcg_frw = x_forwardCG_total(variables)
         variables.xcg_aft = x_aftCG_total(variables)
+        # print(variables.xcg_aft)
         return variables
     else:
         return cg_calculations_tailless(variables)
