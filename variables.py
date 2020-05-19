@@ -70,6 +70,20 @@ class CurrentVariables:
         self.l_fus = 5                                                  # [m] Length of fuselage without tail
         self.d_fus = 1.5                                                # Depth of fuselage (?)
 
+        self.tailtiplength= 3.325                                       # [m] from LE of main wing to most aft point of aircraft
+        self.prop_spin   = 0.3650                                       # [m] length of the propeller spinner
+        self.fuselage_len= 4.595                                        # [m] Length of the fuselage, nose to tail.
+        self.bulkhead    = 0.6                                          # [m] Location of the bulkhead in the nose.
+        self.cabinlength = 1.3                                          # [m] Length of the cabin of the pilot from bulkhead
+        self.enginelength= 1                                            # [m] Length of the propellers on the wing
+        self.eng_perc_rootchord = 20                                    # [%] engine cg in percentage of root chord
+        self.eng_height_above_w = 0.3                                   # [m] engine cg in m above the main wing
+        self.tail_height = 0.91                                         # [m] Tail height above ground
+        if self.ducted:
+            self.ARduct = 5.0
+            self.D_fan = 1.09
+            self.rho_ductmaterial = 1.5
+
         ## Statistical values
         self.htail_volume = 0.8                                         # [-] Horizontal tail volume
         self.vtail_volume = 0.4                                         # [-] Vertical tail volume
@@ -120,15 +134,7 @@ class CurrentVariables:
         self.tcr_h        = 0.14                                         # [-] Thickness-to-rootchord ratio of the horizontal stabiliser
         self.tcr_v        = 0.14                                         # [-] Thickness-to-rootchord ratio of the vertical stabiliser    
 
-        self.tailtiplength= 3.325                                       # [m] from LE of main wing to most aft point of aircraft
-        self.prop_spin   = 0.3650                                       # [m] length of the propeller spinner
-        self.fuselage_len= 4.595                                        # [m] Length of the fuselage, nose to tail.
-        self.bulkhead    = 0.6                                          # [m] Location of the bulkhead in the nose.
-        self.cabinlength = 1.3                                          # [m] Length of the cabin of the pilot from bulkhead
-        self.enginelength= 1                                            # [m] Length of the propellers on the wing
-        self.eng_perc_rootchord = 20                                    # [%] engine cg in percentage of root chord
-        self.eng_height_above_w = 0.3                                   # [m] engine cg in m above the main wing
-        self.tail_height = 0.91                                         # [m] Tail height above ground
+
 
         # Miscellaneous
         self.eff_propeller = None
@@ -231,6 +237,9 @@ class CurrentVariables:
         self.k           = 93                                           # [N2/m2W] take-off parameter
 
 
+    def update_WTO(self):
+        self.WTO = self.Woew_classII + self.Wbat + self.WPL
+
     def do_engine_sizing(self):
         # Using methods from Rik's book
         self.P_total           = self.WTO/self.WP                       # [W] Engine power
@@ -262,3 +271,5 @@ class CurrentVariables:
 
 if __name__ == "__main__":
     variables = CurrentVariables(n_engines=1)
+    dictionary = vars(variables)
+    print(dictionary['rhocruise'])

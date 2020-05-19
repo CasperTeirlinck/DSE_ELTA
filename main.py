@@ -1,6 +1,7 @@
 from variables import *
 import numpy as np
 import math as m
+import matplotlib.pyplot as plt
 
 from loading_diagram import *
 from class_I import *
@@ -22,7 +23,7 @@ def subloop(v):
     return v
 
 
-def dosubloop(v: CurrentVariables, subdifference=0.05, maxsubiterations=20):
+def dosubloop(v: CurrentVariables, subdifference=0.05, maxsubiterations=40):
     XTAIL = [0]
     for subiteration in range(maxsubiterations):
         XTAIL.append(v.x_htail)
@@ -36,19 +37,24 @@ def dosubloop(v: CurrentVariables, subdifference=0.05, maxsubiterations=20):
 
 
 def loop(v: CurrentVariables):
-    v.WS, v.WP = get_design_point(v)
+    v = get_design_point(v)
     v = classIestimation_alt(v)
     v = wing_planform(v)
     v = calculate_cg_groups(v)
     # TODO: Discuss TE weight addition in code.
     v = size_control_surfaces(v)
 
+    # Do the c.g. related positioning (wing/tail/gear) subloop
     v = subloop(v)
     v = dosubloop(v)
+
+    v.update_WTO()
+    # Todo: implement feedback loop correctly
     return v
 
 
-def do_loop(v: CurrentVariables, difference=35, maxiterations=10):
+def do_loop(v: CurrentVariables, difference=35, maxiterations=50):
+    OEWS = []
     for iteration in range(maxiterations):
         if v.Woew_classII != None and abs(v.Woew - v.Woew_classII) < difference*9.81:
             print(v.Woew)
@@ -57,13 +63,13 @@ def do_loop(v: CurrentVariables, difference=35, maxiterations=10):
             return v
         else:
             v = loop(v)
+            OEWS.append(v.Woew_classII/9.81)
     else:
         print("Did not converge within {} iterations".format(maxiterations))
-        return v
+        return v, OEWS
 
 
 if __name__ == "__main__":
-
     conceptnumber = 1
     n_engines = 1
     wing_mounted = False
@@ -75,9 +81,13 @@ if __name__ == "__main__":
     lowwing=True
 
 
-    v = CurrentVariables(conceptnumber=conceptnumber, wing_mounted=wing_mounted, T_tail=T_tail, x_cg_pass=x_cg_pass,
+    v,O = CurrentVariables(conceptnumber=conceptnumber, wing_mounted=wing_mounted, T_tail=T_tail, x_cg_pass=x_cg_pass,
                          x_cg_batt=x_cg_batt, x_cg_f=x_cg_f, ducted=ducted, lowwing=lowwing)
 
 
-    v = do_loop(v)
+    v = do_loop(v,35,100)
     print("Done!")
+    print(vars(v))
+    print("Final weight = ",v.Woew_classII/9.81," kg")
+    plt.plot(range(len(O)),O)
+    plt.show()
