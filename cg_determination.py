@@ -1,5 +1,5 @@
 from variables import *
-from ClassIIWeightEstimation import EmpennageEstimation, LandingGearEstimation, FuselageEstimation
+from ClassIIWeightEstimation import EmpennageEstimation, LandingGearEstimation, FuselageEstimation, MainWingEstimation
 
 ## AIRCRAFT GROUP CONTRIBUTIONS
 # Calculate x-coordinate of the fuselage group CG
@@ -19,16 +19,16 @@ def fuselagegroup_weight(variables):
 # Calculate chordwise location of the wing group CG
 def chordwise_winggroupCG(variables):
     if variables.wing_mounted_engine:
-        return (variables.Wwing*variables.chordwise_wing_cg + variables.Weng*variables.chordwise_cg_engine)/(variables.Wwing + variables.Weng)
+        return (MainWingEstimation(variables)*variables.chordwise_wing_cg + variables.Weng*variables.chordwise_cg_engine)/(MainWingEstimation(variables) + variables.Weng)
     else:
         return variables.chordwise_wing_cg
 
 # Calculate the weight of the wing group
 def winggroup_weight(variables):
     if variables.wing_mounted_engine:
-        return variables.Wwing + variables.Weng
+        return MainWingEstimation(variables) + variables.Weng
     else:
-        return variables.Wwing
+        return MainWingEstimation(variables)
 
 # Calculate exact wing position for a chosen chordwise OEW CG
 def wing_position(variables):

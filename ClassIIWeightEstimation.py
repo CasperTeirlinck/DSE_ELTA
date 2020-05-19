@@ -71,6 +71,7 @@ kglbs = 2.2046 #from kg to lbs -> lbs/kg
 kgN = 9.81 # N/kg
 Nlbs = kglbs/kgN # lbs/N
 mft = 1/0.3048 #meter to foot
+Nlbf = 1/4.44822
 
 
 
@@ -78,10 +79,14 @@ mft = 1/0.3048 #meter to foot
 #---------------------functions for component weight estimation--------------------------
 
 def MainWingEstimation(variables): #W_to,S_w,n_ult,A_w,Strut 
-    if not variables.strutted_wing:
-        W_w = (0.04674*(variables.WTO*Nlbs)**0.397*(variables.S*mft**2)**0.360*variables.n_ult**0.397*variables.A**1.712)
-    else:
-        W_w = (0.002933*(variables.S*mft**2)**1.1018*variables.A**2.473*variables.n_ult**0.611)
+    ## New equations
+    W_w = 0.036*(variables.S*mft*mft)**0.758*1.*(variables.A/1.)**0.6*(.5*variables.rhocruise*0.062*(variables.V*mft)**2)**0.006*variables.taper**0.04*(100*variables.tcwing)**(-0.3)*(variables.n_ult*variables.WTO*Nlbf)**0.49
+
+    ## Old mystery equation
+    #if not variables.strutted_wing:
+    #    W_w = (0.04674*(variables.WTO*Nlbs)**0.397*(variables.S*mft**2)**0.360*variables.n_ult**0.397*variables.A**1.712)
+    #else:
+    #    W_w = (0.002933*(variables.S*mft**2)**1.1018*variables.A**2.473*variables.n_ult**0.611)
     return W_w/Nlbs
 
 def EmpennageEstimation(variables):

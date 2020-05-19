@@ -122,7 +122,7 @@ class CurrentVariables:
         self.x_vtail     = 6.2                                          # [m] location of the ac of the vertical tail
         self.taper_h     = None                                         # [-] (0.3-1.0) Taper ratio of the horizontal tailplane
         self.taper_v     = None                                         # [-] (0.3-0.7) Taper ratio of the vertical tailplane
-        self.A           = 9                                           # aspect ratio of the main wing
+        self.A           = 12                                           # aspect ratio of the main wing
         self.e           = 0.83                                         # oswald efficiency factor
         self.dihedral    = 0                                            # [deg] dihedral, positive upwards.
         self.n_blades    = 4                                            # [-] Number of propeller blades single prop
@@ -143,6 +143,7 @@ class CurrentVariables:
         self.eff_propeller = None
         self.T_propeller = None
         self.tail_ready  = False
+        self.tcwing = 0.12
 
         ## Calculated values
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
