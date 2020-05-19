@@ -33,7 +33,7 @@ def glauert_function(phi):
 class CurrentVariables:
     def __init__(self, conceptnumber=2, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
                  x_cg_f = 1.965, ducted=False, lowwing=True, strutted_wing=False, l_fuselage=6., d_fuselage=1.2,
-                 spinner_length=0.365, bulkhead_loc=0.875, cabin_length=1.3, tailheight=1.2):
+                 spinner_length=0.365, bulkhead_loc=0.875, cabin_length=1.3, tailheight=1.2, n_blades=2,):
         ## Requirements
         self.sto         = 500                                          # [m] take-off distance
         self.WPL         = 200*9.80665                                  # [N] Payload weight
@@ -127,7 +127,7 @@ class CurrentVariables:
         self.A           = 12                                            # aspect ratio of the main wing
         self.e           = 0.83                                         # oswald efficiency factor
         self.dihedral    = 0                                            # [deg] dihedral, positive upwards.
-        self.n_blades    = 4                                            # [-] Number of propeller blades single prop
+        self.n_blades    = n_blades                                     # [-] Number of propeller blades single prop
         self.rps_TO      = 2400 / 60                                    # [rps] revolution speed of prop at TO
         self.rps_cruise  = 2700 / 60                                    # [rps] revolution speed of prop at cruise
         self.coverR      = 0.5                                          # [-] Chord of duct to radius of fan ratio
@@ -142,7 +142,7 @@ class CurrentVariables:
 
 
         # Miscellaneous
-        self.eff_propeller = None
+        self.eff_propeller = 0.8
         self.T_propeller = None
         self.tail_ready  = False
         self.tcwing = 0.12
@@ -224,6 +224,8 @@ class CurrentVariables:
         self.fuselagecg_x= None
         self.fuselagecg_z= None
 
+        self.do_engine_sizing()
+
 
     def init_single_engine(self):
         # self.CLmaxto = np.array([1.7, 1.8, 1.9])                      # CLmax take-off
@@ -256,7 +258,7 @@ class CurrentVariables:
             factor = 0.49
 
         self.prop_d      = factor*(self.P*0.001)**0.25
-        self.estimate_eff_T()
+        # self.estimate_eff_T()
 
     def estimate_eff_T(self):
         if self.eff_propeller == None:

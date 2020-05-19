@@ -15,6 +15,7 @@ from ClassIIWeightEstimation import *
 from propulsion import *
 from Empennage import *
 from conceptparameters import conceptparameters
+from engine import *
 
 
 def subloop(v):
@@ -46,6 +47,7 @@ def loop(v: CurrentVariables):
     v = get_design_point(v)
     v = classIestimation_alt(v)
     v = motor_mass_volume(v)
+    v = propeller_weight(v)
     v = wing_planform(v)
     v = calculate_cg_groups(v)
     v = size_control_surfaces(v)
@@ -72,13 +74,13 @@ def do_loop(v: CurrentVariables, difference=0.1, maxiterations=500):
 
 if __name__ == "__main__":
 
-    conceptnumberlist = [1]
+    conceptnumberlist = [1,2,3,4,5]
 
     for conceptnumber in conceptnumberlist:
 
         v = CurrentVariables(*conceptparameters(conceptnumber))
-        v.range_m *= 0.001
-        v.endurance_s *= 0.46
+        # v.range_m *= 0.001
+        # v.endurance_s *= 0.46
         v, oews = do_loop(v)
         oews = np.array(oews)
         v_dict = vars(v)

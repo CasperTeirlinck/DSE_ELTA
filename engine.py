@@ -31,6 +31,11 @@ def ductweight(variables):
     return (V_duct*variables.rho_ductmaterial)*1000
 
 
+def propeller_weight(variables):
+    variables.Wprop = (31.92*(variables.n_blades)**0.391*(variables.prop_d*3.2808399*variables.P_total*0.00134102209/1000)**0.782)*4.4482216282509 # In N
+    return variables
+
+
 if __name__ == "__main__":
     WTO = 750*g0
     A = 12
