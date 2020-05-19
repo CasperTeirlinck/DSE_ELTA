@@ -87,7 +87,7 @@ def MainWingEstimation(variables): #W_to,S_w,n_ult,A_w,Strut
     #    W_w = (0.04674*(variables.WTO*Nlbs)**0.397*(variables.S*mft**2)**0.360*variables.n_ult**0.397*variables.A**1.712)
     #else:
     #    W_w = (0.002933*(variables.S*mft**2)**1.1018*variables.A**2.473*variables.n_ult**0.611)
-    return W_w/Nlbs
+    return W_w/Nlbf
 
 def EmpennageEstimation(variables):
     tr_h = variables.tcr_h*np.sqrt(variables.Sh/variables.A_h)
