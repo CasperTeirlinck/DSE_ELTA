@@ -66,14 +66,17 @@ class CurrentVariables:
             self.chordwise_cg_engine = 000                              # [-] Engine CG location as measured from LEMAC%
         if not self.wing_mounted_engine:
             self.x_cg_engine = 0.755                                    # [m] Engine CG location as measured from aircraft nose
-
-
+        self.strutted_wing = False
+        self.l_fus = 5                                                  # [m] Length of fuselage without tail
+        self.d_fus = 1.5                                                # Depth of fuselage (?)
 
         ## Statistical values
         self.htail_volume = 0.8                                         # [-] Horizontal tail volume
         self.vtail_volume = 0.4                                         # [-] Vertical tail volume
         self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
         self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
+        self.motor_spec_mass = 2.5                                      # kW/kg from Maarten
+        self.motor_spec_volume = 7                                      # kW/L from Maarten
         self.CD0to       = 0.0380                                       # drag constant
         self.CD0clean    = 0.0280                                       # drag constant
         self.chordwise_wing_cg = 0.30                                   # [-] 100*%MAC of wing centre of gravity
@@ -84,13 +87,20 @@ class CurrentVariables:
         self.fus_height  = 1.725                                        # [m] height from lowes point floor until heighest point of the fuselage
         self.prop_spin   = 0.365                                        # [m] Length of the propeller spinner
 
+        self.W_wsn   = 5                                                #[kg]   Nose wheel weight + its strut assembly
+        self.W_wsm   = 7                                                #[kg]   Main wheel weight + its strut assembly
+        self.l_sn    = 0.2                                              #[m]    Shock strut length nose wheel
+        self.l_sm    = 0.2                                              #[m]    Shock strut length main wheel
+
+        self.W_avion = 15                                               #[kg] avionic weight
+
         # Free design choices (None means TBD)
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
         self.lowwing     = lowwing                                      # [-] Boolean low wing or high wing.
         self.sweep_h     = 0                                            # [deg] (0- 0) Quarter chord sweep angle of the horizontal tailplane
-        self.sweep_v     = None                                         # [deg] (0-50) Quarter chord sweep angle of the vertical tailplane
+        self.sweep_v     = 10                                         # [deg] (0-50) Quarter chord sweep angle of the vertical tailplane
         self.A_h         = 3                                            # [-] (3-5)aspect ratio of the horizontal tailplane
-        self.A_v         = 12                                           # [-] (1-2) aspect ratio of the vertical tailplane
+        self.A_v         = 2                                           # [-] (1-2) aspect ratio of the vertical tailplane
         self.x_htail     = 4.7                                          # [m] location of the ac of the horizontal tail
         self.x_vtail     = 4.7                                          # [m] location of the ac of the vertical tail
         self.taper_h     = None                                         # [-] (0.3-1.0) Taper ratio of the horizontal tailplane
@@ -107,6 +117,8 @@ class CurrentVariables:
         self.V_eas       = 48.87                                        # [m/s] cruise velocity EAS
         self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
+        self.tcr_h        = 0.14                                         # [-] Thickness-to-rootchord ratio of the horizontal stabiliser
+        self.tcr_v        = 0.14                                         # [-] Thickness-to-rootchord ratio of the vertical stabiliser    
 
         self.tailtiplength= 3.325                                       # [m] from LE of main wing to most aft point of aircraft
         self.prop_spin   = 0.3650                                       # [m] length of the propeller spinner
@@ -202,9 +214,6 @@ class CurrentVariables:
         self.payloadcg_z = None
         self.fuselagecg_x= None
         self.fuselagecg_z= None
-
-
-
 
 
     def init_single_engine(self):

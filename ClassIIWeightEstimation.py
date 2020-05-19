@@ -10,6 +10,7 @@ Outputs only the empty weight, not yet the c.g. locations!
 """
 import numpy as np
 from variables import *
+from propulsion import ductweight
 #----------------Input parameters----------------------------------
 """
 #General aircraft parameters
@@ -74,71 +75,84 @@ mft = 1/0.3048 #meter to foot
 
 #---------------------functions for component weight estimation--------------------------
 
-def MainWingEstimation(W_to,S_w,n_ult,A_w,Strut):
-    if Strut == False:
-        W_w = (0.04674*(W_to*kglbs)**0.397*(S_w*mft**2)**0.360*n_ult**0.397*A_w**1.712)
+def MainWingEstimation(variables): #W_to,S_w,n_ult,A_w,Strut 
+    if not variables.strutted_wing:
+        W_w = (0.04674*(variables.WTO*kglbs)**0.397*(variables.S*mft**2)**0.360*variables.n_ult**0.397*variables.A**1.712)
     else:
-        W_w = (0.002933*(S_w*mft**2)**1.1018*A_w**2.473*n_ult**0.611)
+        W_w = (0.002933*(variables.S*mft**2)**1.1018*variables.A**2.473*variables.n_ult**0.611)
     return W_w/kglbs
 
+def EmpennageEstimation(variables):
+    tr_h = variables.tcr_h*np.sqrt(variables.Sh/variables.A_h)
+    tr_v = variables.tcr_v*np.sqrt(variables.Sv/variables.A_v)
 
-def EmpennageEstimation(W_to,S_h,S_v,A_h,A_v,t_r_h,t_r_v,qsweep_v):
-    W_h = (3.183*(W_to*kglbs)**0.887*(S_h*mft**2)**0.101*A_h**0.138)/(174.04*(t_r_h*mft)**0.223)
-    
-    W_v = (1.68*(W_to*kglbs)**0.567*(S_v*mft**2)**1.249*A_v**0.482)/(639.95*(t_r_v*mft)**0.747*np.cos(qsweep_v/180*np.pi)**0.882)
+    W_h = (3.183*(variables.WTO*kglbs)**0.887*(variables.Sh*mft**2)**0.101*variables.A_h**0.138)/(174.04*(tr_h*mft)**0.223)
+    W_v = (1.68*(variables.WTO*kglbs)**0.567*(variables.Sv*mft**2)**1.249*variables.A_v**0.482)/(639.95*(tr_v*mft)**0.747*np.cos(variables.sweep_v/180*np.pi)**0.882)
     return W_h/kglbs, W_v/kglbs
 
-def FuselageEstimation(W_to,pax,l_fn,Strut,n_ult, d_fus,V_max):
-#    if Strut == False:
-#        W_f = 0.04682*(W_to*kglbs)**0.692*pax**0.374*(l_fn*mft)**0.590
-#    else:
-#        W_f = 14.86*(W_to*kglbs)**0.144*((l_fn*mft)/pax)**0.778*(l_fn*mft)**0.383*pax**0.455
-    W_f = 200*((n_ult*W_to*kglbs/10**5)**0.286*(l_fn*mft/10)**0.857*((l_fn+d_fus)*mft/10)*(V_max/100)**0.338)**1.1
+def FuselageEstimation(variables):
+    W_f = 200*((variables.n_ult*variables.WTO*kglbs/10**5)**0.286*(variables.l_fus*mft/10)**0.857*((variables.l_fus+variables.d_fus)*mft/10)*(variables.Vmax/100)**0.338)**1.1
     return W_f/kglbs
     
-def EngineAndNacelleEstimation(W_to, ductedfan):
-    W_e = P_to/K_p
-    
-    if ductedfan == False:
-        W_n = 0.24*W_to*0.5 #0.5 is scaling factor due to electric engine! electric engine = 55 kg, piston = 144, more than 50% difference, but want to be conservative for the nacelle weight
-    else:
-        W_n = 0.24*W_to*0.6 #0.6 is engineering judgement
-        
-    return W_e, W_n #already in kg TODO: Kijk hiernaar, assess accuracy
+#def EngineEstimation(variables):
+#    W_e = variables.P_total/K_p
+#    
+#    if ductedfan == False:
+#        W_n = 0.24*W_to*0.5 #0.5 is scaling factor due to electric engine! electric engine = 55 kg, piston = 144, more than 50% difference, but want to be conservative for the nacelle weight
+#    else:
+#        W_n = 0.24*W_to*0.6 #0.6 is engineering judgement
+#        
+#    return W_e, W_n #already in kg
+#    return 100.
 
-def LandingGearEstimation(W_to,W_l, n_ult_l, l_sn,l_sm,W_wsn,W_wsm):
-    W_frontgear = 0.013*(W_to*kglbs)+0.146*(W_l*kglbs)**0.417*n_ult_l**0.950*(l_sm*mft)**0.183+W_wsm*kglbs
-    W_maingear = 6.2 + 0.0013*(W_to*kglbs) + 0.000143*(W_l*kglbs)**0.749*n_ult_l*(l_sn*mft)**0.788 + W_wsn*kglbs
+def EngineEstimation(variables):
+#    Pmax = (variables.WTO / variables.WP) / 1000    # kW
+#    motor_mass = Pmax/variables.motor_spec_mass     # kg
+#    motor_volume = Pmax/variables.motor_spec_volume # L
+#
+#    # Setting the motor weight in variables class
+#    variables.Wmotor = motor_mass * 9.80665
+#
+#    return variables
+    return variables.Weng
+
+
+def LandingGearEstimation(variables):
+    W_frontgear = 0.013*(variables.WTO*kglbs)+0.146*(variables.WTO*kglbs)**0.417*variables.n_ult**0.950*(variables.l_sm*mft)**0.183 + variables.W_wsm*kglbs
+    W_maingear = 6.2 + 0.0013*(variables.WTO*kglbs) + 0.000143*(variables.WTO*kglbs)**0.749*variables.n_ult*(variables.l_sn*mft)**0.788 + variables.W_wsn*kglbs
     W_g = W_frontgear + W_maingear
-    if Retract == True:
-        W_g += 0.014*(W_to*kglbs)   
+    #if Retractable == True:
+    #    W_g += 0.014*(variables.WTO*kglbs)   
         
     return W_frontgear/kglbs, W_maingear/kglbs, W_g/kglbs
     
-def FlightControlSystemEstimation(W_to):
-    W_fc = 0.0168*W_to
+def FlightControlSystemEstimation(variables):
+    W_fc = 0.0168*variables.WTO
     return W_fc #already in kg
 
-def ElectricalSystemEstimation(W_to):
-    W_el = 0.0268*W_to
+def ElectricalSystemEstimation(variables):
+    W_el = 0.0268*variables.WTO
     return W_el #already in kg
     
 
-def EmptyWeight(W_to,W_l,n_ult,n_ult_l,pax,l_fn,P_to,W_b,W_prop,K_p,ductedfan,S_w,A_w,Strut,S_h,A_h,t_r_h,S_v,A_v,t_r_v,qsweep_v,Retract,W_wsn,W_wsm,l_sn,l_sm,V_max,d_fus):
+def EmptyWeight(variables):
     
-    OEW = (MainWingEstimation(W_to,S_w,n_ult,A_w,Strut) + EmpennageEstimation(W_to,S_h,S_v,A_h,A_v,t_r_h,t_r_v,qsweep_v)[0] + EmpennageEstimation(W_to,S_h,S_v,A_h,A_v,t_r_h,t_r_v,qsweep_v)[1] +
-           FuselageEstimation(W_to,pax,l_fn,Strut,n_ult, d_fus,V_max) + EngineAndNacelleEstimation(W_to, ductedfan)[0] + EngineAndNacelleEstimation(W_to, ductedfan)[1] +
-           LandingGearEstimation(W_to,W_l, n_ult_l, l_sn,l_sm,W_wsn,W_wsm) + FlightControlSystemEstimation(W_to) + ElectricalSystemEstimation(W_to) +
-           W_prop + W_avion)
+    OEW = (MainWingEstimation(variables) + EmpennageEstimation(variables)[0] + EmpennageEstimation(variables)[1] +
+           FuselageEstimation(variables) + EngineEstimation(variables) +
+           LandingGearEstimation(variables)[2] + FlightControlSystemEstimation(variables) + ElectricalSystemEstimation(variables) +
+           variables.Wprop + variables.W_avion)
     #W_b is not included as it is part of the payload
     return OEW
 
 def CalculateClassII(variables):
     variables.Wwing = 9.81*MainWingEstimation(variables)
-    variables.W_htail, variables.W_vtail = 9.81*EmpennageEstimation(variables)
+    variables.W_htail = 9.81*EmpennageEstimation(variables)[0]
+    variables.W_vtail = 9.81*EmpennageEstimation(variables)[1]
     variables.Wfus = 9.81*FuselageEstimation(variables)
-    variables.Weng = 9.81*Engine(variables)
-    variables.Wgear_front,variables.Wgear_main,variables.Wgear = 9.81*LandingGearEstimation(variables) 
+    variables.Weng = 9.81*EngineEstimation(variables)
+    variables.Wgear_front = 9.81*LandingGearEstimation(variables)[0]
+    variables.Wgear_main = 9.81*LandingGearEstimation(variables)[1]
+    variables.Wgear = 9.81*LandingGearEstimation(variables)[2]
     variables.Wfcs = 9.81*FlightControlSystemEstimation(variables)
     variables.Wels = 9.81*ElectricalSystemEstimation(variables)
     variables.Woew_classII = 9.81*EmptyWeight(variables)
@@ -149,7 +163,15 @@ def CalculateClassII(variables):
 ## TEST
 if __name__ == "__main__":
     variables = CurrentVariables()
-    variables = CalculateClassII(variables)
+    variables.Sh = 2
+    variables.Sv = 2
+    print(MainWingEstimation(variables))
+    print(EmpennageEstimation(variables))
+    print(FuselageEstimation(variables))
+    print(LandingGearEstimation(variables))
+    print(FlightControlSystemEstimation(variables))
+    print(ElectricalSystemEstimation(variables))
+    print(CalculateClassII(variables))
 
 
 
