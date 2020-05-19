@@ -128,7 +128,7 @@ def LandingGearEstimation(variables):
     #if Retractable =   = True:
     #    W_g += 0.014*(variables.WTO*kglbs)   
         
-    return W_frontgear/Nlbs, W_maingear/kglbs, W_g/Nlbs
+    return W_frontgear/Nlbs, W_maingear/Nlbs, W_g/Nlbs
     
 def FlightControlSystemEstimation(variables):
     W_fc = 0.0168*variables.WTO

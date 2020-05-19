@@ -65,7 +65,7 @@ def do_loop(v: CurrentVariables, difference=35, maxiterations=50):
             OEWS.append(v.Woew_classII/9.81)
     else:
         print("Did not converge within {} iterations".format(maxiterations))
-        return v, OEWS
+        return v#, OEWS
 
 
 if __name__ == "__main__":
