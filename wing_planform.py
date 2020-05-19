@@ -59,7 +59,7 @@ def wing_planform(variables,drawing=False):
     variables.cr    = cr
     variables.ct    = ct
     variables.MAC   = MAC
-    variables.Wwing = 9.81*MainWingEstimation(variables)
+    variables.Wwing = MainWingEstimation(variables)
     return variables
 
 if __name__ == "__main__":

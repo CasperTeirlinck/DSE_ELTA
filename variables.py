@@ -143,6 +143,7 @@ class CurrentVariables:
         self.eff_propeller = None
         self.T_propeller = None
         self.tail_ready  = False
+        self.tcwing = 0.12
 
         ## Calculated values
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
