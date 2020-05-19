@@ -81,12 +81,13 @@ if __name__ == "__main__":
     lowwing=True
 
 
-    v = CurrentVariables(conceptnumber=conceptnumber, wing_mounted=wing_mounted, T_tail=T_tail, x_cg_pass=x_cg_pass,
+    v,O = CurrentVariables(conceptnumber=conceptnumber, wing_mounted=wing_mounted, T_tail=T_tail, x_cg_pass=x_cg_pass,
                          x_cg_batt=x_cg_batt, x_cg_f=x_cg_f, ducted=ducted, lowwing=lowwing)
 
 
-    v, O = do_loop(v,35,100)
+    v = do_loop(v,35,100)
     print("Done!")
     print(vars(v))
+    print("Final weight = ",v.Woew_classII/9.81," kg")
     plt.plot(range(len(O)),O)
     plt.show()
