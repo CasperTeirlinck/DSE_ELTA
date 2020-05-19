@@ -32,7 +32,8 @@ def glauert_function(phi):
 
 class CurrentVariables:
     def __init__(self, conceptnumber=2, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
-                 x_cg_f = 1.965, ducted=False, lowwing=True):
+                 x_cg_f = 1.965, ducted=False, lowwing=True, strutted_wing=False, l_fuselage=6., d_fuselage=1.2,
+                 spinner_length=0.365, bulkhead_loc=0.875, cabin_length=1.3, tailheight=1.2):
         ## Requirements
         self.sto         = 500                                          # [m] take-off distance
         self.WPL         = 200*9.80665                                  # [N] Payload weight
@@ -67,21 +68,21 @@ class CurrentVariables:
             self.chordwise_cg_engine = 000                              # [-] Engine CG location as measured from LEMAC%
         if not self.wing_mounted_engine:
             self.x_cg_engine = 0.755                                    # [m] Engine CG location as measured from aircraft nose
-        self.strutted_wing = False
-        self.l_fus = 4.3                                                # [m] Length of fuselage without tail
-        self.d_fus = 1.2                                                # Depth of fuselage (?)
+        self.strutted_wing = strutted_wing
+        self.l_fus = l_fuselage                                         # [m] Length of fuselage without tail
+        self.d_fus = d_fuselage                                         # Depth of fuselage (?)
 
         self.tailtiplength= 3.325                                       # [m] from LE of main wing to most aft point of aircraft
         self.prop_spin   = 0.3650                                       # [m] length of the propeller spinner
         self.fuselage_len= 4.300                                        # [m] Length of the fuselage, nose to tail.
-        self.bulkhead    = 1.095                                        # [m] Location of the bulkhead in the nose.
-        self.cabinlength = 1.3                                          # [m] Length of the cabin of the pilot from bulkhead
+        self.bulkhead    = bulkhead_loc                                 # [m] Location of the bulkhead in the nose.
+        self.cabinlength = cabin_length                                 # [m] Length of the cabin of the pilot from bulkhead
         self.enginelength= 0.6                                          # [m] Length of the propellers on the wing
         self.eng_perc_rootchord = 20                                    # [%] engine cg in percentage of root chord
         self.eng_height_above_w = 0.3                                   # [m] engine cg in m above the main wing
-        self.tail_height = 0.91                                         # [m] Tail height above ground
+        self.tail_height = tailheight                                   # [m] Tail height above ground
         if self.ducted:
-            self.ARduct = 5.0
+            self.AR_duct = 5.0
             self.D_fan = 1.09
             self.rho_ductmaterial = 1.5
 
@@ -101,7 +102,7 @@ class CurrentVariables:
         self.c_l_a_flaps = 6.231                                        # [1/rad] lift slope of airfoil with flaps deployed
         self.c_l_delta_a = 0.046825*180/(np.pi)                         # [1/rad] change in the airfoil’s lift coefficient with aileron deflection
         self.fus_height  = 1.725                                        # [m] height from lowes point floor until heighest point of the fuselage
-        self.prop_spin   = 0.365                                        # [m] Length of the propeller spinner
+        self.prop_spin   = spinner_length                               # [m] Length of the propeller spinner
 
         self.W_wsn   = 5                                                #[kg]   Nose wheel weight + its strut assembly
         self.W_wsm   = 7                                                #[kg]   Main wheel weight + its strut assembly
