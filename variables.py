@@ -31,8 +31,8 @@ def glauert_function(phi):
 
 
 class CurrentVariables:
-    def __init__(self, conceptnumber=1, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
-                 x_cg_f = 2.33, ducted=False, lowwing=False):
+    def __init__(self, conceptnumber=2, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
+                 x_cg_f = 1.965, ducted=False, lowwing=True):
         ## Requirements
         self.sto         = 500                                          # [m] take-off distance
         self.WPL         = 200*9.80665                                  # [N] Payload weight
@@ -68,15 +68,15 @@ class CurrentVariables:
         if not self.wing_mounted_engine:
             self.x_cg_engine = 0.755                                    # [m] Engine CG location as measured from aircraft nose
         self.strutted_wing = False
-        self.l_fus = 5                                                  # [m] Length of fuselage without tail
-        self.d_fus = 1.5                                                # Depth of fuselage (?)
+        self.l_fus = 4.3                                                  # [m] Length of fuselage without tail
+        self.d_fus = 1.2                                                # Depth of fuselage (?)
 
         self.tailtiplength= 3.325                                       # [m] from LE of main wing to most aft point of aircraft
         self.prop_spin   = 0.3650                                       # [m] length of the propeller spinner
-        self.fuselage_len= 4.595                                        # [m] Length of the fuselage, nose to tail.
-        self.bulkhead    = 0.6                                          # [m] Location of the bulkhead in the nose.
+        self.fuselage_len= 4.300                                        # [m] Length of the fuselage, nose to tail.
+        self.bulkhead    = 1.095                                          # [m] Location of the bulkhead in the nose.
         self.cabinlength = 1.3                                          # [m] Length of the cabin of the pilot from bulkhead
-        self.enginelength= 1                                            # [m] Length of the propellers on the wing
+        self.enginelength= 0.6                                            # [m] Length of the propellers on the wing
         self.eng_perc_rootchord = 20                                    # [%] engine cg in percentage of root chord
         self.eng_height_above_w = 0.3                                   # [m] engine cg in m above the main wing
         self.tail_height = 0.91                                         # [m] Tail height above ground
