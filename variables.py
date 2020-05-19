@@ -32,7 +32,7 @@ def glauert_function(phi):
 
 class CurrentVariables:
     def __init__(self, conceptnumber=2, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
-                 x_cg_f = 2.965, ducted=False, lowwing=True):
+                 x_cg_f = 1.965, ducted=False, lowwing=True):
         ## Requirements
         self.sto         = 500                                          # [m] take-off distance
         self.WPL         = 200*9.80665                                  # [N] Payload weight
