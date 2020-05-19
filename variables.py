@@ -115,8 +115,8 @@ class CurrentVariables:
         self.sweep_v     = 10                                         # [deg] (0-50) Quarter chord sweep angle of the vertical tailplane
         self.A_h         = 3                                            # [-] (3-5)aspect ratio of the horizontal tailplane
         self.A_v         = 2                                           # [-] (1-2) aspect ratio of the vertical tailplane
-        self.x_htail     = 4.7                                          # [m] location of the ac of the horizontal tail
-        self.x_vtail     = 4.7                                          # [m] location of the ac of the vertical tail
+        self.x_htail     = 6.2                                          # [m] location of the ac of the horizontal tail
+        self.x_vtail     = 6.2                                          # [m] location of the ac of the vertical tail
         self.taper_h     = None                                         # [-] (0.3-1.0) Taper ratio of the horizontal tailplane
         self.taper_v     = None                                         # [-] (0.3-0.7) Taper ratio of the vertical tailplane
         self.A           = 12                                           # aspect ratio of the main wing
