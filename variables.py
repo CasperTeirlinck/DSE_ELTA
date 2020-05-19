@@ -235,6 +235,9 @@ class CurrentVariables:
         self.k           = 93                                           # [N2/m2W] take-off parameter
 
 
+    def update_WTO(self):
+        self.WTO = self.Woew_classII + self.Wbat + self.WPL
+
     def do_engine_sizing(self):
         # Using methods from Rik's book
         self.P_total           = self.WTO/self.WP                       # [W] Engine power
@@ -266,3 +269,5 @@ class CurrentVariables:
 
 if __name__ == "__main__":
     variables = CurrentVariables(n_engines=1)
+    dictionary = vars(variables)
+    print(dictionary['rhocruise'])

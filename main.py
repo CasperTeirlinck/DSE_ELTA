@@ -37,19 +37,23 @@ def dosubloop(v: CurrentVariables, subdifference=0.05, maxsubiterations=40):
 
 
 def loop(v: CurrentVariables):
-    v.WS, v.WP = get_design_point(v)
+    v = get_design_point(v)
     v = classIestimation_alt(v)
     v = wing_planform(v)
     v = calculate_cg_groups(v)
     # TODO: Discuss TE weight addition in code.
     v = size_control_surfaces(v)
 
+    # Do the c.g. related positioning (wing/tail/gear) subloop
     v = subloop(v)
     v = dosubloop(v)
+
+    v.update_WTO()
+    # Todo: implement feedback loop correctly
     return v
 
 
-def do_loop(v: CurrentVariables, difference=35, maxiterations=10):
+def do_loop(v: CurrentVariables, difference=35, maxiterations=50):
     OEWS = []
     for iteration in range(maxiterations):
         if v.Woew_classII != None and abs(v.Woew - v.Woew_classII) < difference*9.81:

@@ -257,7 +257,9 @@ def get_design_point(variables, plot_result=False):
         plt.legend(loc='upper left', bbox_to_anchor=(1, 1), fancybox=False, shadow=False, edgecolor='black')
         plt.tight_layout()
         plt.show()
-    return WS_limit, WP_limit
+    variables.WS = WS_limit
+    variables.WP = WP_limit
+    return variables
 
 if __name__ == "__main__":
 
