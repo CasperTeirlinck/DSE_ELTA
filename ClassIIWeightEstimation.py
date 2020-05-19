@@ -132,11 +132,11 @@ def LandingGearEstimation(variables):
     
 def FlightControlSystemEstimation(variables):
     W_fc = 0.0168*variables.WTO
-    return W_fc/kgN #already in kg
+    return W_fc*kgN #already in kg
 
 def ElectricalSystemEstimation(variables):
     W_el = 0.0268*variables.WTO
-    return W_el/kgN #already in kg
+    return W_el*kgN #already in kg
     
 
 def EmptyWeight(variables):
