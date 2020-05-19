@@ -87,7 +87,7 @@ class CurrentVariables:
 
         ## Statistical values
         self.htail_volume = 0.8                                         # [-] Horizontal tail volume
-        self.vtail_volume = 0.4                                         # [-] Vertical tail volume
+        self.vtail_volume = 0.05                                        # [-] Vertical tail volume
         self.Especif_bat = 900000                                       # J/kg Li-ion from Maarten
         self.rho_bat     = 500*3600                                     # J/L  Li-ion from Maarten
         self.motor_spec_mass = 2.5                                      # kW/kg from Maarten
