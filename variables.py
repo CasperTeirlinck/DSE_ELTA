@@ -161,14 +161,12 @@ class CurrentVariables:
             self.WS      = 592                                          # [N/m2] wing loading
         self.WTO         = 750*9.81                                     # [N] take-off weight
         self.bmf         = None                                         # [-] Battery mass fraction
-        self.Wbat        = 0                                            # [N] Battery weight
+        self.Wbat        = None                                         # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
         self.Woew_classII= None                                         # [N] Operational empty weight
         self.Wprop       = 9.81*48.2                                    # [N] Propeller weight
         self.Wmotor      = 9.81*19.75                                   # [N] Motor weight
         self.Wwing       = None                                         # [N] Wing weight
-        self.Wfus        = None                                         # [N] Fuselage weight
-        self.Wfus        = 100.                                         # [N] Fuselage weight TODO: implement properly
         self.Wgear_front = None                                         # [N] Front landing gear weight       
         self.Wgear_main  = None                                         # [N] Main landing gear weight
         self.Wgear       = None                                         # [N] Total landing gear weight
