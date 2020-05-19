@@ -142,8 +142,7 @@ def ElectricalSystemEstimation(variables):
 def EmptyWeight(variables):
     OEW = (MainWingEstimation(variables) + EmpennageEstimation(variables)[0] + EmpennageEstimation(variables)[1] +
            FuselageEstimation(variables) + EngineEstimation(variables) +
-           LandingGearEstimation(variables)[2] + FlightControlSystemEstimation(variables) + ElectricalSystemEstimation(variables) +
-           variables.Wprop + variables.W_avion*kgN)
+           LandingGearEstimation(variables)[2] + FlightControlSystemEstimation(variables) + ElectricalSystemEstimation(variables) + variables.W_avion*kgN)
     #W_b is not included as it is part of the payload
     return OEW
 
