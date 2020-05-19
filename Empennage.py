@@ -8,6 +8,5 @@ def wing_surface_vtail(variables):
 
 def empennage_sizing(variables):
     variables.Sh = wing_surface_htail(variables)
-    print(wing_surface_htail(variables))
     variables.Sv = wing_surface_vtail(variables)
     return variables

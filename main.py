@@ -20,6 +20,7 @@ def subloop(v):
     v = size_gear(v)
     v = empennage_sizing(v)
     v = CalculateClassII(v)
+    v.update_WTO()
     return v
 
 
@@ -32,7 +33,7 @@ def dosubloop(v: CurrentVariables, subdifference=0.05, maxsubiterations=40):
         else:
             v = subloop(v)
     else: 
-        print(print("Subloop did not converge within {} iterations".format(maxsubiterations)))
+        print("Subloop did not converge within {} iterations".format(maxsubiterations))
         return v
 
 
@@ -41,24 +42,20 @@ def loop(v: CurrentVariables):
     v = classIestimation_alt(v)
     v = wing_planform(v)
     v = calculate_cg_groups(v)
-    # v = size_control_surfaces(v)
+    v = size_control_surfaces(v)
 
     # Do the c.g. related positioning (wing/tail/gear) subloop
-    v = subloop(v)
     v = dosubloop(v)
 
-    v.update_WTO()
-    # Todo: implement feedback loop correctly
     return v
 
 
-def do_loop(v: CurrentVariables, difference=35, maxiterations=50):
+def do_loop(v: CurrentVariables, difference=35, maxiterations=30):
     OEWS = []
     for iteration in range(maxiterations):
         if v.Woew_classII != None and abs(v.Woew - v.Woew_classII) < difference*9.81:
             print(v.Woew)
             print(v.Woew_classII)
-            print("This")
             return v
         else:
             v = loop(v)
@@ -84,6 +81,7 @@ if __name__ == "__main__":
                          x_cg_batt=x_cg_batt, x_cg_f=x_cg_f, ducted=ducted, lowwing=lowwing)
 
 
+    initial_loop = True
     v = do_loop(v,35,100)
     print("Done!")
     print(vars(v))
