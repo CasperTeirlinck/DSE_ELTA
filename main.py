@@ -45,6 +45,7 @@ def dosubloop(v: CurrentVariables, subdifference=0.1, maxsubiterations=40):
 def loop(v: CurrentVariables):
     v = get_design_point(v)
     v = classIestimation_alt(v)
+    v = motor_mass_volume(v)
     v = wing_planform(v)
     v = calculate_cg_groups(v)
     v = size_control_surfaces(v)
@@ -55,7 +56,7 @@ def loop(v: CurrentVariables):
     return v
 
 
-def do_loop(v: CurrentVariables, difference=5, maxiterations=500):
+def do_loop(v: CurrentVariables, difference=0.1, maxiterations=500):
     OEWS = []
     for iteration in range(maxiterations):
         if v.Woew_classII != None and abs(v.Woew - v.Woew_classII) < difference*9.81:
@@ -63,7 +64,7 @@ def do_loop(v: CurrentVariables, difference=5, maxiterations=500):
             return v, OEWS
         else:
             v = loop(v)
-            OEWS.append((v.Woew_classII-v.Woew)/9.81)
+            OEWS.append([v.Woew_classII/9.81, v.Woew/9.81])
     else:
         print("Did not converge within {} iterations".format(maxiterations))
         return v, OEWS
@@ -71,18 +72,21 @@ def do_loop(v: CurrentVariables, difference=5, maxiterations=500):
 
 if __name__ == "__main__":
 
-    conceptnumberlist = [1,2,3,4,5]
+    conceptnumberlist = [1]
 
     for conceptnumber in conceptnumberlist:
 
         v = CurrentVariables(*conceptparameters(conceptnumber))
-
+        v.range_m *= 0.001
+        v.endurance_s *= 0.46
         v, oews = do_loop(v)
+        oews = np.array(oews)
         v_dict = vars(v)
         print(v_dict)
         with open('concept_{}.csv'.format(conceptnumber), 'w') as file:
             for key in v_dict.keys():
                 file.write("%s, %s\n" % (key, v_dict[key]))
-        print("Final weight = ",v.Woew_classII/9.81," kg")
-    # plt.plot(oews)
-    # plt.show()
+        print("Final weight = ",v.WTO/9.81," kg")
+        plt.plot(oews[:,0])
+        plt.plot(oews[:,1])
+        plt.show()

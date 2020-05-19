@@ -54,6 +54,8 @@ class CurrentVariables:
         self.n_ult       = 5.7                                          # [-] Ultimate load factor in g
         self.rollrate    = 15*np.pi/180                                 # [rad/s] roll rate requirement
         self.propclear   = 0.23                                         # [m] Minimum clearance of the propeller or fuselage
+        self.endurance_s  = 3600*2.5                                     # [s] Endurance in seconds
+        self.range_m     = 250000                                       # [m] Range in meters
 
         ## Design concept parameters (Concept number: )
         self.concept_number = conceptnumber                             # [-] Number of the concept design
