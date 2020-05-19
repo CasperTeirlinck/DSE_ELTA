@@ -2,6 +2,7 @@ from variables import *
 import numpy as np
 import math as m
 import matplotlib.pyplot as plt
+import csv
 
 from loading_diagram import *
 from class_I import *
@@ -82,13 +83,18 @@ if __name__ == "__main__":
     #
     # v = CurrentVariables(conceptnumber=conceptnumber, wing_mounted=wing_mounted, T_tail=T_tail, x_cg_pass=x_cg_pass,
     #                      x_cg_batt=x_cg_batt, x_cg_f=x_cg_f, ducted=ducted, lowwing=lowwing)
+    conceptnumberlist = [1,2,3,4,5]
 
-    conceptnumber = 5
-    v = CurrentVariables(*conceptparameters(conceptnumber))
+    for conceptnumber in conceptnumberlist:
 
-    v, oews = do_loop(v)
-    print(vars(v))
-    print("Final OEW = ",v.Woew_classII/9.81," kg")
-    print("Final take-off weight = ",v.WTO/9.81," kg")
-    #plt.plot(oews)
-    #plt.show()
+        v = CurrentVariables(*conceptparameters(conceptnumber))
+
+        v, oews = do_loop(v)
+        v_dict = vars(v)
+        print(v_dict)
+        with open('concept_{}.csv'.format(conceptnumber), 'w') as file:
+            for key in v_dict.keys():
+                file.write("%s, %s\n" % (key, v_dict[key]))
+        print("Final weight = ",v.Woew_classII/9.81," kg")
+    # plt.plot(oews)
+    # plt.show()
