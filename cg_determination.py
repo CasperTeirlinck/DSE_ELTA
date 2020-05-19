@@ -1,5 +1,5 @@
 from variables import *
-from ClassIIWeightEstimation import EmpennageEstimation, LandingGearEstimation, FuselageEstimation, MainWingEstimation
+from ClassIIWeightEstimation import EmpennageEstimation, LandingGearEstimation, FuselageEstimation, MainWingEstimation, EngineEstimation
 
 ## AIRCRAFT GROUP CONTRIBUTIONS
 # Calculate x-coordinate of the fuselage group CG
@@ -7,26 +7,26 @@ def X_fuselagegroupCG(variables):
     if variables.wing_mounted_engine:
         return (FuselageEstimation(variables) * variables.fuselagecg_x + variables.Wbat * variables.batterycg_x)/(FuselageEstimation(variables) + variables.Wbat)
     else:
-        return (variables.Weng * variables.enginecg_x + FuselageEstimation(variables) * variables.fuselagecg_x + variables.Wbat * variables.batterycg_x)/(variables.Weng + FuselageEstimation(variables) + variables.Wbat)
+        return (EngineEstimation(variables) * variables.enginecg_x + FuselageEstimation(variables) * variables.fuselagecg_x + variables.Wbat * variables.batterycg_x)/(EngineEstimation(variables) + FuselageEstimation(variables) + variables.Wbat)
 
 # Calculate the weight of the fuselage group
 def fuselagegroup_weight(variables):
     if variables.wing_mounted_engine:
         return FuselageEstimation(variables) + variables.Wbat
     else:
-        return variables.Weng + FuselageEstimation(variables) + variables.Wbat
+        return EngineEstimation(variables) + FuselageEstimation(variables) + variables.Wbat
 
 # Calculate chordwise location of the wing group CG
 def chordwise_winggroupCG(variables):
     if variables.wing_mounted_engine:
-        return (MainWingEstimation(variables)*variables.chordwise_wing_cg + variables.Weng*variables.chordwise_cg_engine)/(MainWingEstimation(variables) + variables.Weng)
+        return (MainWingEstimation(variables)*variables.chordwise_wing_cg + EngineEstimation(variables)*variables.chordwise_cg_engine)/(MainWingEstimation(variables) + EngineEstimation(variables))
     else:
         return variables.chordwise_wing_cg
 
 # Calculate the weight of the wing group
 def winggroup_weight(variables):
     if variables.wing_mounted_engine:
-        return MainWingEstimation(variables) + variables.Weng
+        return MainWingEstimation(variables) + EngineEstimation(variables)
     else:
         return MainWingEstimation(variables)
 
