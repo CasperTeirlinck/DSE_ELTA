@@ -95,8 +95,9 @@ class CurrentVariables:
         self.CD0clean    = 0.0280                                       # drag constant
         self.chordwise_wing_cg = 0.30                                   # [-] 100*%MAC of wing centre of gravity
         self.aileroncutoff = 0.5                                        # [m] fixed position of outer aileron location from wingtip
-        self.max_controlsurface_deflection = 20                         # [deg] maximum deflection of control surfaces
+        self.max_controlsurface_deflection = 25                         # [deg] maximum deflection of control surfaces
         self.c_l_a       = 5.729578                                     # [1/rad] lift slope
+        self.c_l_a_flaps = 6.231                                        # [1/rad] lift slope of airfoil with flaps deployed
         self.c_l_delta_a = 0.046825*180/(np.pi)                         # [1/rad] change in the airfoil’s lift coefficient with aileron deflection
         self.fus_height  = 1.725                                        # [m] height from lowes point floor until heighest point of the fuselage
         self.prop_spin   = 0.365                                        # [m] Length of the propeller spinner

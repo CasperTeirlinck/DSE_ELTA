@@ -41,8 +41,7 @@ def loop(v: CurrentVariables):
     v = classIestimation_alt(v)
     v = wing_planform(v)
     v = calculate_cg_groups(v)
-    # TODO: Discuss TE weight addition in code.
-    v = size_control_surfaces(v)
+    # v = size_control_surfaces(v)
 
     # Do the c.g. related positioning (wing/tail/gear) subloop
     v = subloop(v)

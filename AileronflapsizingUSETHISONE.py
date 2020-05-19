@@ -9,6 +9,7 @@ Aileron sizing and flap sizing
 
 import numpy as np
 from variables import *
+from time import sleep
 
 
 
@@ -46,13 +47,12 @@ def rolldampingcoef(c_l_a,C_d0,c_root,S,taperrat,b):
     
     
 
-def aileronstartinner(b,S,c_root,taperrat,b2,delta_a,c_l_delta_a,V,P): #outputs inner position of aileron
+def aileronstartinner(b,S,c_root,taperrat,b2,delta_a,c_l_delta_a,V,P,C_d0): #outputs inner position of aileron
     C_l_p = rolldampingcoef(c_l_a,C_d0,c_root,S,taperrat,b)
-    
-    
-    
+
     if (P*b)/(2*V)*(C_l_p)/(c_l_delta_a*delta_a)*b**2+b2**2 < 0:
-        return print('wing span should be decreased')
+        raise ValueError("Wing span should be decreased")
+
     else:
         b1 = np.sqrt((P*b)/(2*V)*(C_l_p)/(c_l_delta_a*delta_a)*b**2+b2**2)
         return b1 #this value should be added or subtracted from b/2
@@ -74,8 +74,8 @@ def Flapsurface(c_l_a,AR,a_max,C_L_max_req,S,deltaC_l_max): #determines the wing
     Swf = (S*deltaC_L_max)/(deltaC_l_max*0.9)
     return Swf
     
-def Flappos(b,S,c_root,taperrat,b2,delta_a,c_l_delta_a,V,P,c_tip,c_l_a,AR,a_max,C_L_max_req,deltaC_l_max):
-    f2 = aileronstartinner(b,S,c_root,taperrat,b2,delta_a,c_l_delta_a,V,P) #- 1.5  #outer location of flap
+def Flappos(b,S,c_root,taperrat,b2,delta_a,c_l_delta_a,V,P,c_tip,c_l_a,AR,a_max,C_L_max_req,deltaC_l_max, C_d0):
+    f2 = aileronstartinner(b,S,c_root,taperrat,b2,delta_a,c_l_delta_a,V,P, C_d0) #- 1.5  #outer location of flap
 
     A = (c_root-c_tip)/b
     B = -c_root
@@ -105,15 +105,17 @@ def size_control_surfaces(variables: CurrentVariables):
     P = variables.rollrate
     c_tip = c_root*taperrat
     c_l_a = variables.c_l_a
+    c_l_a = variables.c_l_a_flaps
     c_l_delta_a = variables.c_l_delta_a
     AR = variables.A
     C_L_max_req = np.max(np.concatenate((np.array([variables.CLmaxto]).flatten(), np.array([variables.CLmaxland]).flatten(), np.array([variables.CLmaxclean]).flatten())))
+    C_L_max_req = 1.8
     a_max = C_L_max_req/(c_l_a - c_l_delta_a)
     deltaC_l_max = variables.deltaC_l_max
 
     variables.aileronend = b2
-    variables.aileronstart = aileronstartinner(b, S, c_root, taperrat, b2, delta_a, c_l_delta_a, V, P)
-    variables.flapstart = Flappos(b, S, c_root, taperrat, b2, delta_a, c_l_delta_a, V, P, c_tip, c_l_a, AR, a_max, C_L_max_req, deltaC_l_max)
+    variables.aileronstart = aileronstartinner(b, S, c_root, taperrat, b2, delta_a, c_l_delta_a, V, P, variables.CD0clean)
+    variables.flapstart = Flappos(b, S, c_root, taperrat, b2, delta_a, c_l_delta_a, V, P, c_tip, c_l_a, AR, a_max, C_L_max_req, deltaC_l_max, variables.CD0clean)
     variables.Swf = Flapsurface(c_l_a, AR, a_max, C_L_max_req, S, deltaC_l_max)
     return variables
 

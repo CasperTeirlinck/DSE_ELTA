@@ -29,6 +29,7 @@ def size_gear(variables):
 
     h_cg = (variables.fus_height + variables.propclear)-variables.fuselagecg_z
     h_tail = (variables.fus_height + variables.propclear)-variables.tail_height
+    print(h_cg, h_tail)
     l0 = variables.tailtiplength + variables.xcg_aft
     dist0 = l0 + m.tan(frw_cg_angle) * (h_cg - h_tail)
     z_landinggear = dist0/(1/m.tan(tailstrike) + m.tan(frw_cg_angle))+h_tail
