@@ -67,9 +67,9 @@ W_avion = 15    #[kg] avionic weight
 
 
 #conversions
-kglbs = 2.2046 #from kg to lbs
-kgN = 9.81
-Nlbs = kglbs/kgN
+kglbs = 2.2046 #from kg to lbs -> lbs/kg
+kgN = 9.81 # N/kg
+Nlbs = kglbs/kgN # lbs/N
 mft = 1/0.3048 #meter to foot
 
 
@@ -131,11 +131,11 @@ def LandingGearEstimation(variables):
     return W_frontgear/Nlbs, W_maingear/Nlbs, W_g/Nlbs
     
 def FlightControlSystemEstimation(variables):
-    W_fc = 0.0168*variables.WTO
+    W_fc = 0.0168*variables.WTO/9.81
     return W_fc*kgN #already in kg
 
 def ElectricalSystemEstimation(variables):
-    W_el = 0.0268*variables.WTO
+    W_el = 0.0268*variables.WTO/9.81
     return W_el*kgN #already in kg
     
 
