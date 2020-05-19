@@ -17,16 +17,15 @@ V_d = variables.Vmax
 n_max = 3.8 # ref: CS-VLA 337
 n_min = -1.5 # ref: CS-VLA 337
 # GUST
+U_c = 15.24  # [m/s] gust velocity ref: CS-VLA 333
+U_d = 7.62  # [m/s] gust velocity ref: CS-VLA 333
 dCLda = ClaCLaConverter(variables.c_l_a, variables.A) #[1/rad]
-print(dCLda)
 rho = variables.rhocruise
 rho0 = variables.rho0
-S = variables.S  # m2
+S = variables.S  # [m2]
 W = variables.WTO  # [N]
 M = W/9.81 # [kg]
 MAC = variables.MAC #[m]
-U_c = 15.24  # [m/s] gust velocity ref: CS-VLA 333
-U_d = 7.62  # [m/s] gust velocity ref: CS-VLA 333
 K_c = ( 0.5*rho0 * dCLda * ( 0.88*(2*M/S)/(rho*dCLda*MAC) )/( 5.3 + (2*M/S)/(rho*dCLda*MAC) ) * U_c ) / (W/S) # ref: CS-VLA
 K_d = ( 0.5*rho0 * dCLda * ( 0.88*(2*M/S)/(rho*dCLda*MAC) )/( 5.3 + (2*M/S)/(rho*dCLda*MAC) ) * U_d ) / (W/S) # ref: CS-VLA
 # K_c = dCLda * 0.5*rho * (S / W) * U_c # ref: tudeft
@@ -272,7 +271,7 @@ if True:
 if __name__ == "__main__":
     plt.plot([0, 300], [0, 0], color="black")
     plt.ylim(-3, 5)
-    plt.xlim(0, 80)
+    plt.xlim(0, 70)
     plt.ylabel("Load Factor n [-]")
     plt.xlabel("Speed V EAS [m/s]")
     plt.legend(loc='upper left')
