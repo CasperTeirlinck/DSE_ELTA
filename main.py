@@ -106,7 +106,18 @@ if __name__ == "__main__":
         v1 = CurrentVariables(*conceptparameters(conceptnumber))
 
         """ ===================== """
-        change = -10
+        change = 10
+
+        ## Reqs
+        # v1.WPL = v1.WPL*(1 + change/100)                              # <--!!!
+        # v1.Vmax_kts = v1.Vmax_kts*(1 + change/100)
+        # v1.rho = v1.rho*(1 + change/100)
+        # v1.n_ult = v1.n_ult*(1 + change/100)                          # <--!!!
+        # v1.rollrate = v1.rollrate*(1 + change/100)
+        # v1.propclear = v1.propclear*(1 + change/100)
+        # v1.endurance_s = v1.endurance_s*(1 + change/100)                # <--!!! non linear?
+        # v1.range_m = v1.range_m*(1 + change/100)                      # <--!!!
+
 
         ## Free variables
         # v1.A = v1.A*(1 + change/100)
@@ -122,15 +133,19 @@ if __name__ == "__main__":
         # v1.tcr_v = v1.tcr_v*(1 + change/100)
         
         ## Statistical values
-        # v1.htail_volume = v1.htail_volume*(1 + change/100)
-        # v1.vtail_volume = v1.vtail_volume*(1 + change/100)
-        # v1.Especif_bat = v1.Especif_bat*(1 + change/100)
-        # v1.motor_spec_mass = v1.motor_spec_mass*(1 + change/100)
-        # v1.CD0clean = v1.CD0clean*(1 + change/100)      
+        # v1.htail_volume = v1.htail_volume*(1 + change/100)                                      # <--!!! expected
+        # v1.vtail_volume = v1.vtail_volume*(1 + change/100)                                          # <--!!! expected
+        # v1.Especif_bat = v1.Especif_bat*(1 + change/100)                                        # <--!!! expected ELABORATE
+        # v1.motor_spec_mass = v1.motor_spec_mass*(1 + change/100)                                # <--!!! expected
+        # v1.CD0clean = v1.CD0clean*(1 + change/100)                                                  # <--!!! expected ELABORATE
         # v1.max_controlsurface_deflection = v1.max_controlsurface_deflection*(1 + change/100)
-        # v1.c_l_a_flaps = v1.c_l_a_flaps*(1 + change/100)
-        # v1.c_l_delta_a = v1.c_l_delta_a*(1 + change/100)
-        v1.fus_height = v1.fus_height*(1 + change/100)
+        # v1.c_l_a_flaps = v1.c_l_a_flaps*(1 + change/100)                                            # <--!!! unexpected ELABORATE
+        # v1.c_l_delta_a = v1.c_l_delta_a*(1 + change/100)                                            # <--!!! unexpected ELABORATE
+        # v1.fus_height = v1.fus_height*(1 + change/100)
+        # v1.prop_spin = v1.prop_spin*(1 + change/100)
+        # v1.W_wsn = v1.W_wsn*(1 + change/100)
+        # v1.W_wsm = v1.W_wsm*(1 + change/100)
+        # v1.W_avion = v1.W_avion*(1 + change/100)
         """ ===================== """
 
         v1, _ = do_loop(v1)

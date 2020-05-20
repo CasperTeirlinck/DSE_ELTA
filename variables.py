@@ -44,7 +44,7 @@ class CurrentVariables:
         self.Vmax        = self.Vmax_kts*0.514444444                    # IAS [m/s] max speed
         self.Vmax_lvl_kts= IAS_TAS(914.4, 110*0.514444444)/0.514444444
         self.Vs_eas      = 23.15                                        # [m/s] stall speed (45 kts calibrated)
-        self.Vs          = IAS_TAS(1700, 23.15)                         # [m/s] stall speed (45 kts calibrated)
+        self.Vs          = IAS_TAS(1700, self.Vs_eas)                         # [m/s] stall speed (45 kts calibrated)
         self.rho         = 1.04                                         # [kg/m3] airdensity take-off and landing
         self.M_tip       = 0.7                                          # [-] Tip mach (non-helical, only rotation)
         self.helicaltipmach = 0.75                                      # [-] Helical tip mach number, or critical mach of propeller tip airfoil
