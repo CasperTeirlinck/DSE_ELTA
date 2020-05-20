@@ -106,7 +106,7 @@ if __name__ == "__main__":
         v1 = CurrentVariables(*conceptparameters(conceptnumber))
 
         """ ===================== """
-        change = 10
+        change = 20
 
         ## Reqs
         # v1.WPL = v1.WPL*(1 + change/100)                              # <--!!!
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
 
         ## Free variables
-        # v1.A = v1.A*(1 + change/100)
+        v1.A = v1.A*(1 + change/100)
         # v1.e = v1.e*(1 + change/100)
         # v1.A_h = v1.A_h*(1 + change/100)
         # v1.A_v = v1.A_v*(1 + change/100)
