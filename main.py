@@ -62,7 +62,8 @@ def do_loop(v: CurrentVariables, difference=0.1, maxiterations=500):
     OEWS = []
     for iteration in range(maxiterations):
         if v.Woew_classII != None and abs(v.Woew - v.Woew_classII) < difference*9.81:
-            print("Converged! Woew_classII={} N and Woew={} N".format(v.Woew_classII, v.Woew))
+            # print("Converged! Woew_classII={} N and Woew={} N".format(v.Woew_classII, v.Woew))
+            print(f'concept {v.concept_number} converged!')
             return v, OEWS
         else:
             v = loop(v)
@@ -74,21 +75,50 @@ def do_loop(v: CurrentVariables, difference=0.1, maxiterations=500):
 
 if __name__ == "__main__":
 
-    conceptnumberlist = [1,2,3,4,5]
+    sensAnalysis = True
 
-    for conceptnumber in conceptnumberlist:
+    if not sensAnalysis:
+        conceptnumberlist = [1,2,3,4,5]
+        for conceptnumber in conceptnumberlist:
+
+            v = CurrentVariables(*conceptparameters(conceptnumber))
+            # v.range_m *= 0.001
+            # v.endurance_s *= 0.46
+            v, oews = do_loop(v)
+            oews = np.array(oews)
+            v_dict = vars(v)
+            print(v_dict)
+            with open('concept_{}.csv'.format(conceptnumber), 'w') as file:
+                for key in v_dict.keys():
+                    file.write("%s, %s\n" % (key, v_dict[key]))
+            print("Final weight = ",v.WTO/9.81," kg")
+            plt.plot(oews[:,0])
+            plt.plot(oews[:,1])
+            plt.show()
+            
+    else:
+        conceptnumber = 3
 
         v = CurrentVariables(*conceptparameters(conceptnumber))
-        # v.range_m *= 0.001
-        # v.endurance_s *= 0.46
-        v, oews = do_loop(v)
-        oews = np.array(oews)
+        v, _ = do_loop(v)
         v_dict = vars(v)
-        print(v_dict)
-        with open('concept_{}.csv'.format(conceptnumber), 'w') as file:
-            for key in v_dict.keys():
-                file.write("%s, %s\n" % (key, v_dict[key]))
-        print("Final weight = ",v.WTO/9.81," kg")
-        plt.plot(oews[:,0])
-        plt.plot(oews[:,1])
-        plt.show()
+
+        v1 = CurrentVariables(*conceptparameters(conceptnumber))
+
+        """ ===================== """
+        v1.A = v1.A*1.1
+        """ ===================== """
+
+        v1, _ = do_loop(v1)
+        v1_dict = vars(v1)
+        with open(f'concept_{conceptnumber}_sens.csv', 'w') as file:
+            for (key, value), (key1, value1) in zip(v_dict.items(), v1_dict.items()):
+                if not (isinstance(value, list) or isinstance(value, np.ndarray)):
+                    if value:
+                        if value != 0:
+                            diff = round(np.abs((value-value1)/value)*100, 1)
+                            if diff >= 0.5:
+                                file.write(f'{key}, {diff}%\n')
+                        else:
+                            file.write(f'{key}, {value1}\n')
+                
