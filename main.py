@@ -106,7 +106,12 @@ if __name__ == "__main__":
         v1 = CurrentVariables(*conceptparameters(conceptnumber))
 
         """ ===================== """
-        v1.A = v1.A*1.1
+        change = 0.1
+
+        # v1.A = v1.A*(1 + change)
+        # v1.e = v1.e*(1 + change)
+        # v1.CD0to = v1.CD0to*(1 + change)
+        v1.CD0clean = v1.CD0clean*(1 + change)
         """ ===================== """
 
         v1, _ = do_loop(v1)
@@ -116,9 +121,10 @@ if __name__ == "__main__":
                 if not (isinstance(value, list) or isinstance(value, np.ndarray)):
                     if value:
                         if value != 0:
-                            diff = round(np.abs((value-value1)/value)*100, 1)
-                            if diff >= 0.5:
-                                file.write(f'{key}, {diff}%\n')
+                            diff = round((value1-value)/value*100, 1)
+                            warning = ', <--!!!' if np.abs(diff/100) > change else ''
+                            if np.abs(diff) >= 0.5:
+                                file.write(f'{key}, {diff}%{warning}\n')
                         else:
                             file.write(f'{key}, {value1}\n')
                 
