@@ -134,7 +134,7 @@ class CurrentVariables:
         self.angleduct   = 2                                            # [deg] angle of the chordline of the duct
         self.initial_etap= 0.7                                          # propeller efficiency
         self.V_eas       = 48.87                                        # [m/s] cruise velocity EAS
-        self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
+        self.V           = IAS_TAS(914.4, self.V_eas)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
         self.tcr_h        = 0.14                                        # [-] Thickness-to-rootchord ratio of the horizontal stabiliser
         self.tcr_v        = 0.14                                        # [-] Thickness-to-rootchord ratio of the vertical stabiliser    

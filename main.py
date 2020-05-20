@@ -106,24 +106,44 @@ if __name__ == "__main__":
         v1 = CurrentVariables(*conceptparameters(conceptnumber))
 
         """ ===================== """
-        change = 0.1
+        change = -10
 
-        # v1.A = v1.A*(1 + change)
-        # v1.e = v1.e*(1 + change)
-        # v1.CD0to = v1.CD0to*(1 + change)
-        v1.CD0clean = v1.CD0clean*(1 + change)
+        ## Free variables
+        # v1.A = v1.A*(1 + change/100)
+        # v1.e = v1.e*(1 + change/100)
+        # v1.A_h = v1.A_h*(1 + change/100)
+        # v1.A_v = v1.A_v*(1 + change/100)
+        # v1.x_htail = v1.x_htail*(1 + change/100)
+        # v1.x_vtail = v1.x_vtail*(1 + change/100)
+        # v1.n_blades = v1.n_blades*(1 + change/100)
+        # v1.initial_etap = v1.initial_etap*(1 + change/100)
+        # v1.rhocruise = v1.rhocruise*(1 + change/100)
+        # v1.tcr_h = v1.tcr_h*(1 + change/100)
+        # v1.tcr_v = v1.tcr_v*(1 + change/100)
+        
+        ## Statistical values
+        # v1.htail_volume = v1.htail_volume*(1 + change/100)
+        # v1.vtail_volume = v1.vtail_volume*(1 + change/100)
+        # v1.Especif_bat = v1.Especif_bat*(1 + change/100)
+        # v1.motor_spec_mass = v1.motor_spec_mass*(1 + change/100)
+        # v1.CD0clean = v1.CD0clean*(1 + change/100)      
+        # v1.max_controlsurface_deflection = v1.max_controlsurface_deflection*(1 + change/100)
+        # v1.c_l_a_flaps = v1.c_l_a_flaps*(1 + change/100)
+        # v1.c_l_delta_a = v1.c_l_delta_a*(1 + change/100)
+        v1.fus_height = v1.fus_height*(1 + change/100)
         """ ===================== """
 
         v1, _ = do_loop(v1)
         v1_dict = vars(v1)
         with open(f'concept_{conceptnumber}_sens.csv', 'w') as file:
             for (key, value), (key1, value1) in zip(v_dict.items(), v1_dict.items()):
+                
                 if not (isinstance(value, list) or isinstance(value, np.ndarray)):
                     if value:
                         if value != 0:
                             diff = round((value1-value)/value*100, 1)
-                            warning = ', <--!!!' if np.abs(diff/100) > change else ''
-                            if np.abs(diff) >= 0.5:
+                            warning = ', <--!!!' if np.abs(diff) >= np.abs(change) else ''
+                            if np.abs(diff) >= np.abs(change)/10:
                                 file.write(f'{key}, {diff}%{warning}\n')
                         else:
                             file.write(f'{key}, {value1}\n')
