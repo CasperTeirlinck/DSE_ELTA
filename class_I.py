@@ -71,11 +71,14 @@ def classIestimation(variables, a=0.656, b=-109, maxiterations=100):
         return variables
 
 def classIestimation_alt(variables, a=0.656, b=-109, maxiterations=100):
-    bat_endurance = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=endurance_s)
-    bat_range = flight_profile_energy_per_WTO(variables, range_m=range_m, endurance_s=0.0)
+    bat_endurance = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=variables.endurance_s)
+    bat_range = flight_profile_energy_per_WTO(variables, range_m=variables.range_m, endurance_s=0.0)
     variables.bmf = max(bat_range, bat_endurance)
     # variables.bmf = bat_endurance
-    variables.Woew = a*variables.WTO + b
+    if variables.Woew_classII != 0 and variables.Woew_classII != None:
+        variables.Woew = variables.Woew_classII
+    else:
+        variables.Woew = a*variables.WTO + b
     variables.Wbat = variables.WTO*variables.bmf
     return variables
 

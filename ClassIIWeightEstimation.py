@@ -67,10 +67,11 @@ W_avion = 15    #[kg] avionic weight
 
 
 #conversions
-kglbs = 2.2046 #from kg to lbs
-kgN = 9.81
-Nlbs = kglbs/kgN
+kglbs = 2.2046 #from kg to lbs -> lbs/kg
+kgN = 9.81 # N/kg
+Nlbs = kglbs/kgN # lbs/N
 mft = 1/0.3048 #meter to foot
+Nlbf = 1/4.44822
 
 
 
@@ -78,11 +79,15 @@ mft = 1/0.3048 #meter to foot
 #---------------------functions for component weight estimation--------------------------
 
 def MainWingEstimation(variables): #W_to,S_w,n_ult,A_w,Strut 
-    if not variables.strutted_wing:
-        W_w = (0.04674*(variables.WTO*Nlbs)**0.397*(variables.S*mft**2)**0.360*variables.n_ult**0.397*variables.A**1.712)
-    else:
-        W_w = (0.002933*(variables.S*mft**2)**1.1018*variables.A**2.473*variables.n_ult**0.611)
-    return W_w/Nlbs
+    ## New equations
+    W_w = 0.036*(variables.S*mft*mft)**0.758*1.*(variables.A/1.)**0.6*(.5*variables.rhocruise*0.062*(variables.V*mft)**2)**0.006*variables.taper**0.04*(100*variables.tcwing)**(-0.3)*(variables.n_ult*variables.WTO*Nlbf)**0.49
+
+    ## Old mystery equation
+    #if not variables.strutted_wing:
+    #    W_w = (0.04674*(variables.WTO*Nlbs)**0.397*(variables.S*mft**2)**0.360*variables.n_ult**0.397*variables.A**1.712)
+    #else:
+    #    W_w = (0.002933*(variables.S*mft**2)**1.1018*variables.A**2.473*variables.n_ult**0.611)
+    return W_w/Nlbf
 
 def EmpennageEstimation(variables):
     tr_h = variables.tcr_h*np.sqrt(variables.Sh/variables.A_h)
@@ -131,11 +136,11 @@ def LandingGearEstimation(variables):
     return W_frontgear/Nlbs, W_maingear/Nlbs, W_g/Nlbs
     
 def FlightControlSystemEstimation(variables):
-    W_fc = 0.0168*variables.WTO
+    W_fc = 0.0168*variables.WTO/9.81
     return W_fc*kgN #already in kg
 
 def ElectricalSystemEstimation(variables):
-    W_el = 0.0268*variables.WTO
+    W_el = 0.0268*variables.WTO/9.81
     return W_el*kgN #already in kg
     
 

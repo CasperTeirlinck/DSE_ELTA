@@ -32,7 +32,8 @@ def glauert_function(phi):
 
 class CurrentVariables:
     def __init__(self, conceptnumber=2, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
-                 x_cg_f = 1.965, ducted=False, lowwing=True):
+                 x_cg_f = 1.965, ducted=False, lowwing=True, strutted_wing=False, l_fuselage=6., d_fuselage=1.2,
+                 spinner_length=0.365, bulkhead_loc=0.875, cabin_length=1.3, tailheight=1.2, n_blades=2,):
         ## Requirements
         self.sto         = 500                                          # [m] take-off distance
         self.WPL         = 200*9.80665                                  # [N] Payload weight
@@ -43,7 +44,7 @@ class CurrentVariables:
         self.Vmax        = self.Vmax_kts*0.514444444                    # IAS [m/s] max speed
         self.Vmax_lvl_kts= IAS_TAS(914.4, 110*0.514444444)/0.514444444
         self.Vs_eas      = 23.15                                        # [m/s] stall speed (45 kts calibrated)
-        self.Vs          = IAS_TAS(1700, 23.15)                         # [m/s] stall speed (45 kts calibrated)
+        self.Vs          = IAS_TAS(1700, self.Vs_eas)                         # [m/s] stall speed (45 kts calibrated)
         self.rho         = 1.04                                         # [kg/m3] airdensity take-off and landing
         self.M_tip       = 0.7                                          # [-] Tip mach (non-helical, only rotation)
         self.helicaltipmach = 0.75                                      # [-] Helical tip mach number, or critical mach of propeller tip airfoil
@@ -53,6 +54,8 @@ class CurrentVariables:
         self.n_ult       = 5.7                                          # [-] Ultimate load factor in g
         self.rollrate    = 15*np.pi/180                                 # [rad/s] roll rate requirement
         self.propclear   = 0.23                                         # [m] Minimum clearance of the propeller or fuselage
+        self.endurance_s  = 3600*2.5                                     # [s] Endurance in seconds
+        self.range_m     = 250000                                       # [m] Range in meters
 
         ## Design concept parameters (Concept number: )
         self.concept_number = conceptnumber                             # [-] Number of the concept design
@@ -67,21 +70,21 @@ class CurrentVariables:
             self.chordwise_cg_engine = 000                              # [-] Engine CG location as measured from LEMAC%
         if not self.wing_mounted_engine:
             self.x_cg_engine = 0.755                                    # [m] Engine CG location as measured from aircraft nose
-        self.strutted_wing = False
-        self.l_fus = 4.3                                                  # [m] Length of fuselage without tail
-        self.d_fus = 1.2                                                # Depth of fuselage (?)
+        self.strutted_wing = strutted_wing
+        self.l_fus = l_fuselage                                         # [m] Length of fuselage without tail
+        self.d_fus = d_fuselage                                         # Depth of fuselage (?)
 
         self.tailtiplength= 3.325                                       # [m] from LE of main wing to most aft point of aircraft
         self.prop_spin   = 0.3650                                       # [m] length of the propeller spinner
         self.fuselage_len= 4.300                                        # [m] Length of the fuselage, nose to tail.
-        self.bulkhead    = 1.095                                          # [m] Location of the bulkhead in the nose.
-        self.cabinlength = 1.3                                          # [m] Length of the cabin of the pilot from bulkhead
-        self.enginelength= 0.6                                            # [m] Length of the propellers on the wing
+        self.bulkhead    = bulkhead_loc                                 # [m] Location of the bulkhead in the nose.
+        self.cabinlength = cabin_length                                 # [m] Length of the cabin of the pilot from bulkhead
+        self.enginelength= 0.6                                          # [m] Length of the propellers on the wing
         self.eng_perc_rootchord = 20                                    # [%] engine cg in percentage of root chord
         self.eng_height_above_w = 0.3                                   # [m] engine cg in m above the main wing
-        self.tail_height = 0.91                                         # [m] Tail height above ground
+        self.tail_height = tailheight                                   # [m] Tail height above ground
         if self.ducted:
-            self.ARduct = 5.0
+            self.AR_duct = 5.0
             self.D_fan = 1.09
             self.rho_ductmaterial = 1.5
 
@@ -101,7 +104,7 @@ class CurrentVariables:
         self.c_l_a_flaps = 6.231                                        # [1/rad] lift slope of airfoil with flaps deployed
         self.c_l_delta_a = 0.046825*180/(np.pi)                         # [1/rad] change in the airfoil’s lift coefficient with aileron deflection
         self.fus_height  = 1.725                                        # [m] height from lowes point floor until heighest point of the fuselage
-        self.prop_spin   = 0.365                                        # [m] Length of the propeller spinner
+        self.prop_spin   = spinner_length                               # [m] Length of the propeller spinner
 
         self.W_wsn   = 5                                                #[kg]   Nose wheel weight + its strut assembly
         self.W_wsm   = 7                                                #[kg]   Main wheel weight + its strut assembly
@@ -121,27 +124,28 @@ class CurrentVariables:
         self.x_vtail     = 6.2                                          # [m] location of the ac of the vertical tail
         self.taper_h     = None                                         # [-] (0.3-1.0) Taper ratio of the horizontal tailplane
         self.taper_v     = None                                         # [-] (0.3-0.7) Taper ratio of the vertical tailplane
-        self.A           = 12                                           # aspect ratio of the main wing
+        self.A           = 12                                            # aspect ratio of the main wing
         self.e           = 0.83                                         # oswald efficiency factor
         self.dihedral    = 0                                            # [deg] dihedral, positive upwards.
-        self.n_blades    = 4                                            # [-] Number of propeller blades single prop
+        self.n_blades    = n_blades                                     # [-] Number of propeller blades single prop
         self.rps_TO      = 2400 / 60                                    # [rps] revolution speed of prop at TO
         self.rps_cruise  = 2700 / 60                                    # [rps] revolution speed of prop at cruise
         self.coverR      = 0.5                                          # [-] Chord of duct to radius of fan ratio
         self.angleduct   = 2                                            # [deg] angle of the chordline of the duct
         self.initial_etap= 0.7                                          # propeller efficiency
         self.V_eas       = 48.87                                        # [m/s] cruise velocity EAS
-        self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
+        self.V           = IAS_TAS(914.4, self.V_eas)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
-        self.tcr_h        = 0.14                                         # [-] Thickness-to-rootchord ratio of the horizontal stabiliser
-        self.tcr_v        = 0.14                                         # [-] Thickness-to-rootchord ratio of the vertical stabiliser    
-
+        self.tcr_h        = 0.14                                        # [-] Thickness-to-rootchord ratio of the horizontal stabiliser
+        self.tcr_v        = 0.14                                        # [-] Thickness-to-rootchord ratio of the vertical stabiliser    
+        self.chordwise_cg_oew = 0.30                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
 
 
         # Miscellaneous
-        self.eff_propeller = None
+        self.eff_propeller = 0.8
         self.T_propeller = None
         self.tail_ready  = False
+        self.tcwing = 0.12
 
         ## Calculated values
         self.CLto        = np.array(self.CLmaxto / (1.1 ** 2)).round(1) # take-off CL, = CLmax,TO/1.1^2
@@ -159,14 +163,12 @@ class CurrentVariables:
             self.WS      = 592                                          # [N/m2] wing loading
         self.WTO         = 750*9.81                                     # [N] take-off weight
         self.bmf         = None                                         # [-] Battery mass fraction
-        self.Wbat        = 0                                            # [N] Battery weight
+        self.Wbat        = None                                         # [N] Battery weight
         self.Woew        = 0                                            # [N] Operational empty weight
         self.Woew_classII= None                                         # [N] Operational empty weight
         self.Wprop       = 9.81*48.2                                    # [N] Propeller weight
         self.Wmotor      = 9.81*19.75                                   # [N] Motor weight
         self.Wwing       = None                                         # [N] Wing weight
-        self.Wfus        = None                                         # [N] Fuselage weight
-        self.Wfus        = 100.                                         # [N] Fuselage weight TODO: implement properly
         self.Wgear_front = None                                         # [N] Front landing gear weight       
         self.Wgear_main  = None                                         # [N] Main landing gear weight
         self.Wgear       = None                                         # [N] Total landing gear weight
@@ -181,7 +183,6 @@ class CurrentVariables:
         self.cr          = 1.5                                          # [m] Root chord
         self.ct          = 0.6                                          # [m] Tip chord
         self.MAC         = 1.1                                          # [m] Mean aerodynamic chord
-        self.chordwise_cg_oew = 0.25                                    # Position of the OEW aircraft CG as measured from the chordwise OEW
 
         self.wingpos     = 1.27                                         # [m] Location of root chord LE from nose
         self.sweep_LE    = atan((self.cr-self.ct)*0.25/self.b*2)        # [rad] Sweep of wing leading edge
@@ -223,6 +224,8 @@ class CurrentVariables:
         self.fuselagecg_x= None
         self.fuselagecg_z= None
 
+        self.do_engine_sizing()
+
 
     def init_single_engine(self):
         # self.CLmaxto = np.array([1.7, 1.8, 1.9])                      # CLmax take-off
@@ -255,7 +258,7 @@ class CurrentVariables:
             factor = 0.49
 
         self.prop_d      = factor*(self.P*0.001)**0.25
-        self.estimate_eff_T()
+        # self.estimate_eff_T()
 
     def estimate_eff_T(self):
         if self.eff_propeller == None:
