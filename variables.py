@@ -44,7 +44,7 @@ class CurrentVariables:
         self.Vmax        = self.Vmax_kts*0.514444444                    # IAS [m/s] max speed
         self.Vmax_lvl_kts= IAS_TAS(914.4, 110*0.514444444)/0.514444444
         self.Vs_eas      = 23.15                                        # [m/s] stall speed (45 kts calibrated)
-        self.Vs          = IAS_TAS(1700, 23.15)                         # [m/s] stall speed (45 kts calibrated)
+        self.Vs          = IAS_TAS(1700, self.Vs_eas)                         # [m/s] stall speed (45 kts calibrated)
         self.rho         = 1.04                                         # [kg/m3] airdensity take-off and landing
         self.M_tip       = 0.7                                          # [-] Tip mach (non-helical, only rotation)
         self.helicaltipmach = 0.75                                      # [-] Helical tip mach number, or critical mach of propeller tip airfoil
@@ -134,7 +134,7 @@ class CurrentVariables:
         self.angleduct   = 2                                            # [deg] angle of the chordline of the duct
         self.initial_etap= 0.7                                          # propeller efficiency
         self.V_eas       = 48.87                                        # [m/s] cruise velocity EAS
-        self.V           = IAS_TAS(914.4, 48.87)                        # [m/s] cruise velocity
+        self.V           = IAS_TAS(914.4, self.V_eas)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
         self.tcr_h        = 0.14                                        # [-] Thickness-to-rootchord ratio of the horizontal stabiliser
         self.tcr_v        = 0.14                                        # [-] Thickness-to-rootchord ratio of the vertical stabiliser    
