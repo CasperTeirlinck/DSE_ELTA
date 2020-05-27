@@ -167,23 +167,24 @@ if __name__ == "__main__":
 
         """ Tornado Chart: """
         freeVars = [
-            'A',
-            'e',
-            'A_h',
-            'A_v',
-            'x_htail',
-            'x_vtail',
-            'n_blades',
-            'initial_etap',
-            'rhocruise',
-            'tcr_h',
-            'tcr_v'
+            ['A', 'A'],
+            ['e', 'e'],
+            ['A_h', 'A_htail'],
+            ['A_v', 'A_vtail'],
+            ['x_htail', 'x_htail'],
+            ['x_vtail', 'x_vtail'],
+            ['n_blades', 'n_blades'],
+            ['initial_etap', 'initial_etap'],
+            ['rhocruise', 'rhocruise'],
+            ['tcr_h', 'tcr_h'],
+            ['tcr_v', 'tcr_v']
         ]
 
         variation = [5, 10] # [%]
         sensDict = {}
 
-        for var in freeVars:
+        # for var in np.array(freeVars)[:,0]:
+        for var, label in freeVars:
             v2 = CurrentVariables(*conceptparameters(conceptnumber))            
             setattr(v2, var, getattr(v2, var)*(1 + variation[0]/100))
             v2, _ = do_loop(v2)
@@ -204,10 +205,10 @@ if __name__ == "__main__":
             v2, _ = do_loop(v2)
             WTOchangeNeg2 =  (v2.WTO-v.WTO)/v.WTO*100
 
-            sensDict[var] = [[WTOchangePos1, WTOchangeNeg1], [WTOchangePos2, WTOchangeNeg2]]
+            sensDict[label] = [[WTOchangePos1, WTOchangeNeg1], [WTOchangePos2, WTOchangeNeg2]]
 
         # Plotting
-        orderedSensDict = OrderedDict(sorted(sensDict.items(), key=lambda item: item[1][-1][0]))
+        orderedSensDict = OrderedDict(sorted(sensDict.items(), key=lambda item: item[1][-1][0], reverse=False))
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -223,7 +224,7 @@ if __name__ == "__main__":
 
         ax.set_xlabel('WTO [%]')
         ax.set_yticks(xAx + width / 2)
-        ax.set_yticklabels( (list(orderedSensDict.keys())) )
+        ax.set_yticklabels( list(orderedSensDict.keys()) )
 
         plt.gca().invert_yaxis()
         plt.legend(loc='lower right')
