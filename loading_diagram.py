@@ -265,6 +265,6 @@ if __name__ == "__main__":
 
     for n in [1,2]:
         variables = CurrentVariables(n_engines=n)
-        WP, WS = get_design_point(variables, plot_result=True)
+        get_design_point(variables, plot_result=True)
 
 
