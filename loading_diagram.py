@@ -118,13 +118,13 @@ def get_design_point(variables, plot_result=False):
         return climbgradient(etap=variables.eff_propeller, cV=variables.c / variables.V, CD=variables.CDclimb,
                                   CL=variables.CLclimb, rho=variables.rho, WS=WSinput)
 
-    def calcWP_turnrate(WSinput):
-        return turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
-                            A=variables.A, e=variables.e, WS=WSinput)             
+    # def calcWP_turnrate(WSinput):
+    #     return turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
+    #                         A=variables.A, e=variables.e, WS=WSinput)             
 
     # Calculate initial list of limits
     def WPlimitcase(WSinput):
-        return min([calcWP_to(WSinput), calcWP_cruise(WSinput), calcWP_climbrate(WSinput), calcWP_climbgrad(WSinput), calcWP_turnrate(WSinput)])
+        return min([calcWP_to(WSinput), calcWP_cruise(WSinput), calcWP_climbrate(WSinput), calcWP_climbgrad(WSinput)])
 
     # Calculate actual limiting case
     i = 0
@@ -236,9 +236,9 @@ def get_design_point(variables, plot_result=False):
         #                          A=variables.A[2], e=variables.e, WS=WS_plot)
         # plt.plot(WS_plot, WP_turnrate_3, label=f"Turn rate, A = {variables.A[2]}", color='tomato')
 
-        WP_turnrate_final = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
-                                 A=variables.A, e=variables.e, WS=WS_plot)
-        plt.plot(WS_plot, WP_turnrate_final, label=f"Turn rate, A = {variables.A}", color='tomato')
+        # WP_turnrate_final = turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
+        #                          A=variables.A, e=variables.e, WS=WS_plot)
+        # plt.plot(WS_plot, WP_turnrate_final, label=f"Turn rate, A = {variables.A}", color='tomato')
 
         # plot DP
         WP_1 = np.minimum(WP_to_final, WP_cruise_final)
