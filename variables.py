@@ -229,17 +229,19 @@ class CurrentVariables:
     def init_single_engine(self):
         # self.CLmaxto = np.array([1.7, 1.8, 1.9])                      # CLmax take-off
         self.CLmaxto = 1.8                                              # CLmax take-off
-        self.CLmaxland = np.array([1.7, 2.0, 2.3])                      # CLmax landing
+        # self.CLmaxland = np.array([1.7, 2.0, 2.3])                      # CLmax landing
+        self.CLmaxland = 2                    # CLmax landing
         # self.CLmaxclean = np.array([1.7, 1.8, 1.9])                     # CLmax clean
-        self.CLmaxclean = 1.8                     # CLmax clean
+        self.CLmaxclean = 1.5                     # CLmax clean
         self.k = np.sqrt(5647.9 + 17.331 * self.sto) - 75.153           # [N2/m2W] take-off parameter
 
     def init_multi_engine(self):
         # self.CLmaxto     = np.array([ 1.8, 1.9, 2.0 ])                # CLmax take-off
         self.CLmaxto     = 1.9                                          # CLmax take-off
-        self.CLmaxland   = np.array([ 1.8, 2.1, 2.4 ])                  # CLmax landing
+        # self.CLmaxland   = np.array([ 1.8, 2.1, 2.4 ])                  # CLmax landing
+        self.CLmaxland   = 2.1                  # CLmax landing
         # self.CLmaxclean  = np.array([ 1.8, 1.8, 1.8 ])                  # CLmax clean
-        self.CLmaxclean = 1.8
+        self.CLmaxclean = 1.4
         self.k           = 93                                           # [N2/m2W] take-off parameter
 
 

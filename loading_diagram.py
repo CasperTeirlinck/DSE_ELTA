@@ -92,15 +92,15 @@ def turnrate(rho, V, CD0, phi, A, e, WS):
 def get_design_point(variables, plot_result=False):
     # Returns WS and WP of the feasible design point
     WS_s = stallspeed(CLmax=variables.CLmaxclean, Vs=variables.Vs, rho=variables.rho)  # Stallspeed
-    WS_landing1 = landing(CLmax=variables.CLmaxland[0], rho=variables.rho, sland=variables.sland,
+    WS_landing1 = landing(CLmax=variables.CLmaxland, rho=variables.rho, sland=variables.sland,
                           f=variables.f)  # Pessimistic landing
-    WS_landing2 = landing(CLmax=variables.CLmaxland[1], rho=variables.rho, sland=variables.sland,
-                          f=variables.f)  # Neutral landing
-    WS_landing3 = landing(CLmax=variables.CLmaxland[2], rho=variables.rho, sland=variables.sland,
-                          f=variables.f)  # Optimistic landing
+    # WS_landing2 = landing(CLmax=variables.CLmaxland[1], rho=variables.rho, sland=variables.sland,
+    #                       f=variables.f)  # Neutral landing
+    # WS_landing3 = landing(CLmax=variables.CLmaxland[2], rho=variables.rho, sland=variables.sland,
+    #                       f=variables.f)  # Optimistic landing
 
     # Calculate limiting W/S value
-    WS_limit = min([WS_s, WS_landing1, WS_landing2, WS_landing3])
+    WS_limit = min([WS_s, WS_landing1])
 
     # Define single-input calculations for W/P
     def calcWP_to(WSinput):
@@ -162,14 +162,14 @@ def get_design_point(variables, plot_result=False):
         plt.plot(WS_plot, WP_to_final, label=f"Take-off, CLto = {variables.CLto}", color='lightcoral')
 
         # landing
-        WP_landing_1 = landing(CLmax=variables.CLmaxland[0], rho=variables.rho, sland=variables.sland, f=variables.f)
-        plt.plot([WP_landing_1, WP_landing_1], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[0]}", color='forestgreen')
+        WP_landing_1 = landing(CLmax=variables.CLmaxland, rho=variables.rho, sland=variables.sland, f=variables.f)
+        plt.plot([WP_landing_1, WP_landing_1], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland}", color='forestgreen')
 
-        WP_landing_2 = landing(CLmax=variables.CLmaxland[1], rho=variables.rho, sland=variables.sland, f=variables.f)
-        plt.plot([WP_landing_2, WP_landing_2], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[1]}", color='limegreen')
+        # WP_landing_2 = landing(CLmax=variables.CLmaxland[1], rho=variables.rho, sland=variables.sland, f=variables.f)
+        # plt.plot([WP_landing_2, WP_landing_2], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[1]}", color='limegreen')
 
-        WP_landing_3 = landing(CLmax=variables.CLmaxland[2], rho=variables.rho, sland=variables.sland, f=variables.f)
-        plt.plot([WP_landing_3, WP_landing_3], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[2]}", color='darkgreen')
+        # WP_landing_3 = landing(CLmax=variables.CLmaxland[2], rho=variables.rho, sland=variables.sland, f=variables.f)
+        # plt.plot([WP_landing_3, WP_landing_3], [0, 0.5], label=f"Landing, CL = {variables.CLmaxland[2]}", color='darkgreen')
 
         # cruise
         # WP_cruise_1 = cruisspeed(etap=variables.eff_propeller, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
