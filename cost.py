@@ -3,12 +3,45 @@ from variables import *
 
 variables = CurrentVariables()
 
-""" QUANTITY DISCOUNT FACTOR """ # (learning curve)
+#""" QUANTITY DISCOUNT FACTOR """ # (learning curve)
+#
+#F_exp = 0.9 # [-] experience effectiveness ref: gadesign
+#N = 100 # [-] nr of units produced
+#
+#QDF = F_exp**(1.4427 * np.log(N))
+#
+#
 
-F_exp = 0.9 # [-] experience effectiveness ref: gadesign
-N = 100 # [-] nr of units produced
 
-QDF = F_exp**(1.4427 * np.log(N))
+#Input parameter that influence the final trade-off:
+""" PROPULSION """
+
+#C_prop = 13500 + 5000 #eng + prop for concept 1
+#C_prop = 7000 + 3500 #eng + prop for concept 2
+C_prop =  9000 + 5000 #eng + prop for concept 3
+#C_prop = 10500 + 6000 #eng + prop for concept 4
+#C_prop = 13500 + 10000 #eng + prop for concept 5
+bat = 500*51 #500 euro per kWh
+
+""" AVIONICS """ # ref: TE package cost estimation
+#C_te = 10395 # concept 1
+#C_te = 29128 # concept 2
+C_te = 20482 # concept 3
+#C_te = 8778 # concept 4
+#C_te = 4543 # concept 5
+
+
+""" OTHER """
+W_af = 250*2.20462262 # [lbs] airframe weight SO NOT (O)EW!!!!!!!!!!!!!!!!!!!!!!!!!
+V_h = 120 # [ktas] max level airspeed
+N = 650 # [-] nr of planned units produced over 5y span
+
+
+
+
+
+
+
 
 
 
@@ -17,11 +50,10 @@ QDF = F_exp**(1.4427 * np.log(N))
 
 
 """ MAN_HOURS """ # DAPCA-IV Method ref: gadesign
-
 # ENGINEERING
-W_af = 450*2.20462262 # [lbs] airframe weight
-N = 1100 # [-] nr of planned units produced over 5y span
-V_h = 110 # [ktas] max level airspeed
+#W_af = 450*2.20462262 # [lbs] airframe weight
+#V_h = 110 # [ktas] max level airspeed
+#N = 1100 # [-] nr of planned units produced over 5y span
 F_cert = (0.67 + 1)/2 # [-] 0.67 for LSA, 1 for CS23 ==> take avg
 f_comp = 0 # [-] composite fraction
 F_comp = 1 + f_comp
@@ -52,7 +84,7 @@ H_mfg = 9.6613 * W_af**0.74 * V_h**0.543 * N**0.524 * F_cert * F_cf * F_comp
 
 # ENGINEERING
 R_eng = 90 # [curr/h]
-CPI_2012 = 1.1376 # [-] consumer price index wrt. 2012
+CPI_2012 = 1.1376 # [-] consumer price index 2020 wrt. 2012
 
 C_eng = 2.0969 * H_eng * R_eng * CPI_2012
 #print(f'eng: {C_eng/N}')
@@ -104,39 +136,24 @@ print(f'Materials/equip per a/c: {C_mat/N}')
 C_cert = C_eng + C_dev + C_ft + C_tool
 print(f'TOT Certifiction: {C_cert}')
 
-""" PROPULSION """
-
-#C_prop = 15000*2 # concept 1
-#C_prop = 15000 # concept 2 based on pipistrel alpha electro
-C_prop = 15000 # concept 3
-#C_prop = 15000*2 # concept 4
-#C_prop = 60000 # concept 5
-#print(f'propulsion: {C_prop}')
-
-""" AVIONICS """ # ref: TE package cost estimation
-# C_te = 10395 # concept 1
-#C_te = 29128 # concept 2
-C_te = 20482 # concept 3
-# C_te = 8778 # concept 4
-# C_te = 4543 # concept 5
 
 """ TOTAL COST """
 C_lg = -7500 # fixed lg discout ref: gadesign
-C_tot = C_cert + C_mfg + C_qc + C_mat + N*C_prop + N*C_te + N*C_lg
+C_tot = C_cert + C_mfg + C_qc + C_mat + N*C_prop + N*C_te + N*C_lg +N*bat
 
-print(f'TOT: {C_tot/N}')
+print(f'TOT unit cost to break-even in 5 years: {C_tot/N}')
 
-#unit_price = C_tot/N
-#print(f'Unit: {unit_price}')
+
 
 '''
-fixed costs: 16 500 000 certification
+fixed costs: 15 000 000 certification
 variable costs:
-    engine:         15 000
+    engine:         14 000
     avionics:       20 000
-    manufacturing:  76 000
-    QC:              7 500
-    materials:      12 500
+    battery:        25 500
+    manufacturing:  67 000
+    QC:              6 500
+    materials:      10 500
     +++++++++++++++++++++++++++++++++++
-                   131 000 EUR per A/Cs
+                   143 500 EUR per A/C
 '''
