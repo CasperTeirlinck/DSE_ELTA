@@ -129,7 +129,7 @@ if __name__ == "__main__":
         # v1.x_htail = v1.x_htail*(1 + change/100)
         # v1.x_vtail = v1.x_vtail*(1 + change/100)
         # v1.n_blades = v1.n_blades*(1 + change/100)
-        # v1.initial_etap = v1.initial_etap*(1 + change/100)
+        # v1.eff_propeller = v1.eff_propeller*(1 + change/100)
         # v1.rhocruise = v1.rhocruise*(1 + change/100)
         # v1.tcr_h = v1.tcr_h*(1 + change/100)
         # v1.tcr_v = v1.tcr_v*(1 + change/100)
@@ -174,7 +174,7 @@ if __name__ == "__main__":
             ['x_htail', 'x_htail'],
             ['x_vtail', 'x_vtail'],
             ['n_blades', 'n_blades'],
-            ['initial_etap', 'initial_etap'],
+            ['eff_propeller', 'eff_propeller'],
             ['rhocruise', 'rhocruise'],
             ['tcr_h', 'tcr_h'],
             ['tcr_v', 'tcr_v']

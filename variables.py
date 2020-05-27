@@ -132,7 +132,6 @@ class CurrentVariables:
         self.rps_cruise  = 2700 / 60                                    # [rps] revolution speed of prop at cruise
         self.coverR      = 0.5                                          # [-] Chord of duct to radius of fan ratio
         self.angleduct   = 2                                            # [deg] angle of the chordline of the duct
-        self.initial_etap= 0.7                                          # propeller efficiency
         self.V_eas       = 48.87                                        # [m/s] cruise velocity EAS
         self.V           = IAS_TAS(914.4, self.V_eas)                        # [m/s] cruise velocity
         self.rhocruise   = 1.12                                         # [kg/m3] airdensity cruise
@@ -231,14 +230,14 @@ class CurrentVariables:
         # self.CLmaxto = np.array([1.7, 1.8, 1.9])                      # CLmax take-off
         self.CLmaxto = 1.8                                              # CLmax take-off
         self.CLmaxland = np.array([1.7, 2.0, 2.3])                      # CLmax landing
-        self.CLmaxclean = np.array([1.7, 1.8, 1.9])                     # CLmax clean
+        self.CLmaxclean = 1.8                     # CLmax clean
         self.k = np.sqrt(5647.9 + 17.331 * self.sto) - 75.153           # [N2/m2W] take-off parameter
 
     def init_multi_engine(self):
         # self.CLmaxto     = np.array([ 1.8, 1.9, 2.0 ])                # CLmax take-off
         self.CLmaxto     = 1.9                                          # CLmax take-off
         self.CLmaxland   = np.array([ 1.8, 2.1, 2.4 ])                  # CLmax landing
-        self.CLmaxclean  = np.array([ 1.8, 1.8, 1.8 ])                  # CLmax clean
+        self.CLmaxclean = 1.8
         self.k           = 93                                           # [N2/m2W] take-off parameter
 
 
