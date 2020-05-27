@@ -3,6 +3,7 @@ import numpy as np
 import math as m
 import matplotlib.pyplot as plt
 import csv
+from collections import OrderedDict
 
 from loading_diagram import *
 from class_I import *
@@ -205,24 +206,27 @@ if __name__ == "__main__":
 
             sensDict[var] = [[WTOchangePos1, WTOchangeNeg1], [WTOchangePos2, WTOchangeNeg2]]
 
+        # Plotting
+        orderedSensDict = OrderedDict(sorted(sensDict.items(), key=lambda item: item[1][-1][0]))
 
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        width = 0.3
-        xAx = np.arange(len(list(sensDict.keys())))
+        width = 0.4
+        xAx = np.arange(len(list(orderedSensDict.keys())))
 
-        ax.barh(xAx, [value[0][0] for value in sensDict.values()], width, color='lightcoral')
-        ax.barh(xAx, [value[0][1] for value in sensDict.values()], width, color='cornflowerblue')
-        ax.barh(xAx+width, [value[1][0] for value in sensDict.values()], width, color='indianred')
-        ax.barh(xAx+width, [value[1][1] for value in sensDict.values()], width, color='royalblue')
+        ax.barh(xAx, [value[0][0] for value in orderedSensDict.values()], width, color='lightcoral', label='+5%')
+        ax.barh(xAx, [value[0][1] for value in orderedSensDict.values()], width, color='cornflowerblue', label='-5%')
+        ax.barh(xAx+width, [value[1][0] for value in orderedSensDict.values()], width, color='indianred', label='+10%')
+        ax.barh(xAx+width, [value[1][1] for value in orderedSensDict.values()], width, color='royalblue', label='-10%')
 
         ax.axvline(linewidth=1, color='black')
 
         ax.set_xlabel('WTO [%]')
         ax.set_yticks(xAx + width / 2)
-        ax.set_yticklabels( (list(sensDict.keys())) )
+        ax.set_yticklabels( (list(orderedSensDict.keys())) )
 
         plt.gca().invert_yaxis()
+        plt.legend(loc='lower right')
         plt.tight_layout()
         plt.show()
 
