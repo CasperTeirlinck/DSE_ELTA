@@ -105,8 +105,9 @@ if __name__ == "__main__":
 
         v1 = CurrentVariables(*conceptparameters(conceptnumber))
 
+        """ Test single variable: """
         """ ===================== """
-        change = 20
+        change = -10
 
         ## Reqs
         # v1.WPL = v1.WPL*(1 + change/100)                              # <--!!!
@@ -162,4 +163,68 @@ if __name__ == "__main__":
                                 file.write(f'{key}, {diff}%{warning}\n')
                         else:
                             file.write(f'{key}, {value1}\n')
+
+        """ Tornado Chart: """
+        freeVars = [
+            'A',
+            'e',
+            'A_h',
+            'A_v',
+            'x_htail',
+            'x_vtail',
+            'n_blades',
+            'initial_etap',
+            'rhocruise',
+            'tcr_h',
+            'tcr_v'
+        ]
+
+        variation = [5, 10] # [%]
+        sensDict = {}
+
+        for var in freeVars:
+            v2 = CurrentVariables(*conceptparameters(conceptnumber))            
+            setattr(v2, var, getattr(v2, var)*(1 + variation[0]/100))
+            v2, _ = do_loop(v2)
+            WTOchangePos1 =  (v2.WTO-v.WTO)/v.WTO*100
+
+            v2 = CurrentVariables(*conceptparameters(conceptnumber))            
+            setattr(v2, var, getattr(v2, var)*(1 + variation[1]/100))
+            v2, _ = do_loop(v2)
+            WTOchangePos2 =  (v2.WTO-v.WTO)/v.WTO*100
+
+            v2 = CurrentVariables(*conceptparameters(conceptnumber))
+            setattr(v2, var, getattr(v2, var)*(1 - variation[0]/100))
+            v2, _ = do_loop(v2)
+            WTOchangeNeg1 =  (v2.WTO-v.WTO)/v.WTO*100
+
+            v2 = CurrentVariables(*conceptparameters(conceptnumber))
+            setattr(v2, var, getattr(v2, var)*(1 - variation[1]/100))
+            v2, _ = do_loop(v2)
+            WTOchangeNeg2 =  (v2.WTO-v.WTO)/v.WTO*100
+
+            sensDict[var] = [[WTOchangePos1, WTOchangeNeg1], [WTOchangePos2, WTOchangeNeg2]]
+
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        width = 0.3
+        xAx = np.arange(len(list(sensDict.keys())))
+
+        ax.barh(xAx, [value[0][0] for value in sensDict.values()], width, color='lightcoral')
+        ax.barh(xAx, [value[0][1] for value in sensDict.values()], width, color='cornflowerblue')
+        ax.barh(xAx+width, [value[1][0] for value in sensDict.values()], width, color='indianred')
+        ax.barh(xAx+width, [value[1][1] for value in sensDict.values()], width, color='royalblue')
+
+        ax.axvline(linewidth=1, color='black')
+
+        ax.set_xlabel('WTO [%]')
+        ax.set_yticks(xAx + width / 2)
+        ax.set_yticklabels( (list(sensDict.keys())) )
+
+        plt.gca().invert_yaxis()
+        plt.tight_layout()
+        plt.show()
+
+
                 
