@@ -76,7 +76,7 @@ def do_loop(v: CurrentVariables, difference=0.1, maxiterations=500):
 
 if __name__ == "__main__":
 
-    sensAnalysis = True
+    sensAnalysis = False
 
     if not sensAnalysis:
         conceptnumberlist = [1,2,3,4,5]
