@@ -77,7 +77,10 @@ def classIestimation_alt(variables, a=0.656, b=-109, maxiterations=100):
     # variables.bmf = bat_endurance
     if variables.Woew_classII != 0 and variables.Woew_classII != None:
         variables.Woew = variables.Woew_classII
-        variables.Wbat = variables.WTO*variables.bmf
+        if bat_range > bat_endurance:
+            variables.Wbat = (variables.WTO-variables.WPL*0.5)*variables.bmf
+        else:
+            variables.Wbat = variables.WTO*variables.bmf
     else:
         if bat_range > bat_endurance:
             variables.Woew = a*(variables.WTO-0.5*variables.WPL) + b
