@@ -76,7 +76,7 @@ def do_loop(v: CurrentVariables, difference=0.1, maxiterations=500):
 
 if __name__ == "__main__":
 
-    sensAnalysis = False
+    sensAnalysis = True
 
     if not sensAnalysis:
         conceptnumberlist = [1,2,3,4,5]
@@ -108,11 +108,11 @@ if __name__ == "__main__":
 
         """ Test single variable: """
         """ ===================== """
-        change = -10
+        change = -6
 
         ## Reqs
         # v1.WPL = v1.WPL*(1 + change/100)                              # <--!!!
-        # v1.Vmax_kts = v1.Vmax_kts*(1 + change/100)
+        v1.Vmax_kts = v1.Vmax_kts*(1 + change/100)
         # v1.rho = v1.rho*(1 + change/100)
         # v1.n_ult = v1.n_ult*(1 + change/100)                          # <--!!!
         # v1.rollrate = v1.rollrate*(1 + change/100)
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
 
         ## Free variables
-        v1.A = v1.A*(1 + change/100)
+        # v1.A = v1.A*(1 + change/100)
         # v1.e = v1.e*(1 + change/100)
         # v1.A_h = v1.A_h*(1 + change/100)
         # v1.A_v = v1.A_v*(1 + change/100)
@@ -167,24 +167,46 @@ if __name__ == "__main__":
 
         """ Tornado Chart: """
         freeVars = [
-            ['A', 'A'],
-            ['e', 'e'],
-            ['A_h', 'A_htail'],
-            ['A_v', 'A_vtail'],
-            ['x_htail', 'x_htail'],
-            ['x_vtail', 'x_vtail'],
-            ['n_blades', 'n_blades'],
-            ['eff_propeller', 'eff_propeller'],
-            ['rhocruise', 'rhocruise'],
-            ['tcr_h', 'tcr_h'],
-            ['tcr_v', 'tcr_v']
+            ['A', 'aspect ratio'],
+            ['e', 'oswald efficiency factor'],
+            ['A_h', 'aspect ratio htail'],
+            ['A_v', 'aspect ratio vtail'],
+            ['x_htail', 'aerodynamic center htail'],
+            ['x_vtail', 'aerodynamic center htail'],
+            ['n_blades', 'nr. of propeller blades'],
+            ['eff_propeller', 'propeller eff.'],
+            ['tcr_h', 'Thickness-to-rootchord ratio htail'],
+            ['tcr_v', 'Thickness-to-rootchord ratio vtail'],
+            ['V', 'cruise speed']
+        ]
+
+        statVars = [
+            ['htail_volume', 'htail volume'],
+            ['vtail_volume', 'vtail volume'],
+            ['Especif_bat', 'specific E batteries'],
+            ['motor_spec_mass', 'battery specific mass'],
+            ['CD0clean', 'drag constant clean'],        
+            ['W_wsn', 'nose wheel weight'],
+            ['W_wsm', 'main wheel weight']
+        ]
+
+        reqVars = [
+            ['WPL', 'payload weight'],
+            ['Vmax_kts', 'max speed'],
+            ['n_ult', 'ultimate load factor'],
+            ['endurance_s', 'endurance'],
+            ['range_m', 'range']
         ]
 
         variation = [5, 10] # [%]
         sensDict = {}
 
-        # for var in np.array(freeVars)[:,0]:
-        for var, label in freeVars:
+        # for var, label in freeVars:
+        # for var, label in statVars:
+        for var, label in reqVars:
+            if var == 'Vmax_kts': variation[0] = 4.7
+            else: variation[0] = 5
+
             v2 = CurrentVariables(*conceptparameters(conceptnumber))            
             setattr(v2, var, getattr(v2, var)*(1 + variation[0]/100))
             v2, _ = do_loop(v2)
@@ -210,7 +232,7 @@ if __name__ == "__main__":
         # Plotting
         orderedSensDict = OrderedDict(sorted(sensDict.items(), key=lambda item: item[1][-1][0], reverse=False))
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=(6, 4.5))
         ax = fig.add_subplot(111)
         width = 0.4
         xAx = np.arange(len(list(orderedSensDict.keys())))
@@ -225,11 +247,30 @@ if __name__ == "__main__":
         ax.set_xlabel('WTO [%]')
         ax.set_yticks(xAx + width / 2)
         ax.set_yticklabels( list(orderedSensDict.keys()) )
+        ax.xaxis.grid(color='black', linestyle='--')
 
         plt.gca().invert_yaxis()
-        plt.legend(loc='lower right')
+        # plt.legend(loc='lower right')
+        plt.legend(loc='upper right')
         plt.tight_layout()
         plt.show()
+
+        """ WTF is going on with Vmax??? """
+
+        # diffs = []
+        # x = []
+        # for i in np.arange(0, 15, 0.1):
+        #     v3 = CurrentVariables(*conceptparameters(conceptnumber))
+        #     v3.Vmax_kts = v3.Vmax_kts*(1 - i/100)
+        #     v3, _ = do_loop(v3)
+
+        #     diff = (v3.WTO-v.WTO)/v.WTO*100
+        #     diffs.append(diff)
+        #     x.append(i)
+
+        # plt.plot(x, diffs)
+        # plt.show()
+            
 
 
                 
