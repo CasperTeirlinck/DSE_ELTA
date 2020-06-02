@@ -3,23 +3,23 @@ from math import pi,sqrt,tan
 import matplotlib.pyplot as plt
 
 # Input parameters
-lh = 6          # [m]       Tail arm
+lh = 6.2        # [m]       Tail arm
 bf = 1.6        # [m]       Fuselage width
 hf = 2          # [m]       Fuselage height
-lfn = 1         # [m]       Distance nose - wing
-MAC = 1.5       # [m]       Mean Aerodynamic Chord
-Sw = 120        # [m2]      Horizontal tail surface area
-Snet = 100      # [m2]      Net wing surface area
-bw = 16         # [m]       Wing span
-sweepw = 0      # [rad]     Wing quater chord sweep angle
+lfn = 2         # [m]       Distance nose - wing
+MAC = 1.47      # [m]       Mean Aerodynamic Chord
+Sw = 23         # [m2]      Horizontal tail surface area
+Snet = 20       # [m2]      Net wing surface area
+bw = 16.6       # [m]       Wing span
+sweepw = 0      # [rad]     Wing quarter chord sweep angle
 taperw = 0.4    # [-]       Wing taper ratio
-Ah = 2          # [-]       Horizontal tail aspect ratio
-sweeph = 0      # [deg]     Horizontal tail half chord sweep
+Ah = 3          # [-]       Horizontal tail aspect ratio
+sweeph = 0      # [rad]     Horizontal tail half chord sweep
 
-deda = 0.5      # [-]       Downwash effect
+deda = 0.3      # [-]       Downwash effect
 VhV = 0.85      # [-]       Tail/wing speed ratio
 
-Vcruise = 123   # [m/s]     Cruise speed
+Vcruise = 50    # [m/s]     Cruise speed
 a = 300         # [m/s]     Speed of sound at cruise altitude
 
 xacw = 0.6      # [-]
