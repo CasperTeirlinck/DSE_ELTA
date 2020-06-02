@@ -1,4 +1,4 @@
-from variables import *
+from Midterm_Design.variables import *
 import math as m
 
 

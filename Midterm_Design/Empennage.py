@@ -1,5 +1,3 @@
-from variables import *
-
 def wing_surface_htail(variables):
     return variables.htail_volume * variables.S * variables.MAC/(variables.x_htail - variables.xcg_aft)
 

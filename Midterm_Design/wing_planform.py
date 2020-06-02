@@ -1,7 +1,6 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from variables import *
-from ClassIIWeightEstimation import MainWingEstimation
+from Midterm_Design.variables import *
+from Midterm_Design.ClassIIWeightEstimation import MainWingEstimation
 
 def wing_planform(variables,drawing=False):
     S = variables.WTO/variables.WS

@@ -1,5 +1,5 @@
-from variables import *
-from ClassIIWeightEstimation import EmpennageEstimation, LandingGearEstimation, FuselageEstimation, MainWingEstimation, EngineEstimation
+from Midterm_Design.variables import *
+from Midterm_Design.ClassIIWeightEstimation import FuselageEstimation, MainWingEstimation, EngineEstimation
 
 ## AIRCRAFT GROUP CONTRIBUTIONS
 # Calculate x-coordinate of the fuselage group CG

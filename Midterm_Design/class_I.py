@@ -4,10 +4,8 @@ Spyder Editor
 
 This is a temporary script file.
 """
-import numpy as np
-from propulsion import *
-from variables import *
-from math import exp
+from Midterm_Design.propulsion import *
+from Midterm_Design.variables import *
 
 ################################################################################
 ################################# CLASS I TOOL #################################

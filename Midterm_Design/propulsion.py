@@ -1,6 +1,4 @@
-import numpy as np
-from math import sqrt, pi
-from variables import *
+from Midterm_Design.variables import *
 
 range_m = 250000
 endurance_s = 9000
