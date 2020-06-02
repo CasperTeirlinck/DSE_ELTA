@@ -87,10 +87,13 @@ def control_curve(ShS):
 xcg_control = control_curve(ShS)
 
 # Create Scissor Plot
-plt.plot(xcg_stability,ShS)
-plt.plot(xcg_control,ShS)
+plt.plot(xcg_stability*100,ShS,label='Stability curve')
+plt.plot((xcg_stability+sm)*100,ShS,'k--')
+plt.plot(xcg_control*100,ShS,label='Control curve')
+plt.plot((xcg_control-sm)*100,ShS,'k--')
 plt.title('Scissor Plot')
 plt.xlabel('$x_{cg}$/MAC (%)')
 plt.ylabel('$S_h/S$ [-]')
+plt.legend()
 plt.grid()
 plt.show()
