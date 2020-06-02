@@ -7,11 +7,7 @@ Created on Mon May 11 13:55:39 2020
 Aileron sizing and flap sizing
 """
 
-import numpy as np
-from variables import *
-from time import sleep
-
-
+from Midterm_Design.variables import *
 
 #----------------Input parameters aileron----------------------------------
 b           = 12.2                   #[m] wing span

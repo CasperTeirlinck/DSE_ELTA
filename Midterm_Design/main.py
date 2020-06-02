@@ -1,13 +1,8 @@
-from variables import *
-import numpy as np
-import math as m
-import matplotlib.pyplot as plt
-import csv
 from collections import OrderedDict
 
 from loading_diagram import *
 from class_I import *
-from wing_planform import *
+from Midterm_Design.wing_planform import *
 from FuselageCGs import *
 from AileronflapsizingUSETHISONE import *
 from cg_determination import *
