@@ -1,5 +1,5 @@
 import numpy as np
-from math import pi,sqrt,tan
+from math import pi,sqrt,tan,cos
 import matplotlib.pyplot as plt
 
 # Input parameters
@@ -8,10 +8,11 @@ gamma = 1.4     # [-]       Heat capacity ratio
 T0 = 288.15     # [K]       Base temperature
 lmbda = -0.0065 # [degC/m]  Lapse rate
 
-lh = 6.2        # [m]       Tail arm
 bf = 1.6        # [m]       Fuselage width
 hf = 2          # [m]       Fuselage height
+
 lfn = 2         # [m]       Distance nose - wing
+hw = 0.5        # [m]       Height of the wing, from ground
 MAC = 1.47      # [m]       Mean Aerodynamic Chord
 Sw = 23         # [m2]      Horizontal tail surface area
 Snet = 20       # [m2]      Net wing surface area
@@ -19,6 +20,10 @@ bw = 16.6       # [m]       Wing span
 Aw = 12         # [-]       Wing aspect ratio
 sweepw = 0      # [rad]     Wing quarter chord sweep angle
 taperw = 0.4    # [-]       Wing taper ratio
+twistwr = 0     # [deg]     Wing twist at the root
+
+lh = 6.2        # [m]       Tail arm
+hh = 1.5        # [m]       Height horizontal tail from ground
 Ah = 3          # [-]       Horizontal tail aspect ratio
 sweeph = 0      # [rad]     Horizontal tail half chord sweep
 
@@ -43,8 +48,8 @@ Vh = VhV*Vcruise
 Tcruise = T0 + lmbda*hcruise
 a = sqrt(gamma*R*Tcruise)
 Mh = Vh/a
-beta = sqrt(1 - Mh**2)
-CLah = 2*pi*Ah/(2 + sqrt(4 + (Ah*beta/eta)**2 * (1 + tan(sweeph)**2/(beta**2))))
+betah = sqrt(1 - Mh**2)
+CLah = 2*pi*Ah/(2 + sqrt(4 + (Ah*betah/eta)**2 * (1 + tan(sweeph)**2/(betah**2))))
 
 # Lift rate coefficient of the aircraft less tail
 CLaA_h = CLaw * (1 + 2.15*bf/bw) * Snet/Sw + pi/2*bf**2/Sw
@@ -59,7 +64,7 @@ xac = xacwf + xacn
 
 # Wing downwash gradient
 r = lh*2/bw
-mtv = 1
+mtv = 2/bw * ((hh-hw)+lh*tan(twistwr)) * cos(twistwr)
 KeLambda = (0.1124 + 0.1265*sweepw + sweepw**2)/(r**2) + 0.1025/r + 2
 KeLambda0 = 0.1124/(r**2) + 0.1024/r + 2
 deda = KeLambda/KeLambda0 * (r/(r**2 + mtv**2)*0.4876/sqrt(r**2+0.6319+mtv**2)+
@@ -85,7 +90,7 @@ xcg_control = control_curve(ShS)
 plt.plot(xcg_stability,ShS)
 plt.plot(xcg_control,ShS)
 plt.title('Scissor Plot')
-plt.xlabel('$x_{cg}$/MAC [%]')
+plt.xlabel('$x_{cg}$/MAC (%)')
 plt.ylabel('$S_h/S$ [-]')
 plt.grid()
 plt.show()
