@@ -2,7 +2,7 @@ import numpy as np
 from math import pi,sqrt,tan,cos
 import matplotlib.pyplot as plt
 
-# Input parameters
+# Input parameters TODO Check all input values
 R = 287.05      # [J/kg K]  Gas constant
 gamma = 1.4     # [-]       Heat capacity ratio
 T0 = 288.15     # [K]       Base temperature
@@ -32,12 +32,12 @@ VhV = 0.85      # [-]       Tail/wing speed ratio
 Vcruise = 50    # [m/s]     Cruise speed
 hcruise = 914.4 # [m]       Cruise altitude
 
-xacw = 0.5      # [%MAC]    Wing loaction aerodynamic center
-eta = 0.95      # [-]       Airfoil efficiency coefficient
-CLaw = 5.4      # [/rad]    Wing lift rate coefficient
-Cmac = 1        # [-]       Aircraft less tail pitching moment coefficient
-CLA_h = 3       # [-]       Aircraft less tail lift coefficient
-CLh = -0.5      # [-]       Horizontal tail lift coefficient
+xacw = 0.5      # [%MAC]    Wing location aerodynamic center TODO Check if aerodynamics guys determine this value
+eta = 0.95      # [-]       Airfoil efficiency coefficient TODO Check if aerodynamics guys determine this value
+CLaw = 5.4      # [/rad]    Wing lift rate coefficient TODO Check if aerodynamics guys determine this value
+Cmac = 1        # [-]       Aircraft less tail pitching moment coefficient TODO Check this value
+CLA_h = 3       # [-]       Aircraft less tail lift coefficient TODO Check this value
+CLh = -0.5      # [-]       Horizontal tail lift coefficient TODO Check this value
 
 sm = 0.1        # [-]       Safety margin
 
@@ -59,7 +59,7 @@ cg = Sw/bw
 xacf1 = -1.8/CLaA_h * bf*hf*lfn/(Sw*MAC)
 xacf2 = 0.273/(1 + taperw) * bf*cg*(bw-bf)/(MAC**2*(bw + 2.15*bf)) * tan(sweepw)
 xacwf = xacw + xacf1 + xacf2
-xacn = 1
+xacn = 0 # TODO Check this value
 xac = xacwf + xacn
 
 # Wing downwash gradient
