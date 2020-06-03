@@ -7,6 +7,19 @@ import numpy as np
 from math import pi,sqrt,tan,cos
 import matplotlib.pyplot as plt
 
+'''
+percMAC()
+
+Inputs:
+    xcg [float/array]:  Center of gravity location [m]
+    MAC [float]:        Mean aerodynamic chord [m]
+    xlemac [float]:     Distance nose, leading edge mean aerodynamic chord [m]
+    percentage [bool]:  Return percentage (True) or fraction (False)
+
+Outputs:
+    [float]:            Center of gravity location [%MAC]
+'''
+
 def percMAC(xcg,MAC,xlemac,percentage=False):
     if percentage:
         return (xcg-xlemac)/MAC * 100
@@ -14,135 +27,143 @@ def percMAC(xcg,MAC,xlemac,percentage=False):
         return (xcg-xlemac)/MAC
 
 
-payload = 'Battery'
-payload_lst = ['Pilot','Battery']
-plot = True
+'''
+loading_diagram()
 
-if payload in payload_lst:
-    # Inputs TODO Get values out of variables class
-    MAC = 1.47          # [m]       Mean Aerodynamic Chord
-    xlemac = 1.5        # [m]       Distance nose, leading edge mean aerodynamic chord
+Inputs:
+    payload [string]:   Type of payload, two pilots ('Pilot') or one pilot and an extra battery pack ('Battery')
+    plot [bool]:        Create a plot (True or False), default is True
 
-    m_oe = 400          # [kg]      Operational Empty mass
-    xcg_oew = 2         # [m]       OEW center of gravity
-    m_bat = 150         # [kg]      Battery mass
-    xcg_bat = 3         # [m]       Battery center of gravity
-    m_repbat = 100      # [kg]      Replaceable battery mass
-    xcg_repbat = 3      # [m]       Replaceable battery center of gravity
-    m_pax = 100         # [kg]      Pilot/Passenger mass
-    xcg_pax = 1         # [m]       Pilot/Passenger center of gravity
+Outputs:
+    xcg_min [float]:    Minimum cg location [%MAC]
+    xcg_max [float]:    Maximum cg location [%MAC]
+'''
 
-    # Payload mass and center of gravity
-    if payload == 'Pilot':
-        m_repbat = 0    # [kg]      Replaceable battery mass
-        m_pax = 2*m_pax # [kg]      Passenger/Pilot mass
+def loading_diagram(payload,plot=True):
+    payload_lst = ['Pilot','Battery']
 
-    elif payload == 'Battery':
-        m_repbat = 100    # [kg]    Replaceable battery mass
+    if payload in payload_lst:
+        # Inputs TODO Get values out of variables class
+        MAC = 1.47          # [m]       Mean Aerodynamic Chord
+        xlemac = 1.5        # [m]       Distance nose, leading edge mean aerodynamic chord
 
-    # Create mass and center of gravity lists
-    m_lst = [m_oe+m_bat]
-    xcg_lst = [(xcg_oew*m_oe + xcg_bat*m_bat)/m_lst[0]]
+        m_oe = 400          # [kg]      Operational Empty mass
+        xcg_oew = 2         # [m]       OEW center of gravity
+        m_bat = 150         # [kg]      Battery mass
+        xcg_bat = 3         # [m]       Battery center of gravity
+        m_repbat = 100      # [kg]      Replaceable battery mass
+        xcg_repbat = 3      # [m]       Replaceable battery center of gravity
+        m_pax = 100         # [kg]      Pilot/Passenger mass
+        xcg_pax = 1         # [m]       Pilot/Passenger center of gravity
 
-    # Create loading diagram
-    m_repbat_lst = []
-    xcg_repbat_lst = []
-    m_pax_lst = []
-    xcg_pax_lst = []
+        # Payload mass and center of gravity
+        if payload == 'Pilot':
+            m_repbat = 0    # [kg]      Replaceable battery mass
+            m_pax = 2*m_pax # [kg]      Passenger/Pilot mass
 
-    # Battery loading
-    def battery_loading(m,xcg):
-        m_new = m + m_repbat
-        xm_new = xcg*m + xcg_repbat*m_repbat
-        xcg_new = xm_new/m_new
+        elif payload == 'Battery':
+            m_repbat = 100    # [kg]    Replaceable battery mass
 
-        return m_new,xcg_new
+        # Create mass and center of gravity lists
+        m_lst = [m_oe+m_bat]
+        xcg_lst = [(xcg_oew*m_oe + xcg_bat*m_bat)/m_lst[0]]
 
-    # Passenger/Pilot loading
-    def pax_loading(m,xcg):
-        m_new = m + m_pax
-        xm_new = xcg*m + xcg_pax*m_pax
-        xcg_new = xm_new/m_new
+        # Battery loading
+        def battery_loading(m,xcg):
+            m_new = m + m_repbat
+            xm_new = xcg*m + xcg_repbat*m_repbat
+            xcg_new = xm_new/m_new
 
-        return m_new,xcg_new
+            return m_new,xcg_new
 
-    # First Battery, then Pilot
-    m_new,xcg_new = battery_loading(m_lst[-1],xcg_lst[-1])
+        # Passenger/Pilot loading
+        def pax_loading(m,xcg):
+            m_new = m + m_pax
+            xm_new = xcg*m + xcg_pax*m_pax
+            xcg_new = xm_new/m_new
 
-    bp_m_repbat = [m_lst[-1]]
-    bp_xcg_repbat = [xcg_lst[-1]]
+            return m_new,xcg_new
 
-    m_lst.append(m_new)
-    bp_m_repbat.append(m_new)
-    xcg_lst.append(xcg_new)
-    bp_xcg_repbat.append(xcg_new)
+        # First Battery, then Pilot
+        m_new,xcg_new = battery_loading(m_lst[-1],xcg_lst[-1])
 
-    m_new,xcg_new = pax_loading(m_lst[-1],xcg_lst[-1])
+        bp_m_repbat = [m_lst[-1]]
+        bp_xcg_repbat = [xcg_lst[-1]]
 
-    bp_m_pax = [m_lst[-1]]
-    bp_xcg_pax = [xcg_lst[-1]]
+        m_lst.append(m_new)
+        bp_m_repbat.append(m_new)
+        xcg_lst.append(xcg_new)
+        bp_xcg_repbat.append(xcg_new)
 
-    m_lst.append(m_new)
-    bp_m_pax.append(m_new)
-    xcg_lst.append(xcg_new)
-    bp_xcg_pax.append((xcg_new))
+        m_new,xcg_new = pax_loading(m_lst[-1],xcg_lst[-1])
 
-    # First Pilot, then Battery
-    m_new,xcg_new = pax_loading(m_lst[0],xcg_lst[0])
+        bp_m_pax = [m_lst[-1]]
+        bp_xcg_pax = [xcg_lst[-1]]
 
-    pb_m_pax = [m_lst[0]]
-    pb_xcg_pax = [xcg_lst[0]]
+        m_lst.append(m_new)
+        bp_m_pax.append(m_new)
+        xcg_lst.append(xcg_new)
+        bp_xcg_pax.append((xcg_new))
 
-    m_lst.append(m_new)
-    pb_m_pax.append(m_new)
-    xcg_lst.append(xcg_new)
-    pb_xcg_pax.append(xcg_new)
+        # First Pilot, then Battery
+        m_new,xcg_new = pax_loading(m_lst[0],xcg_lst[0])
 
-    m_new,xcg_new = battery_loading(m_lst[-1],xcg_lst[-1])
+        pb_m_pax = [m_lst[0]]
+        pb_xcg_pax = [xcg_lst[0]]
 
-    pb_m_repbat = [m_lst[-1]]
-    pb_xcg_repbat = [xcg_lst[-1]]
+        m_lst.append(m_new)
+        pb_m_pax.append(m_new)
+        xcg_lst.append(xcg_new)
+        pb_xcg_pax.append(xcg_new)
 
-    m_lst.append(m_new)
-    pb_m_repbat.append(m_new)
-    xcg_lst.append(xcg_new)
-    pb_xcg_repbat.append(xcg_new)
+        m_new,xcg_new = battery_loading(m_lst[-1],xcg_lst[-1])
 
-    # Transform to numpy arrays
-    m_lst = np.array(m_lst)
-    bp_m_repbat = np.array(bp_m_repbat)
-    bp_m_pax = np.array(bp_m_pax)
-    pb_m_repbat = np.array(pb_m_repbat)
-    pb_m_pax = np.array(pb_m_pax)
+        pb_m_repbat = [m_lst[-1]]
+        pb_xcg_repbat = [xcg_lst[-1]]
 
-    xcg_lst = percMAC(np.array(xcg_lst),MAC,xlemac)
-    bp_xcg_repbat = percMAC(np.array(bp_xcg_repbat),MAC,xlemac)
-    bp_xcg_pax = percMAC(np.array(bp_xcg_pax),MAC,xlemac)
-    pb_xcg_repbat = percMAC(np.array(pb_xcg_repbat),MAC,xlemac)
-    pb_xcg_pax = percMAC(np.array(pb_xcg_pax),MAC,xlemac)
+        m_lst.append(m_new)
+        pb_m_repbat.append(m_new)
+        xcg_lst.append(xcg_new)
+        pb_xcg_repbat.append(xcg_new)
 
-    # Get Maximum and minimum center of gravity location
-    xcg_min = min(xcg_lst)
-    xcg_max = max(xcg_lst)
+        # Transform to numpy arrays
+        m_lst = np.array(m_lst)
+        bp_m_repbat = np.array(bp_m_repbat)
+        bp_m_pax = np.array(bp_m_pax)
+        pb_m_repbat = np.array(pb_m_repbat)
+        pb_m_pax = np.array(pb_m_pax)
 
-    # Create plot
-    if plot:
-        plt.plot(bp_xcg_repbat,bp_m_repbat,color='#1f77b4',label='Replaceable Battery Loading')
-        plt.plot(pb_xcg_repbat,pb_m_repbat,color='#1f77b4')
-        plt.plot(bp_xcg_pax,bp_m_pax,color='#ff7f0e',label='Passenger/Pilot Loading')
-        plt.plot(pb_xcg_pax,pb_m_pax,color='#ff7f0e')
-        plt.title('Loading Diagram')
-        plt.xlabel('$x_{cg}$/MAC (%)')
-        plt.ylabel('Weight [kg]')
-        plt.legend()
-        plt.grid()
-        plt.show()
+        xcg_lst = percMAC(np.array(xcg_lst),MAC,xlemac)
+        bp_xcg_repbat = percMAC(np.array(bp_xcg_repbat),MAC,xlemac)
+        bp_xcg_pax = percMAC(np.array(bp_xcg_pax),MAC,xlemac)
+        pb_xcg_repbat = percMAC(np.array(pb_xcg_repbat),MAC,xlemac)
+        pb_xcg_pax = percMAC(np.array(pb_xcg_pax),MAC,xlemac)
+
+        # Get Maximum and minimum center of gravity location
+        xcg_min = min(xcg_lst)
+        xcg_max = max(xcg_lst)
+
+        # Create plot
+        if plot:
+            plt.plot(bp_xcg_repbat*100,bp_m_repbat,color='#1f77b4',label='Replaceable Battery Loading')
+            plt.plot(pb_xcg_repbat*100,pb_m_repbat,color='#1f77b4')
+            plt.plot(bp_xcg_pax*100,bp_m_pax,color='#ff7f0e',label='Passenger/Pilot Loading')
+            plt.plot(pb_xcg_pax*100,pb_m_pax,color='#ff7f0e')
+            plt.title('Loading Diagram')
+            plt.xlabel('$x_{cg}$/MAC (%)')
+            plt.ylabel('Weight [kg]')
+            plt.legend()
+            plt.grid()
+            plt.show()
+
+        else:
+            pass
+
+        return xcg_min,xcg_max
 
     else:
-        pass
+        return print("Incorrect payload input ('"+payload+"'). Choose 'Pilot' or 'Battery'")
 
-else:
-    print("Incorrect payload input ('"+payload+"'). Choose 'Pilot' or 'Battery'")
 
 '''
 scissor_plot()
@@ -150,6 +171,7 @@ scissor_plot()
 Inputs:
     xcg_min [float]:    Minimum x cg location [%MAC]
     xcg_max [float]:    Maximum x center of gravity location [%MAC]
+    plot [bool]:        Create a plot (True or False), default is True
 
 Outputs:
     ShS_min [float]:    Minimum required horizontal tail surface for stability and controllability [m2]
@@ -284,11 +306,10 @@ def scissor_plot(xcg_min,xcg_max,plot=True):
 
     return ShS_min
 
-# Test
-'''
-if __name__ ==  "__main__":
-    xcg_min = 0.3
-    xcg_max = 1.5
 
-    ShS_min = scissor_plot(xcg_min,xcg_max,plot=True)
-'''
+# Test
+if __name__ ==  "__main__":
+    plots = True
+
+    xcg_min,xcg_max = loading_diagram('Battery',plot=plots)
+    ShS_min = scissor_plot(xcg_min,xcg_max,plot=plots)
