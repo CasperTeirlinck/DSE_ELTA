@@ -39,7 +39,7 @@ Outputs:
     xcg_max [float]:    Maximum cg location [%MAC]
 '''
 
-def loading_diagram(payload,plot=True):
+def loading_diagram(variables,payload,plot=True):
     payload_lst = ['Pilot','Battery']
 
     if payload in payload_lst:
@@ -145,6 +145,10 @@ def loading_diagram(payload,plot=True):
         xcg_min = min(xcg_lst) - sm
         xcg_max = max(xcg_lst) + sm
 
+        # Add to variables
+        variables.xcg_min = xcg_min
+        variables.xcg_max = xcg_max
+
         # Create plot
         if plot:
             plt.plot(bp_xcg_repbat*100,bp_m_repbat,color='#1f77b4',label='Replaceable Battery Loading')
@@ -163,7 +167,7 @@ def loading_diagram(payload,plot=True):
         else:
             pass
 
-        return xcg_min,xcg_max
+        return variables
 
     else:
         return print("Incorrect payload input ('"+payload+"'). Choose 'Pilot' or 'Battery'")
@@ -181,12 +185,15 @@ Outputs:
     ShS_min [float]:    Minimum required horizontal tail surface for stability and controllability [m2]
 '''
 
-def scissor_plot(xcg_min,xcg_max,plot=True):
+def scissor_plot(variables,plot=True):
     # Input parameters TODO Get values out of variables class
     R = 287.05      # [J/kg K]  Gas constant
     gamma = 1.4     # [-]       Heat capacity ratio
     T0 = 288.15     # [K]       Base temperature
     lmbda = -0.0065 # [degC/m]  Lapse rate
+
+    xcg_min = variables.xcg_min
+    xcg_max = variables.xcg_max
 
     bf = 1.6        # [m]       Fuselage width
     hf = 2          # [m]       Fuselage height
@@ -312,8 +319,15 @@ def scissor_plot(xcg_min,xcg_max,plot=True):
 
 
 # Test
+class Test_variables_sc:
+    def __init__(self):
+        xcg_min = None
+        xcg_max = None
+        ShS_min = None
+
 if __name__ ==  "__main__":
+    test_v = Test_variables_sc()
     plots = True
 
-    xcg_min,xcg_max = loading_diagram('Battery',plot=plots)
-    ShS_min = scissor_plot(xcg_min,xcg_max,plot=plots)
+    test_v = loading_diagram(test_v,'Battery',plot=plots)
+    ShS_min = scissor_plot(test_v,plot=plots)
