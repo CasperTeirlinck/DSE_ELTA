@@ -4,8 +4,11 @@ Author: Bob
 '''
 
 import numpy as np
-from math import pi,sqrt,tan,cos
+from math import pi,sqrt,tan,cos,atan
 import matplotlib.pyplot as plt
+
+def XLEMAC(sweepw,cr,b,taper):
+    sweepwLE =
 
 '''
 percMAC()
@@ -173,6 +176,9 @@ def loading_diagram(variables,payload,plot=True):
         return print("Incorrect payload input ('"+payload+"'). Choose 'Pilot' or 'Battery'")
 
 
+def wing_shift(variables,plot=True):
+
+
 '''
 scissor_plot()
 
@@ -187,48 +193,48 @@ Outputs:
 
 def scissor_plot(variables,plot=True):
     # Input parameters TODO Get values out of variables class
-    R = 287.05      # [J/kg K]  Gas constant
-    gamma = 1.4     # [-]       Heat capacity ratio
-    T0 = 288.15     # [K]       Base temperature
-    lmbda = -0.0065 # [degC/m]  Lapse rate
+    R = 287.05                  # [J/kg K]  Gas constant
+    gamma = 1.4                 # [-]       Heat capacity ratio
+    T0 = 288.15                 # [K]       Base temperature
+    lmbda = -0.0065             # [degC/m]  Lapse rate
 
-    xcg_min = variables.xcg_min
-    xcg_max = variables.xcg_max
+    xcg_min = variables.xcg_min # [%MAC]    Minimum center of gravity location
+    xcg_max = variables.xcg_max # [%MAC]    Maximum center of gravity location
 
-    bf = 1.6        # [m]       Fuselage width
-    hf = 2          # [m]       Fuselage height
-    lf = 6          # [m]       Fuselage length
+    bf = 1.6                    # [m]       Fuselage width
+    hf = 2                      # [m]       Fuselage height
+    lf = variables.lf           # [m]       Fuselage length
 
-    lfn = 2         # [m]       Distance nose - wing
-    hw = 0.5        # [m]       Height of the wing, from ground
-    MAC = 1.47      # [m]       Mean Aerodynamic Chord
-    Sw = 23         # [m2]      Horizontal tail surface area
-    Snet = 20       # [m2]      Net wing surface area
-    bw = 16.6       # [m]       Wing span
-    Aw = 12         # [-]       Wing aspect ratio
-    sweepw = 0      # [rad]     Wing quarter chord sweep angle
-    taperw = 0.4    # [-]       Wing taper ratio
-    twistwr = 0     # [deg]     Wing twist at the root
+    lfn = variables.lfn         # [m]       Distance nose - wing
+    hw = 0.5                    # [m]       Height of the wing, from ground
+    MAC = 1.47                  # [m]       Mean Aerodynamic Chord
+    Sw = 23                     # [m2]      Horizontal tail surface area
+    Snet = 20                   # [m2]      Net wing surface area
+    bw = 16.6                       # [m]       Wing span
+    Aw = 12                     # [-]       Wing aspect ratio
+    sweepw = 0                  # [rad]     Wing quarter chord sweep angle
+    taperw = 0.4                # [-]       Wing taper ratio
+    twistwr = 0                 # [deg]     Wing twist at the root
 
-    lh = 6.2        # [m]       Tail arm
-    hh = 1.5        # [m]       Height horizontal tail from ground
-    Ah = 3          # [-]       Horizontal tail aspect ratio
-    sweeph = 0      # [rad]     Horizontal tail half chord sweep
+    lh = 6.2                    # [m]       Tail arm
+    hh = 1.5                    # [m]       Height horizontal tail from ground
+    Ah = 3                      # [-]       Horizontal tail aspect ratio
+    sweeph = 0                  # [rad]     Horizontal tail half chord sweep
 
-    VhV = 0.85      # [-]       Tail/wing speed ratio
+    VhV = 0.85                  # [-]       Tail/wing speed ratio
 
-    Vcruise = 50    # [m/s]     Cruise speed
-    hcruise = 914.4 # [m]       Cruise altitude
+    Vcruise = 50                # [m/s]     Cruise speed
+    hcruise = 914.4             # [m]       Cruise altitude
 
-    xacw = 0.5      # [%MAC]    Wing location aerodynamic center TODO Check if aerodynamics guys determine this value
-    eta = 0.95      # [-]       Airfoil efficiency coefficient TODO Check if aerodynamics guys determine this value
-    CLaw = 5.4      # [/rad]    Wing lift rate coefficient TODO Check if aerodynamics guys determine this value
-    Cm0af = 0.05    # [-]       Airfoil zero lift pitching moment coefficient TODO Check this value
-    CL0 = 1         # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
-    CLA_h = 3       # [-]       Aircraft less tail lift coefficient TODO Check this value
-    CLh = -0.5      # [-]       Horizontal tail lift coefficient TODO Check this value
+    xacw = 0.5                  # [%MAC]    Wing location aerodynamic center TODO Check if aerodynamics guys determine this value
+    eta = 0.95                  # [-]       Airfoil efficiency coefficient TODO Check if aerodynamics guys determine this value
+    CLaw = 5.4                  # [/rad]    Wing lift rate coefficient TODO Check if aerodynamics guys determine this value
+    Cm0af = 0.05                # [-]       Airfoil zero lift pitching moment coefficient TODO Check this value
+    CL0 = 1                     # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
+    CLA_h = 3                   # [-]       Aircraft less tail lift coefficient TODO Check this value
+    CLh = -0.5                  # [-]       Horizontal tail lift coefficient TODO Check this value
 
-    sm = 0.1        # [-]       Safety margin
+    sm = 0.1                    # [-]       Safety margin
 
     # Parameter calculations
 
@@ -321,9 +327,11 @@ def scissor_plot(variables,plot=True):
 # Test
 class Test_variables_sc:
     def __init__(self):
-        xcg_min = None
-        xcg_max = None
-        ShS_min = None
+        self.lf = 6             # [m]       Fuselage length
+        self.lfn = 1.5          # [m]       Distance nose - wing
+        self.xcg_min = None     # [%MAC]    Minimum center of gravity location
+        self.xcg_max = None     # [%MAC]    Maximum center of gravity location
+        self.ShS_min = None     # [m2]      Minimum required horizontal tail surface
 
 if __name__ ==  "__main__":
     test_v = Test_variables_sc()
