@@ -7,16 +7,38 @@ import numpy as np
 from math import pi,sqrt,tan,cos,atan
 import matplotlib.pyplot as plt
 
-def XLEMAC(sweepw,cr,b,taper):
-    sweepwLE =
 
 '''
-percMAC()
+XLEMAC() :              Calculates the distance nose - leading edge of the MAC
+
+Inputs:
+    lfn [float]:        Distance nose - wing leading edge root chord [m]
+    sweep [float]:      Quarter chord sweep angle [rad]
+    cr [float]:         Root chord [m]
+    b [float]:          Span [m]
+    taper [float]:      Taper ratio [-]
+
+Outputs:
+    xmac [float]:       Distance LE root chord - LE of the MAC [m]
+    xlemac [float]:     Distance nose - leading edge of the MAC [m]
+'''
+
+def XLEMAC(lfn,sweep,cr,b,taper):
+    sweepLE = atan(tan(sweep) - cr/(2*b)*(taper-1))
+    ymac = (b/6)*((1+2*taper)/(1+taper))
+    xmac = ymac*tan(sweepLE)
+    xlemac = lfn + xmac
+
+    return xlemac,xmac
+
+
+'''
+percMAC() :             Calculates the center of gravity as a fraction of the MAC
 
 Inputs:
     xcg [float/array]:  Center of gravity location [m]
     MAC [float]:        Mean aerodynamic chord [m]
-    xlemac [float]:     Distance nose, leading edge mean aerodynamic chord [m]
+    xlemac [float]:     Distance nose - leading edge mean aerodynamic chord [m]
     percentage [bool]:  Return percentage (True) or fraction (False)
 
 Outputs:
@@ -31,43 +53,64 @@ def percMAC(xcg,MAC,xlemac,percentage=False):
 
 
 '''
-loading_diagram()
+loading_diagram() :     Creates the loading diagram
 
 Inputs:
+    variables [class]:  
     payload [string]:   Type of payload, two pilots ('Pilot') or one pilot and an extra battery pack ('Battery')
     plot [bool]:        Create a plot (True or False), default is True
+    wing_shift [bool]:  Set to True when this function is used for the wing shift diagram
+    wing_param [tuple]: Use when this function is used for the wing shift diagram, (xlemac,xcg_wing)
 
 Outputs:
+    variables [class]:  The class contains updated values of:
+                         - xcg_min [float]: Minimum cg location [%MAC]
+                         - xcg_max [float]: Maximum cg location [%MAC]
+    When wing_shift=True:
     xcg_min [float]:    Minimum cg location [%MAC]
     xcg_max [float]:    Maximum cg location [%MAC]
 '''
 
-def loading_diagram(variables,payload,plot=True):
+def loading_diagram(variables,payload,plot=True,wing_shift=False,wing_param=(0,0)):
     payload_lst = ['Pilot','Battery']
 
     if payload in payload_lst:
         # Inputs TODO Get values out of variables class
-        MAC = 1.47          # [m]       Mean Aerodynamic Chord
-        xlemac = 1.5        # [m]       Distance nose, leading edge mean aerodynamic chord
+        # Check for wing shift plot
+        if not wing_shift:
+            xlemac = 1.62                   # [m]       Distance nose - leading edge mean aerodynamic chord
+            xcg_wing = 1.5                  # [m]       Wing center of gravity (excluding batteries)
+        else:
+            xlemac = wing_param[0]          # [m]       Distance nose - leading edge mean aerodynamic chord
+            xcg_wing = wing_param[1]        # [m]       Wing center of gravity (excluding batteries)
 
-        m_oe = 400          # [kg]      Operational Empty mass
-        xcg_oew = 2         # [m]       OEW center of gravity
-        m_bat = 150         # [kg]      Battery mass
-        xcg_bat = 3         # [m]       Battery center of gravity
-        m_repbat = 100      # [kg]      Replaceable battery mass
-        xcg_repbat = 3      # [m]       Replaceable battery center of gravity
-        m_pax = 100         # [kg]      Pilot/Passenger mass
-        xcg_pax = 1         # [m]       Pilot/Passenger center of gravity
+        # Other inputs
+        MAC = 1.47                          # [m]       Mean Aerodynamic Chord
 
-        sm = 0.05           # [-]       Safety Margin
+        m_wing = 100                        # [kg]      Wing mass
+        m_fgroup = 300                      # [kg]      Fuselage group mass
+        xcg_fgroup = 3                      # [m]       Fuselage group center of gravity
+
+        m_oe = m_wing + m_fgroup            # [kg]      Operational Empty mass
+        xcg_oew = (xcg_wing*m_wing + xcg_fgroup*m_fgroup)/m_oe
+                                            # [m]       OEW center of gravity
+
+        m_bat = 150                         # [kg]      Battery mass
+        xcg_bat = 3                         # [m]       Battery center of gravity
+        m_repbat = 100                      # [kg]      Replaceable battery mass
+        xcg_repbat = 3                      # [m]       Replaceable battery center of gravity
+        m_pax = 100                         # [kg]      Pilot/Passenger mass
+        xcg_pax = 1                         # [m]       Pilot/Passenger center of gravity
+
+        sm = 0.05                           # [-]       Safety Margin
 
         # Payload mass and center of gravity
         if payload == 'Pilot':
-            m_repbat = 0    # [kg]      Replaceable battery mass
-            m_pax = 2*m_pax # [kg]      Passenger/Pilot mass
+            m_repbat = 0                    # [kg]      Replaceable battery mass
+            m_pax = 2*m_pax                 # [kg]      Passenger/Pilot mass
 
         elif payload == 'Battery':
-            m_repbat = 100    # [kg]    Replaceable battery mass
+            m_repbat = 100                  # [kg]    Replaceable battery mass
 
         # Create mass and center of gravity lists
         m_lst = [m_oe+m_bat]
@@ -149,8 +192,11 @@ def loading_diagram(variables,payload,plot=True):
         xcg_max = max(xcg_lst) + sm
 
         # Add to variables
-        variables.xcg_min = xcg_min
-        variables.xcg_max = xcg_max
+        if not wing_shift:
+            variables.xcg_min = xcg_min
+            variables.xcg_max = xcg_max
+        else:
+            pass
 
         # Create plot
         if plot:
@@ -170,25 +216,87 @@ def loading_diagram(variables,payload,plot=True):
         else:
             pass
 
-        return variables
+        if not wing_shift:
+            return variables
+        else:
+            return xcg_min,xcg_max
 
     else:
         return print("Incorrect payload input ('"+payload+"'). Choose 'Pilot' or 'Battery'")
 
 
-def wing_shift(variables,plot=True):
-
-
 '''
-scissor_plot()
+wing_shift() :          Creates the wing shift diagram
 
 Inputs:
-    xcg_min [float]:    Minimum x cg location [%MAC]
-    xcg_max [float]:    Maximum x center of gravity location [%MAC]
+    variables [class]:  
+    payload [string]:   Type of payload, two pilots ('Pilot') or one pilot and an extra battery pack ('Battery')
     plot [bool]:        Create a plot (True or False), default is True
 
 Outputs:
-    ShS_min [float]:    Minimum required horizontal tail surface for stability and controllability [m2]
+'''
+
+def wing_shift(variables,payload,plot=True):
+    # Inputs
+    lf = 6                          # [m]   Fuselage length
+    lfn = 1.5                       # [m]   Distance nose - wing
+    sweepw = 0                      # [rad] Wing quarter chord sweep angle
+    taperw = 0.4                    # [-]   Wing taper ratio
+    bw = 16.6                       # [m]   Wing span
+    crw = 1.98                      # [m]   Wing root chord
+    MAC = 1.47                      # [m]   Mean Aerodynamic Chord
+    xcg_wing = 1.5                  # [m]   Wing center of gravity
+
+    # Calculate inputs
+    xlemacw,xmacw = XLEMAC(lfn,sweepw,crw,bw,taperw)
+    pxcg_wing = percMAC(xcg_wing,MAC,xlemacw)
+
+    # Create lists
+    xlemaclf_lst = np.arange(0.2,0.61,0.01)
+    xcgmin_lst = []
+    xcgmax_lst = []
+
+    # Perform wing shift
+    for xlemaclf in xlemaclf_lst:
+        xlemacw_i = xlemaclf*lf
+        xcg_wing_i = (xlemacw_i-xmacw) + pxcg_wing*MAC
+        xcg_min_i,xcg_max_i = loading_diagram(variables,payload,plot=False,wing_shift=True,wing_param=(xlemacw_i,xcg_wing_i))
+        xcgmin_lst.append(xcg_min_i)
+        xcgmax_lst.append(xcg_max_i)
+
+    # Transform to numpy arrays
+    xlemaclf_lst = np.array(xlemaclf_lst)
+    xcgmin_lst = np.array(xcgmin_lst)
+    xcgmax_lst = np.array(xcgmax_lst)
+
+    # Create plot
+    if plot:
+        plt.plot(xcgmin_lst*100,xlemaclf_lst*100,label='Most forward center of gravity')
+        plt.plot(xcgmax_lst*100,xlemaclf_lst*100,label='Most aft center of gravity')
+        plt.title('Center of gravity range')
+        plt.xlabel('$x_{cg}$/MAC (%)')
+        plt.ylabel('$x_{lemac}/l_{fus}$ (%)')
+        plt.legend()
+        plt.grid()
+        plt.show()
+    else:
+        pass
+
+    return
+
+
+'''
+scissor_plot()          Creates the scissor plot
+
+Inputs:
+    variables[class]:   The class should contain:
+                         - xcg_min [float]: Minimum center of gravity location [%MAC]
+                         - xcg_max [float]: Maximum center of gravity location [%MAC]
+    plot [bool]:        Create a plot (True or False), default is True
+
+Outputs:
+    variables [class]:  The class contains updated values of:
+                         - ShS_min [float]: Minimum required horizontal tail surface [m2]
 '''
 
 def scissor_plot(variables,plot=True):
@@ -203,9 +311,9 @@ def scissor_plot(variables,plot=True):
 
     bf = 1.6                    # [m]       Fuselage width
     hf = 2                      # [m]       Fuselage height
-    lf = variables.lf           # [m]       Fuselage length
+    lf = 6                      # [m]       Fuselage length
 
-    lfn = variables.lfn         # [m]       Distance nose - wing
+    lfn = 1.5                   # [m]       Distance nose - wing
     hw = 0.5                    # [m]       Height of the wing, from ground
     MAC = 1.47                  # [m]       Mean Aerodynamic Chord
     Sw = 23                     # [m2]      Horizontal tail surface area
@@ -291,7 +399,7 @@ def scissor_plot(variables,plot=True):
 
     # Horizontal tail surface
     ShS_min = max(ShS_stability,ShS_Control)
-    print(ShS_min)
+    variables.ShS_min = ShS_min
 
     if plot:
         # Create Scissor Plot
@@ -321,14 +429,12 @@ def scissor_plot(variables,plot=True):
     else:
         pass
 
-    return ShS_min
+    return variables
 
 
 # Test
 class Test_variables_sc:
     def __init__(self):
-        self.lf = 6             # [m]       Fuselage length
-        self.lfn = 1.5          # [m]       Distance nose - wing
         self.xcg_min = None     # [%MAC]    Minimum center of gravity location
         self.xcg_max = None     # [%MAC]    Maximum center of gravity location
         self.ShS_min = None     # [m2]      Minimum required horizontal tail surface
@@ -338,4 +444,5 @@ if __name__ ==  "__main__":
     plots = True
 
     test_v = loading_diagram(test_v,'Battery',plot=plots)
+    wing_shift(test_v,'Battery',plot=True)
     ShS_min = scissor_plot(test_v,plot=plots)
