@@ -56,6 +56,8 @@ def loading_diagram(payload,plot=True):
         m_pax = 100         # [kg]      Pilot/Passenger mass
         xcg_pax = 1         # [m]       Pilot/Passenger center of gravity
 
+        sm = 0.05           # [-]       Safety Margin
+
         # Payload mass and center of gravity
         if payload == 'Pilot':
             m_repbat = 0    # [kg]      Replaceable battery mass
@@ -140,8 +142,8 @@ def loading_diagram(payload,plot=True):
         pb_xcg_pax = percMAC(np.array(pb_xcg_pax),MAC,xlemac)
 
         # Get Maximum and minimum center of gravity location
-        xcg_min = min(xcg_lst)
-        xcg_max = max(xcg_lst)
+        xcg_min = min(xcg_lst) - sm
+        xcg_max = max(xcg_lst) + sm
 
         # Create plot
         if plot:
@@ -149,6 +151,8 @@ def loading_diagram(payload,plot=True):
             plt.plot(pb_xcg_repbat*100,pb_m_repbat,color='#1f77b4')
             plt.plot(bp_xcg_pax*100,bp_m_pax,color='#ff7f0e',label='Passenger/Pilot Loading')
             plt.plot(pb_xcg_pax*100,pb_m_pax,color='#ff7f0e')
+            plt.plot([xcg_min*100,xcg_min*100],[min(m_lst),max(m_lst)],'r',label='Minimum/Maximum Center of Gravity')
+            plt.plot([xcg_max*100,xcg_max*100],[min(m_lst),max(m_lst)],'r')
             plt.title('Loading Diagram')
             plt.xlabel('$x_{cg}$/MAC (%)')
             plt.ylabel('Weight [kg]')
