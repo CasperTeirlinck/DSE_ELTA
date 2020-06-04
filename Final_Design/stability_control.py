@@ -263,7 +263,7 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     Ah = 3                      # [-]       Horizontal tail aspect ratio
     sweeph = 0                  # [rad]     Horizontal tail half chord sweep
 
-    VhV = 0.85                  # [-]       Tail/wing speed ratio
+    VhV = sqrt(0.85)            # [-]       Tail/wing speed ratio
 
     Vcruise = 50                # [m/s]     Cruise speed
     hcruise = 914.4             # [m]       Cruise altitude
@@ -272,6 +272,13 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     eta = 0.95                  # [-]       Airfoil efficiency coefficient TODO Check if aerodynamics guys determine this value
     CLaw = 5.4                  # [/rad]    Wing lift rate coefficient TODO Check if aerodynamics guys determine this value
     Cm0af = 0.05                # [-]       Airfoil zero lift pitching moment coefficient TODO Check this value
+    mu1 = 1                     # [-]       Flap coefficient 1 TODO Check this value
+    mu2 = 1                     # [-]       Flap coefficient 2 TODO Check this value
+    mu3 = 1                     # [-]       Flap coefficient 3 TODO Check this value
+    dClmax = 1                  # [-]       Airfoil lift coefficient increase at landing TODO Check this value
+    cc = 1                      # [-]       Chord ratio (extended flap/clean) TODO Check this value
+    CL_landing = 1              # [-]       Wing lift coefficient at landing (all flaps deployed) TODO Check this value
+    Swf = 10                    # [m2]      Reference wing flapped surface area TODO Check this value
     CL0 = 1                     # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
     CLA_h = 3                   # [-]       Aircraft less tail lift coefficient TODO Check this value
     CLh = -0.5                  # [-]       Horizontal tail lift coefficient TODO Check this value
@@ -310,8 +317,9 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     # Pitching moment coefficient
     Cmacw = Cm0af*(Aw*cos(sweepw)**2/(Aw + 2*cos(sweepw)))
     dfusCmac = -1.8*(1-2.5*bf/lf) * pi*bf*hf*lf/(4*Sw*MAC) * CL0/CLaA_h
-    dfCmac = 0 # TODO Implement this
-    dnacCmac = 0 # TODO Check this
+    dfCmac = mu2*(-mu1*dClmax*cc-(CL_landing+dClmax*(1-Swf/Sw))*(1/8)*cc*(cc-1))\
+             + 0.7*Aw/(1+2/Aw)*mu3*dClmax*tan(sweepw)
+    dnacCmac = 0
     Cmac = Cmacw + dfCmac + dfusCmac + dnacCmac
 
     # Stability Analysis
@@ -338,7 +346,7 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
         def stability_curve(ShS):
             return xac + CLah/CLaA_h * (1-deda) * ShS*lh/MAC * VhV**2 - sm
 
-        def control_curve(Shs):
+        def control_curve(ShS):
             return xac - Cmac/CLA_h + CLh/CLA_h * ShS*lh/MAC * VhV**2 + sm
 
         ShS = np.arange(0,1.001,0.001)
@@ -475,7 +483,6 @@ class Test_variables_sc:
         self.ShS_min = None     # [m2]      Minimum required horizontal tail surface
 
 if __name__ ==  "__main__":
-    payload = 'Battery'
     test_v = Test_variables_sc()
 
     test_v = sizing_htail_wingpos(test_v,plot=True)
