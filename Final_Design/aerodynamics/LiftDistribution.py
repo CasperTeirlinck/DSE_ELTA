@@ -31,47 +31,58 @@ def CalculateTwistAngle(theta,wingspan,twist,gamma):
 def CalculateLiftSlope(theta,wingspan,a_airfoil1,a_airfoil2):
     return 2*np.pi
 
+def CalculateFuselageContribution():
+    return 0
+
+
 # Verified without lift slope implementation
 def CalculateDistributionCoefficients(wingspan,taper,wingsurface,liftslope_1,liftslope_2,zeroliftangle_1,zeroliftangle_2,N,Fuselage=False):
-    matrix = np.ndarray((N,N))
-    samplepoints = np.arange(0,wingspan/2,wingspan/(2*N))
-    samplepoints = TransformSpan(samplepoints,wingspan)
+    matrix = np.ndarray((N,N)) # Create sample matrix
+
+    samplepoints = np.arange(0,wingspan/2,wingspan/(2*N)) # Create uniform sampling distribution
+    samplepoints = TransformSpan(samplepoints,wingspan)   # Convert sample points to theta-coordinates
     
     for i in range(N):
-        for j in range(N):
-            theta_sample = samplepoints[i]
-            
-            a0 = CalculateLiftSlope(theta_sample,wingspan,liftslope_1,liftslope_2)
-            c = CalculateChord(theta_sample,taper,wingsurface,wingspan)
+        theta_sample = samplepoints[i] # Use sample point i
+        for j in range(N): 
+            a0 = CalculateLiftSlope(theta_sample,wingspan,liftslope_1,liftslope_2) # Calculate the lift slope of sample point i
+            c = CalculateChord(theta_sample,taper,wingsurface,wingspan)            # Calculate the chord of sample point i
 
-            element = np.sin(theta_sample*(2*j+1))*(4*wingspan/(a0*c) + (2*j+1)/np.sin(theta_sample))
-            if abs(element) > 1e-5:
+            element = np.sin(theta_sample*(2*j+1))*(4*wingspan/(a0*c) + (2*j+1)/np.sin(theta_sample)) # Calculate the element of the matrix
+            
+            # Add element to matrix; if element is close to zero, add zero.
+            if abs(element) > 1e-6:
                 matrix[i,j] = element
 
             else:
                 matrix[i,j] = 0.
+    
+    # Calculate inverse of the matrix
+    matrix_inverse = la.inv(matrix)
 
 
+    # Calculate first column of the coefficient matrix
+    column1 = np.matmul(matrix_inverse, np.ones((N,1)))
 
+    return 
 
+def calculateLiftDistribution(alpha, Acoeff):
+    A = [ A[0]*alpha + A[1] for A in Acoeff ]
 
+    CL = np.pi * v.A * A[0]
 
-alpha = np.radians(5)
-V = 50 # [m/s]
+    # def circ(theta):
+    #     for n in range(1, )
+    #     return 2 * v.b * V * np.sum(A * np.sin(n*theta))
 
-Acoeff = np.array([
-    [0.2316, 0], # A_n, aL=0 _n
-    [0.0277, 0], 
-    [0.0040, 0]
-])
-A = [ A[0]*alpha + A[1] for A in Acoeff ]
-
-CL = np.pi * v.A * A[0]
-
-def circ(theta):
-    for n in range(1, )
-    return 2 * v.b * V * np.sum(A * np.sin(n*theta))
 
 if __name__ == "__main__":
     M = CalculateDistributionCoefficients(16,0.4,24,6,6,0,0,30)
     M_inverse = la.inv(M)
+    
+    Acoeff = np.array([
+        [0.2316, 0], # A_n, aL=0 _n
+        [0.0277, 0], 
+        [0.0040, 0]
+    ])
+    calculateLiftDistribution(np.radians(5), Acoeff)
