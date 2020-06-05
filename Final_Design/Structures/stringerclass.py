@@ -5,15 +5,24 @@ import copy
 
 
 class MatProps():
-    def __init__(self, sigma_y, E, poisson, alpha=0.8, n=0.6):
+    def __init__(self, sigma_y, E, poisson, rho, sigma_comp=None, name=None, alpha=0.8, n=0.6):
+        # Density (rho) in g/cc, NOT kg/m3!
         self.sigma_y = sigma_y
+        if sigma_comp == None:
+            self.sigma_comp = sigma_y
+        else:
+            self.sigma_comp = sigma_comp
         self.E = E
         self.poisson = poisson
+        self.rho = rho*1000
         self.alpha = alpha
         self.n = n
+        if name != None:
+            self.name = name
 
 
 class J_Stringer():
+    name = "J_Stringer"
     def __init__(self, Le, material: MatProps, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b3=0.005, b4=0.005):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png, gray area included in 2_alt
@@ -56,7 +65,7 @@ class J_Stringer():
         return Qy/self.total_area, Qx/self.total_area
 
     def crippling_partial(self, t, b, C, material: MatProps):
-        return material.alpha * (C/material.sigma_y * pi*pi*material.E*t*t/(b*b*12*(1-material.poisson)))**(1-material.n) * material.sigma_y
+        return material.alpha * (C/material.sigma_comp * pi*pi*material.E*t*t/(b*b*12*(1-material.poisson)))**(1-material.n) * material.sigma_comp
 
     def crippling_stress(self, material: MatProps):
         return (self.crippling_partial(self.t1, self.b1, 0.425, material) * self.area1 +
@@ -85,15 +94,14 @@ class J_Stringer():
         else:
             sigma_cr = pi*pi*self.material.E / (self.slender*self.slender)
 
-        if sigma_cr < self.material.sigma_y:
+        if sigma_cr < self.material.sigma_comp:
             return sigma_cr
         else:
-            return self.material.sigma_y
+            return self.material.sigma_comp
 
 
 class Z_Stringer(J_Stringer):
-    # def __init__(self, Le, yieldstress, E, poisson, alpha=0.8, n=0.6, stiff_ratio=0.5, ts=0.001,
-    #              t1=0.001, t2=0.001, t3=0.001, t4=0.001, b1=0.005, b2=0.006, b3=0.005, b4=0.005):
+    name = "Z_Stringer"
     def __init__(self, Le, material, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b4=0.005):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png without the t3 and b3 elements
