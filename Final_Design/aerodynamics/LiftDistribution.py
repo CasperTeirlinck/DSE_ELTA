@@ -93,20 +93,22 @@ def calcLiftDistribution(alpha, Acoeff, b, taper, S, V, rho, AR):
     Cl_distr = []
     yPnts = np.linspace(-b/2, b/2, 100)
     for y in yPnts:
-        theta = -TransformSpan(y, b)
+        theta = TransformSpan(y, b)
         Cl = (2 * circ(theta))/(V * CalculateChord(theta, taper, S, b))
         Cl_distr.append(Cl)
 
     return Cl_distr, yPnts, CL
 
 def calcCLmax(alphaRange, yPnts, Cl_distr, ClmaxDistr):
-    ClmaxDistr = ClmaxDistr[yPnts]
+    ClmaxDistr = ClmaxDistr(yPnts)
 
     for alpha in range(*alphaRange):
         alpha = np.radians(alpha)
-        Cl_distr, y_plot, CL = calcLiftDistribution(alpha, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
+        Cl_distr, yPnts, CL = calcLiftDistribution(alpha, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
 
-def plotLiftDistribution(y, Cl_range, ClmaxDistr):
+        print(np.argmax(Cl_distr))
+
+def plotLiftDistribution(y, Cl_range, ClmaxDistr, range=False):
     fig = plt.figure(figsize=(10, 4.5))
     ax1 = fig.add_subplot(111)
 
@@ -125,7 +127,9 @@ def plotLiftDistribution(y, Cl_range, ClmaxDistr):
 
 if __name__ == "__main__":
     # M = CalculateDistributionCoefficients(16,0.4,24,6,6,0,0,30)
-    # M_inverse = la.inv(M)
+    M = CalculateDistributionCoefficients(v.S, v.b, v.taper, 0, 1.2, 1.4, 1, 2, 0.001, 3)
+
+    print(M)
     
     Acoeff = np.array([
         [0.2316, 0], # A_n, aL=0 _n
@@ -133,8 +137,10 @@ if __name__ == "__main__":
         [0.0040, 0]
     ])
 
+    Acoeff = M
+
     Cl_distr_range = []
-    for alpha in range(5, 6):
+    for alpha in range(-10, 10):
         alpha = np.radians(alpha)
         Cl_distr, yPnts, CL = calcLiftDistribution(alpha, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
         Cl_distr_range.append(Cl_distr)
@@ -142,7 +148,7 @@ if __name__ == "__main__":
     # CLmax:
     ClmaxDistr = lambda y: (v.Clmax_t - v.Clmax_r)/(v.b/2) * abs(y) + v.Clmax_r
 
-    calcCLmax(alphaRange=[-15, 15], yPnts, Cl_distr, ClmaxDistr)
+    # calcCLmax([-15, 15], yPnts, Cl_distr, ClmaxDistr)
 
     print(f'CL = {CL}')
-    plotLiftDistribution(yPnts, Cl_distr_range, ClmaxDistr)
+    plotLiftDistribution(yPnts, Cl_distr_range, ClmaxDistr, range=True)
