@@ -91,12 +91,4 @@ def calculateLiftDistribution(alpha, Acoeff):
     #     return 2 * v.b * V * np.sum(A * np.sin(n*theta))
 
 
-if __name__ == "__main__":
-    
 
-    Acoeff = np.array([
-        [0.2316, 0], # A_n, aL=0 _n
-        [0.0277, 0], 
-        [0.0040, 0]
-    ])
-    calculateLiftDistribution(np.radians(5), Acoeff)
