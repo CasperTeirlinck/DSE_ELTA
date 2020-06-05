@@ -3,6 +3,7 @@ import numpy as np
 from numpy import linalg as la
 import variables_aero as v
 import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
 
 # Verified
 def TransformSpan(y,wingspan):
@@ -67,7 +68,7 @@ def CalculateDistributionCoefficients(wingspan,taper,wingsurface,liftslope_1,lif
 
     return 
 
-def calculateLiftDistribution(alpha, Acoeff, b, taper, S, V, rho, AR):
+def calcLiftDistribution(alphaRange, Acoeff, b, taper, S, V, rho, AR):
     A = np.array([ A[0]*alpha + A[1] for A in Acoeff ])
     
     CL = np.pi * AR * A[0]
@@ -86,17 +87,23 @@ def calculateLiftDistribution(alpha, Acoeff, b, taper, S, V, rho, AR):
         theta = -TransformSpan(y, b)
         Cl = (2 * circ(theta))/(V * CalculateChord(theta, taper, S, b))
         Cl_distr.append(Cl)
-        # Cl_distr.append(circ(theta))
-        # Cl_distr.append(CalculateChord(theta, taper, S, b))
 
     return Cl_distr, yPnts, CL
 
-def plotLiftDistribution(y, Cl_range):
+def calcCLmax(alphaRange, yPnts, Cl_distr, ClmaxDistr):
+    ClmaxDistr = ClmaxDistr[yPnts]
+
+    for alpha in range(-15, 15):
+        alpha = np.radians(alpha)
+        Cl_distr, y_plot, CL = calcLiftDistribution(alpha, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
+
+def plotLiftDistribution(y, Cl_range, ClmaxDistr):
     fig = plt.figure(figsize=(10, 4.5))
     ax1 = fig.add_subplot(111)
 
     for distr in Cl_range:
         ax1.plot(y, distr, linewidth=2, color='green', marker='o', fillstyle='none', markevery=5)
+        ax1.plot(y, ClmaxDistr(y), linewidth=1, color='red')
 
     ax1.axvline(x=0, linewidth=2, color='black')
     ax1.axhline(y=0, linewidth=2, color='black')
@@ -120,7 +127,10 @@ if __name__ == "__main__":
     Cl_distr_range = []
     for alpha in range(5, 6):
         alpha = np.radians(alpha)
-        Cl_distr, y_plot, CL = calculateLiftDistribution(alpha, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
+        Cl_distr, y_plot, CL = calcLiftDistribution(alpha, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
         Cl_distr_range.append(Cl_distr)
+    
+    ClmaxDistr = lambda y: (v.Clmax_t - v.Clmax_r)/(v.b/2) * abs(y) + v.Clmax_r
+
     print(f'CL = {CL}')
-    plotLiftDistribution(y_plot, Cl_distr_range)
+    plotLiftDistribution(y_plot, Cl_distr_range, ClmaxDistr)
