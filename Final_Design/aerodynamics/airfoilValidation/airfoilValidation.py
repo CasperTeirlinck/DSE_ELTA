@@ -156,6 +156,6 @@ ax2.set_ylabel('Cd [-]')
 ax2.xaxis.grid(color='black', linestyle='--')
 ax2.yaxis.grid(color='black', linestyle='--')
 
-fig.suptitle(f'NACA {foil}: Experimantal vs Xfoil', fontsize=16, y=0.97)
+fig.suptitle(f'NACA {foil}: Experimental vs Xfoil', fontsize=16, y=0.97)
 plt.tight_layout(rect=[0, 0, 1, 0.93])
 plt.show()
