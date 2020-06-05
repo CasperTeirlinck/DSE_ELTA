@@ -1,5 +1,5 @@
 '''
-This script calculates the minimum horizontal tail size, based on the center of gravity range
+This script calculates the minimum required horizontal tail size and optimal wing position for stability and control.
 Author: Bob
 '''
 
@@ -198,8 +198,8 @@ def loading_diagram(variables,xcg_wing,xlemac,plot=False):
     p_xcg = percMAC(np.array(p_xcg),MAC,xlemac)
 
     # Get Maximum and minimum center of gravity location and apply safety margin
-    xcg_min = min(xcg_lst) - sm
-    xcg_max = max(xcg_lst) + sm
+    xcg_min = min(xcg_lst) - sm/2
+    xcg_max = max(xcg_lst) + sm/2
 
     # Create loading diagram
     if plot:
