@@ -54,24 +54,23 @@ def CalculateDistributionCoefficients(wingspan,taper,wingsurface,liftslope_1,lif
 
 
 
+def calculateLiftDistribution(alpha, Acoeff):
+    A = [ A[0]*alpha + A[1] for A in Acoeff ]
 
+    CL = np.pi * v.A * A[0]
 
-alpha = np.radians(5)
-V = 50 # [m/s]
+    # def circ(theta):
+    #     for n in range(1, )
+    #     return 2 * v.b * V * np.sum(A * np.sin(n*theta))
 
-Acoeff = np.array([
-    [0.2316, 0], # A_n, aL=0 _n
-    [0.0277, 0], 
-    [0.0040, 0]
-])
-A = [ A[0]*alpha + A[1] for A in Acoeff ]
-
-CL = np.pi * v.A * A[0]
-
-def circ(theta):
-    for n in range(1, )
-    return 2 * v.b * V * np.sum(A * np.sin(n*theta))
 
 if __name__ == "__main__":
     M = CalculateDistributionCoefficients(16,0.4,24,6,6,0,0,30)
     M_inverse = la.inv(M)
+    
+    Acoeff = np.array([
+        [0.2316, 0], # A_n, aL=0 _n
+        [0.0277, 0], 
+        [0.0040, 0]
+    ])
+    calculateLiftDistribution(np.radians(5), Acoeff)
