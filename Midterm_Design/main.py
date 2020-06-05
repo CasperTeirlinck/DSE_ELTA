@@ -71,10 +71,10 @@ def do_loop(v: CurrentVariables, difference=0.1, maxiterations=500):
 
 if __name__ == "__main__":
 
-    sensAnalysis = True
+    sensAnalysis = False
 
     if not sensAnalysis:
-        conceptnumberlist = [1,2,3,4,5]
+        conceptnumberlist = [3]
         for conceptnumber in conceptnumberlist:
 
             v = CurrentVariables(*conceptparameters(conceptnumber))
@@ -87,10 +87,13 @@ if __name__ == "__main__":
             with open('concept_{}.csv'.format(conceptnumber), 'w') as file:
                 for key in v_dict.keys():
                     file.write("%s, %s\n" % (key, v_dict[key]))
-            print("Final weight = ",v.WTO/9.81," kg")
-            plt.plot(oews[:,0])
-            plt.plot(oews[:,1])
-            plt.show()
+            print("Final mass = {}, b={}, S={}, WS={}, WP={}".format(v.WTO/9.81, v.b, v.S, v.WS, v.WP))
+            # print("Final weight = ",v.WTO/9.81," kg")
+            # print("Final wingspan = ",v.b," m")
+            # print("Final wing area = ",v.S," m2")
+            # plt.plot(oews[:,0])
+            # plt.plot(oews[:,1])
+            # plt.show()
             
     else:
         conceptnumber = 3

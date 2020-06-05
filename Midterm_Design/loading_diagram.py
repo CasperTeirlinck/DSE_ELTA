@@ -90,7 +90,7 @@ def turnrate(rho, V, CD0, phi, A, e, WS):
 
 def get_design_point(variables, plot_result=False):
     # Returns WS and WP of the feasible design point
-    WS_s = stallspeed(CLmax=variables.CLmaxclean, Vs=variables.Vs, rho=variables.rho)  # Stallspeed
+    WS_s = stallspeed(CLmax=variables.CLmaxland, Vs=variables.Vs, rho=variables.rho)  # Stallspeed
     # WS_s = stallspeed(CLmax=variables.CLmaxto, Vs=variables.Vs, rho=variables.rho)  # Stallspeed
 
     WS_landing1 = landing(CLmax=variables.CLmaxland, rho=variables.rho, sland=variables.sland,
@@ -129,15 +129,18 @@ def get_design_point(variables, plot_result=False):
 
     # Calculate actual limiting case
     i = 0
-    dWS = -5.   
+    dWS = -5.
+    WS_limit2 = WS_limit
     while i < 10000:
-        if WPlimitcase(WS_limit + (i+1)*dWS) - WPlimitcase(WS_limit + i*dWS) < 0: #Check if d(WS)/d(iteration) is positive, else stop
-            WS_limit += i*dWS
-            WP_limit = WPlimitcase(WS_limit)
+        if WPlimitcase(WS_limit2 + (i+1)*dWS) - WPlimitcase(WS_limit2 + i*dWS) < 0: #Check if d(WS)/d(iteration) is positive, else stop
+            WS_limit2 += i*dWS
+            WP_limit = WPlimitcase(WS_limit2)
             break
         else:
             i +=1
-
+    factor = 0.7
+    WS_limit = WS_limit-factor*(WS_limit-WS_limit2)
+    WP_limit = WPlimitcase(WS_limit)
 
     ## Plotting
     if plot_result:
@@ -146,7 +149,7 @@ def get_design_point(variables, plot_result=False):
         WS_plot = np.arange(100, 1500, 0.1)
 
         # stallspeed
-        WS_s = stallspeed(CLmax=variables.CLmaxclean, Vs=variables.Vs, rho=variables.rho)
+        WS_s = stallspeed(CLmax=variables.CLmaxland, Vs=variables.Vs, rho=variables.rho)
         # WS_s = stallspeed(CLmax=variables.CLmaxto, Vs=variables.Vs, rho=variables.rho)
         plt.plot([WS_s, WS_s], [0, 0.5], label=f"Stall, CLmax = {variables.CLmaxclean}", color='c')
 
