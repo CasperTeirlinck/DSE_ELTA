@@ -6,6 +6,20 @@ Author: Bob
 import numpy as np
 from math import pi
 
+'''
+aileron_sizing()        Sizing of the ailerons
+
+Inputs:
+    variables[class]:   The class should contain:
+                         - b1 [float]:          Aileron start
+                         - b2 [float]:          Aileron end
+
+Outputs:
+    variables [class]:  The class contains updated values of:
+                         - b1 [float]:          Aileron start
+                         - b2 [float]:          Aileron end
+'''
+
 def aileron_sizing(variables):
     # Iteration parameters
     sizing = True
@@ -16,7 +30,7 @@ def aileron_sizing(variables):
     # Inputs
     dphi = 60*pi/180            # [rad]     Bank angle
     dt = 5                      # [s]       Bank time
-    VTO = 30                    # [m/s]     Take-off speed
+    VTO = 1.05*25.2             # [m/s]     Take-off speed
     VL = 1.1*25.2               # [m/s]     Landing speed
 
     bf = 1.5                    # [m]       Fuselage width
@@ -30,16 +44,18 @@ def aileron_sizing(variables):
     cd0_TO = 0.03               # [-]       Take-off configuration zero lift drag coefficient
     cd0_L = 0.03                # [-]       Landing configuration zero lift drag coefficient
 
-    b1 = 6.36                   # [m]       Aileron start
-    b2 = 7.8                    # [m]       Aileron end
+    b1 = variables.b1           # [m]       Aileron start
+    b2 = variables.b2           # [m]       Aileron end
     clear_tip = 0.5             # [m]       Distance from the tip that should be clear of control surfaces
     da = 20*pi/180              # [rad]     Aileron deflection angle
     clda_TO = 0.046825*180/pi   # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
     clda_L = 0.046825*180/pi    # [/rad]    Landing configuration Change in the airfoil’s lift coefficient with aileron deflection
 
+    sm = 0.1                    # [-]       Safety margin
+
     # Parameter calculations
     # Required roll rate
-    p_req = dphi / dt
+    p_req = dphi/dt * (1+sm)
 
     # Check initial b1
     if b1<bf/2:
@@ -72,6 +88,9 @@ def aileron_sizing(variables):
         # Calculate roll rate
         p_TO = roll_rate(VTO,cla_TO,cd0_TO,clda_TO)
         p_L = roll_rate(VL,cla_L,cd0_L,clda_L)
+
+        print('p_TO =',p_TO)
+        print('p_L =',p_L,'\n')
 
         # Check whether both p are larger than required
         # If one of the p is smaller than required
@@ -131,5 +150,3 @@ if __name__ ==  "__main__":
     test_v = Test_variables_sc()
 
     test_v = aileron_sizing(test_v)
-    print(test_v.b1)
-    print(test_v.b2)
