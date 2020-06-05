@@ -15,7 +15,7 @@ def IAS_TAS(h, V_IAS):
     lmbda = -0.0065
     R = 287.05
     gamma = 1.4
-    # This is a test comment for a test commit
+
     p = p0*(1 + lmbda*(h/T0))**(-g0/(lmbda*R))
     T = T0 + lmbda*h
     a = np.sqrt(gamma*R*T)
@@ -33,9 +33,13 @@ def glauert_function(phi):
 class CurrentVariables:
     def __init__(self, conceptnumber=2, n_engines=1, wing_mounted=False, T_tail=False, x_cg_pass=0.97, x_cg_batt=1.96,
                  x_cg_f = 1.965, ducted=False, lowwing=True, strutted_wing=False, l_fuselage=6., d_fuselage=1.2,
-                 spinner_length=0.365, bulkhead_loc=0.875, cabin_length=1.3, tailheight=1.2, n_blades=2,):
+                 spinner_length=0.365, bulkhead_loc=0.875, cabin_length=1.3, tailheight=1.2, n_blades=2, do_range=False):
+
+        self.rangecritical=do_range
+
         ## Requirements
         self.sto         = 500                                          # [m] take-off distance
+        self.range_WPL         = 100*9.80665                              # [N] Payload weight
         self.WPL         = 200*9.80665                                  # [N] Payload weight
         self.c           = 2                                            # [m/s] climb rate
         self.phi         = 60                                           # [deg] Maximum bank angle
@@ -114,6 +118,7 @@ class CurrentVariables:
         self.W_avion = 15                                               #[kg] avionic weight
 
         # Free design choices (None means TBD)
+        self.designpointfactor = 0.9
         self.init_single_engine() if n_engines == 1 else self.init_multi_engine()
         self.lowwing     = lowwing                                      # [-] Boolean low wing or high wing.
         self.sweep_h     = 0                                            # [deg] (0- 0) Quarter chord sweep angle of the horizontal tailplane

@@ -138,7 +138,7 @@ def get_design_point(variables, plot_result=False):
             break
         else:
             i +=1
-    factor = 0.7
+    factor = variables.designpointfactor
     WS_limit = WS_limit-factor*(WS_limit-WS_limit2)
     WP_limit = WPlimitcase(WS_limit)
 
