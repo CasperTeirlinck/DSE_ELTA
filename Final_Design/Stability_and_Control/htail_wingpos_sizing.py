@@ -1,5 +1,5 @@
 '''
-This script calculates the minimum horizontal tail size, based on the center of gravity range
+This script calculates the minimum required horizontal tail size and optimal wing position for stability and control.
 Author: Bob
 '''
 
