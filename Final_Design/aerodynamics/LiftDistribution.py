@@ -45,7 +45,6 @@ def CalculateLiftSlope(theta,wingspan,liftslope_root,liftslope_tip):
 def CalculateFuselageContribution():
     return 0
 
-#def 
 
 # Verified without lift slope & twist implementation
 def CalculateDistributionCoefficients(wingsurface,wingspan,taper,twist,liftslope_root,liftslope_tip,zeroliftangle_root,zeroliftangle_tip,gamma,N,FuselageIncluded=False):
@@ -65,7 +64,6 @@ def CalculateDistributionCoefficients(wingsurface,wingspan,taper,twist,liftslope
        
         zeroliftangle = CalculateZeroLiftAngle(theta_sample,wingspan,twist,zeroliftangle_root,zeroliftangle_tip,gamma) # Calculate the zero lift angle
         fuselageangle = FuselageIncluded*CalculateFuselageContribution() # Calculate the fuselage contribution to the angle of attack.
-        print(zeroliftangle)
         column2[i] = - zeroliftangle - fuselageangle # Calculate element (i,1) of the coefficient matrix
 
         for j in range(N): 
@@ -110,22 +108,38 @@ def calcLiftDistribution(alpha, Acoeff, b, taper, S, V, rho, AR):
 
     return Cl_distr, yPnts, CL
 
-def calcCLmax(alphaRange, ClmaxDistr, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A):
 
-    diff = []
-    alphaRange = np.arange(*alphaRange, 1)
+def calcCLmax(alphaRange, ClmaxDistr, Acoeff, b=v.b, taper=v.taper, S=v.S, V=v.V, rho=v.rho, AR=v.A):
+
+    alphaRange = np.arange(*alphaRange, 0.1)
+
+    alphaMax = None
+    Cl_distrMax = None
+    yPntsMax = None
+    CLmax = None
 
     for alpha in alphaRange:
+        if alphaMax: break
+
         alpha = np.radians(alpha)
         Cl_distr, yPnts, CL = calcLiftDistribution(alpha, Acoeff, b, taper, S, V, rho, AR)
 
-        Clmax_idx = np.argmax(Cl_distr)
-        diff.append( np.abs( Cl_distr[Clmax_idx] - ClmaxDistr((Clmax_idx/yPnts.size - 0.5)*np.max(yPnts)*2) ) )
+        for Cl, y in zip(Cl_distr, yPnts):
+            Clmax = ClmaxDistr((y/yPnts.size - 0.5)*np.max(yPnts)*2)
 
-    alphaMax = alphaRange[np.argmin(diff)]
-    Cl_distr, yPnts, CL = calcLiftDistribution(np.radians(alphaMax), Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
-    
-    return CL, alphaMax
+            if np.abs(Cl - ClmaxDistr(y)) <= 0.01:
+                alphaMax = alpha
+                Cl_distrMax = Cl_distr
+                yPntsMax = yPnts
+                CLmax = CL
+                break
+
+    if not alphaMax: return None
+    return CLmax, alphaMax, yPntsMax, Cl_distrMax
+
+def calcCD0wing(thicknesstochord,frictioncoefficient=0.0055):
+    formfactor = 1 + 2.7*thicknesstochord + 100*thicknesstochord**4
+    return 2*frictioncoefficient*formfactor
 
 def plotLiftDistribution(y, Cl_range, ClmaxDistr=None):
     fig = plt.figure(figsize=(10, 4.5))
@@ -145,28 +159,49 @@ def plotLiftDistribution(y, Cl_range, ClmaxDistr=None):
     plt.show()
 
 if __name__ == "__main__":
-    print("c =",CalculateChord(2*np.pi/3,0.4,30,16))
-    print("twist =",CalculateTwistAngle(2*np.pi/3,12,3,1.0))
-    print("a0 =",CalculateLiftSlope(np.pi/6,10,2.1*np.pi,1.9*np.pi))
-    print("alpha0 =",CalculateZeroLiftAngle(2*np.pi/3,15,0,-2,-0.5,0))
+
+    # Test convergence
+    if False:
+        CLlist = []
+        alpha = np.radians(13)
+        Nmax = 100
+        for N in range(1, Nmax):
+            Acoeff = CalculateDistributionCoefficients(v.S, v.b, v.taper, v.twist, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, 0, N)
+            A1 = Acoeff[0][0]*alpha + Acoeff[0][1]
+            CL = np.pi * v.A * A1
+            print(f'N: {N}')
+            CLlist.append(CL)
+        plt.plot(range(1, Nmax), CLlist)
+        plt.show()
     
-    
-    # M = CalculateDistributionCoefficients(16,0.4,24,6,6,0,0,30)
-    M = CalculateDistributionCoefficients(v.S, v.b, 0.9, 0.0872664626, 2*np.pi, 2*np.pi, 0, 0, 0, 20)
+    # wingsurface,wingspan,taper,twist,liftslope_root,liftslope_tip,zeroliftangle_root,zeroliftangle_tip,gamma,N,FuselageIncluded=False
+    M = CalculateDistributionCoefficients(v.S, v.b, v.taper, v.twist, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, 0, 1000)
     
     Acoeff = M
 
     # CLrange:
-    Cl_distr_range = []
-    for alpha in range(13,14):
-        alpha = np.radians(alpha)
-        Cl_distr, yPnts, CL = calcLiftDistribution(alpha, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
-        Cl_distr_range.append(Cl_distr)
-    
-    print(f'CL = {CL}')
-    plotLiftDistribution(yPnts, Cl_distr_range)
+    if True:
+        Cl_distr_range = []
+        alphaRange = [5]
+        # alphaRange = np.arange(0, 15, 1)
+        for alpha in alphaRange:
+            alpha = np.radians(alpha)
+            Cl_distr, yPnts, CL = calcLiftDistribution(alpha, Acoeff, b=v.b, taper=v.taper, S=v.S, V=v.V, rho=v.rho, AR=v.A)
+            Cl_distr_range.append(Cl_distr)
+        
+        c_tip = CalculateChord(0, v.taper, v.S, v.b)
+        c_root = CalculateChord(np.pi/2, v.taper, v.S, v.b)
+        print(f'CL = {CL} @ a = {alphaRange[-1]}    c_root={c_root}, c_tip={c_tip}, b={v.b}')
+        plotLiftDistribution(yPnts, Cl_distr_range)
+
+    # CLa:
+    if True:
+        CLa = np.pi*v.A*Acoeff[0][0]
+        print(f'CLa = {CLa}')
 
     # CLmax:
-    ClmaxDistr = lambda y: (v.Clmax_t - v.Clmax_r)/(v.b/2) * abs(y) + v.Clmax_r
-    CLmax, alphaMax = calcCLmax([0, 20], ClmaxDistr, Acoeff)
-    print(f'CLmax = {round(CLmax, 2)} @ a = {alphaMax}')
+    if False:
+        ClmaxDistr = lambda y: (v.Clmax_t - v.Clmax_r)/(v.b/2) * abs(y) + v.Clmax_r
+        CLmax, alphaMax, yPnts, Cl_distr = calcCLmax([0, 20], ClmaxDistr, Acoeff)
+        print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
+        plotLiftDistribution(yPnts, [Cl_distr], ClmaxDistr)
