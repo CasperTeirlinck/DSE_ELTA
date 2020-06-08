@@ -4,7 +4,7 @@ Author: Bob
 '''
 
 import numpy as np
-from math import pi
+from math import pi,cos,tan,atan
 
 '''
 aileron_sizing()        Sizing of the ailerons
@@ -137,13 +137,67 @@ def aileron_sizing(variables):
 
     return variables
 
+
+'''
+flap_sizing()           Sizing of the ailerons
+
+Inputs:
+    variables[class]:   The class should contain:
+                         - b1 [float]:          Aileron start
+                         - b2 [float]:          Aileron end
+
+Outputs:
+    variables [class]:  The class contains updated values of:
+                         - b1 [float]:          Aileron start
+                         - b2 [float]:          Aileron end
+'''
+
+#def flap_sizing(variables):
+S = 23.0                    # [m2]      Wing surface area
+b = 16.6                    # [m]       Wing span
+sweep = 0                   # [rad]     Wing quarter chord sweep angle
+taper = 0.4                 # [rad]     Wing taper ratio
+cr = 1.98                   # [m]       Wing root chord
+
+CLmax_req = 1.8             # [-]       Required maximum lift coefficient
+CLmax_wing = 1.5            # [-]       Wing maximum lift coefficient
+CLa = 2*pi                  # [/rad]    Wing lift curve slope
+
+dClmax = 0.9                # [-]
+da0l_airfoil = -15*pi/180   # [rad]
+
+cfc = 0.8                   # [-]       Start of the flap as percentage of the chord
+d_af = 0.05                 # [m]       Spacing between flap and aileron
+
+sm = 0.1                    # [-]       Safety margin
+
+# Parameter calculations
+# Hinge line sweep angle
+tansweepLE = tan(sweep) - cr/(2*b)*(taper-1)
+sweep_hinge = atan(tansweepLE + 2*cfc*cr*(taper-1)/b)
+
+# Increase in lift coefficient
+dCLmax = CLmax_req - CLmax_wing
+
+# Required flapped surface
+SwfS = dCLmax/(0.9*dClmax*cos(sweep_hinge)) * (1+sm)
+da0L = da0l_airfoil*SwfS*cos(sweep_hinge)
+CLa_flapped = CLa
+print(SwfS)
+
+
+'''
 # Test
 class Test_variables_sc:
     def __init__(self):
         self.b1 = 6.36          # [m]       Aileron start
         self.b2 = 7.8           # [m]       Aileron end
+        self.Swf = None         # [m2]      Flapped area
+        self.f1 =               # [m]       Flap start
+        self.f2 =               # [m]       Flap end
 
 if __name__ ==  "__main__":
     test_v = Test_variables_sc()
 
     test_v = aileron_sizing(test_v)
+'''
