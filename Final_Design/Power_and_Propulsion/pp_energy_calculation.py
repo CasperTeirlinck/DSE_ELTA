@@ -99,8 +99,9 @@ def energy_avionics(variables):
     autopilot = 14
     intercom = 8.4
     portible_instrument_panel = 12
+    engine_computer = 6.1
 
-    total_power = pfd_mfd + autopilot + intercom + portible_instrument_panel
+    total_power = pfd_mfd + autopilot + intercom + portible_instrument_panel + engine_computer
     total_time = 2.5*3600 + 2*330 + (914.4/2 + 30) # 2.5h endurance + 2*taxi phase + climb phase
     avionics_energy = total_power * total_time
     return avionics_energy/variables.eff_batt
@@ -111,8 +112,9 @@ if __name__ ==  "__main__":
     # THESE ARE TEST VARIABLES!
     class Test_variables_pp:
         def __init__(self):
+            # Pipistrel alpha validation
             self.CD0 = 0.0280
-            self.A = 12
+            self.A = 11.6
             self.e = 0.83
             self.rho0 = 1.225
             self.WP = 0.131
@@ -122,15 +124,16 @@ if __name__ ==  "__main__":
             self.eff_tot_prop = 0.95* 0.88
             self.eff_batt = 0.95
             self.g0 = 9.80665
-            self.WTO_endurance = 9978.38
+            self.WTO_endurance = 550*9.81
             self.WTO_range = self.WTO_endurance
-            self.range_m = 250000
-            self.endurance_s = 2.5 * 3600
-            self.P_max = self.WTO_endurance / self.WP
-            self.S = self.WTO_endurance / self.WS
+            self.range_m = 0.0
+            self.endurance_s = 1.5*3600
+            self.P_max = 60*1000
+            self.S = 9.51
 
     test_v = Test_variables_pp()
-    print(energy_engine(test_v, endurance_s = 0.0 )/3600/1000, "[kWh]")
+    print(energy_engine(test_v, endurance_s = test_v.endurance_s, range_m= 0.0 )/3600/1000, "[kWh]")
+    print("Pipistrel website says 21 kWh :D :D :D")
 
 
 

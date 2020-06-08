@@ -4,7 +4,8 @@ Author: Bob
 '''
 
 import numpy as np
-from math import pi,cos,tan,atan
+from math import pi,cos,tan,atan,sqrt
+from wing_properties import chord,sweep
 
 '''
 aileron_sizing()        Sizing of the ailerons
@@ -144,60 +145,120 @@ flap_sizing()           Sizing of the ailerons
 Inputs:
     variables[class]:   The class should contain:
                          - b1 [float]:          Aileron start
-                         - b2 [float]:          Aileron end
+                         - f1 [float]:          Flap start
+                         - f2 [float]:          Flap end
 
 Outputs:
     variables [class]:  The class contains updated values of:
-                         - b1 [float]:          Aileron start
-                         - b2 [float]:          Aileron end
+                         - f1 [float]:          Flap start
+                         - f2 [float]:          Flap end
 '''
 
-#def flap_sizing(variables):
-S = 23.0                    # [m2]      Wing surface area
-b = 16.6                    # [m]       Wing span
-sweep = 0                   # [rad]     Wing quarter chord sweep angle
-taper = 0.4                 # [rad]     Wing taper ratio
-cr = 1.98                   # [m]       Wing root chord
+def flap_sizing(variables):
+    S = 23.0                    # [m2]      Wing surface area
+    b = 16.6                    # [m]       Wing span
+    sweepc4 = 0                 # [rad]     Wing quarter chord sweep angle
+    taper = 0.4                 # [rad]     Wing taper ratio
+    cr = 1.98                   # [m]       Wing root chord
 
-CLmax_req = 1.8             # [-]       Required maximum lift coefficient
-CLmax_wing = 1.5            # [-]       Wing maximum lift coefficient
-CLa = 2*pi                  # [/rad]    Wing lift curve slope
+    bf = 1.5                    # [m]       Fuselage width
 
-dClmax = 0.9                # [-]
-da0l_airfoil = -15*pi/180   # [rad]
+    CLmax_req = 1.8             # [-]       Required maximum lift coefficient
+    CLmax_wing = 1.5            # [-]       Wing maximum lift coefficient
+    CLa = 2*pi                  # [/rad]    Wing lift curve slope
 
-cfc = 0.8                   # [-]       Start of the flap as percentage of the chord
-d_af = 0.05                 # [m]       Spacing between flap and aileron
+    dClmax = 1.3                # [-]
+    da0l_airfoil = -15*pi/180   # [rad]
 
-sm = 0.1                    # [-]       Safety margin
+    cfc = 0.8                   # [-]       Start of the flap as percentage of the chord
+    d_af = 0.05                 # [m]       Spacing between flap and aileron
 
-# Parameter calculations
-# Hinge line sweep angle
-tansweepLE = tan(sweep) - cr/(2*b)*(taper-1)
-sweep_hinge = atan(tansweepLE + 2*cfc*cr*(taper-1)/b)
+    b1 = variables.b1           # [m]       Aileron start
 
-# Increase in lift coefficient
-dCLmax = CLmax_req - CLmax_wing
+    sm = 0.1                    # [-]       Safety margin
 
-# Required flapped surface
-SwfS = dCLmax/(0.9*dClmax*cos(sweep_hinge)) * (1+sm)
-da0L = da0l_airfoil*SwfS*cos(sweep_hinge)
-CLa_flapped = CLa
-print(SwfS)
+    # Parameter calculations
+    # Leading edge sweep angle
+    sweepLE = sweep(0,b,sweepc4,taper,cr)
+
+    # Hinge line sweep angle
+    sweep_hinge = sweep(cfc,b,sweepc4,taper,cr)
+
+    # Trailing edge sweep angles
+    sweepTE = sweep(1,b,sweepc4,taper,cr)
+
+    # Increase in lift coefficient
+    dCLmax = CLmax_req - CLmax_wing
+
+    # Flap end location
+    f2 = b1-d_af
+
+    # Chord at flap end location
+    cf2 = chord(f2,b,sweepc4,taper,cr)
 
 
-'''
+    # Required flapped surface
+    SwfS = dCLmax/(0.9*dClmax*cos(sweep_hinge)) * (1+sm)
+    Swf = SwfS*S
+
+    # Shift in zero lift angle of attack
+    da0L = da0l_airfoil*SwfS*cos(sweep_hinge)
+
+    # Change in lift curve slope
+    CLa_flapped = CLa
+
+    # Flap location
+    # Flap span calculation
+    def flap_span(sweepLE,sweepTE,cf2,Swf):
+        # Solving the equation:
+        # Cf2*bfl + 0.5*bf^2*tan(sweepLE) - 0.5*bf^2*tan(sweepTE) = Swf/2
+        # a*bfl^2 + b*bfl + c = 0
+        A = 0.5*(tan(sweepLE)-tan(sweepTE))
+        B = cf2
+        C = -Swf/2
+
+        D = B**2 - 4*A*C
+
+        bfllst = [0,0]
+        if D >=0:
+            bfllst[0] = (-B+sqrt(D))/(2*A)
+            bfllst[1] = (-B-sqrt(D))/(2*A)
+            bfl = max(bfllst)
+            return bfl
+        else:
+            print('There is a problem with the flap sizing! (control_surfaces_sizing.py)')
+            return 0
+
+    bfl = flap_span(sweepLE,sweepTE,cf2,Swf)
+
+    # Flap start location
+    f1 = f2 - bfl
+
+    # Check if the flap fits on the wing
+    if f1<(bf/2):
+        print("Flap is too large, it doesn't fit on the wing!")
+    else:
+        pass
+
+    # Update variables class
+    variables.Swf = Swf
+    variables.f1 = f1
+    variables.f2 = f2
+
+    return variables
+
+
 # Test
 class Test_variables_sc:
     def __init__(self):
         self.b1 = 6.36          # [m]       Aileron start
         self.b2 = 7.8           # [m]       Aileron end
         self.Swf = None         # [m2]      Flapped area
-        self.f1 =               # [m]       Flap start
-        self.f2 =               # [m]       Flap end
+        self.f1 = None          # [m]       Flap start
+        self.f2 = None          # [m]       Flap end
 
 if __name__ ==  "__main__":
     test_v = Test_variables_sc()
 
     test_v = aileron_sizing(test_v)
-'''
+    test_v = flap_sizing(test_v)
