@@ -74,6 +74,7 @@ def num_of_cells(cell_data, E_req, V_req, I_req, DoD, eta_batt_load = 1.0):
 
     # Required capacity
     C_req = E_req/(V_req * eta_batt_load * (DoD/100))
+    # C_req = 233/0.80
 
     # Number of cells is series for voltage
     Ns = V_req/cell_data.V_nom
@@ -109,6 +110,9 @@ if __name__ == "__main__":
     print("Ns :", lol[0])
     print("Np :", lol[1])
     print("N  :", lol[2])
+    print("Batt energy [kWh]:", (lol[1]*cell.C_Ah*lol[0]*cell.V_nom)/1000)
+    print("Batt mass [kg] ESTIMATE!:", lol[2]*cell.mass, "* 1.4:", lol[2]*cell.mass*1.4)
+    print("Batt mass2 [kg]:", (52*1000)/250)
 
 
 
