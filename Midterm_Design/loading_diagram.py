@@ -138,7 +138,7 @@ def get_design_point(variables, plot_result=False):
             break
         else:
             i +=1
-    factor = 0.7
+    factor = variables.designpointfactor
     WS_limit = WS_limit-factor*(WS_limit-WS_limit2)
     WP_limit = WPlimitcase(WS_limit)
 
@@ -164,7 +164,7 @@ def get_design_point(variables, plot_result=False):
         # plt.plot(WS_plot, WP_to_3, label=f"Take-off, CLto = {variables.CLto[2]}", color='lightcoral')
 
         WP_to_final = takeoff(k=variables.k, CLto=variables.CLto, sigma=variables.sigma, WS=WS_plot)
-        plt.plot(WS_plot, WP_to_final, label=f"Take-off, CLto = {variables.CLto}", color='lightcoral')
+        plt.plot(WS_plot, WP_to_final, label=f"Take-off, CLto = {variables.CLto.round(2)}", color='lightcoral')
 
         # landing
         WP_landing_1 = landing(CLmax=variables.CLmaxland, rho=variables.rho, sland=variables.sland, f=variables.f)

@@ -68,7 +68,7 @@ def classIestimation(variables, a=0.656, b=-109, maxiterations=100):
         print("Class I did not converge, please check the precision.")
         return variables
 
-def classIestimation_alt(variables, a=0.656, b=-109, maxiterations=100):
+def classIestimation_alt(variables, a=0.656, b=-109):
     bat_endurance = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=variables.endurance_s)
     bat_range = flight_profile_energy_per_WTO(variables, range_m=variables.range_m, endurance_s=0.0)
     variables.bmf = max(bat_range, bat_endurance)
@@ -88,6 +88,80 @@ def classIestimation_alt(variables, a=0.656, b=-109, maxiterations=100):
             variables.Wbat = variables.WTO*variables.bmf
     return variables
 
+
+def classIestimation_alt3(variables, a=0.656, b=-109):
+    variables.bmf_e = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=variables.endurance_s)
+    variables.bmf_r = flight_profile_energy_per_WTO(variables, range_m=variables.range_m, endurance_s=0.0)
+    if variables.Woew_classII != 0 and variables.Woew_classII != None:
+        variables.Woew = variables.Woew_classII
+    else:
+        variables.Woew = a*variables.WTO + b
+
+    if variables.batterypilot:
+        batteryrange = variables.WTO*variables.bmf_r-100*9.81
+    else:
+        batteryrange = (variables.WTO-variables.WPL*0.5)*variables.bmf_r
+    batteryendurance = variables.WTO*variables.bmf_e
+    variables.Wbat = max(batteryrange, batteryendurance)
+    return variables
+
+
+def classIestimation_alt2(variables, a=0.656, b=-109):
+    if variables.rangecritical == True:
+        variables.bmf = flight_profile_energy_per_WTO(variables, range_m=variables.range_m, endurance_s=0.0)
+    else:
+        variables.bmf = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=variables.endurance_s)
+
+    if variables.Woew_classII != 0 and variables.Woew_classII != None:
+        variables.Woew = variables.Woew_classII
+        variables.Wbat = variables.WTO * variables.bmf
+    else:
+        variables.Woew = a * variables.WTO + b
+        variables.Wbat = variables.WTO * variables.bmf
+    return variables
+
+
+# def check_range_endurance(variables):
+#     bat_range = flight_profile_energy_per_WTO(variables, range_m=variables.range_m, endurance_s=0.0)
+#     bat_endurance = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=variables.endurance_s)
+#     if variables.rangecritical:
+#         realbmfrange = variables.Wbat/variables.WTO
+#         realbmfendurance = variables.Wbat/(variables.WTO+100*9.81)
+#         if realbmf < bat_range:
+#             print("Designed for range, but range requirement not met. Real bmf={}, target bmf={}".format(realbmf, bat_range))
+#
+#             print("Designed for range, but range requirement not met. Real bmf={}, target bmf={}".format(realbmf, bat_range))
+
+
+
+
+    # bat_endurance = flight_profile_energy_per_WTO(variables, range_m=0.0, endurance_s=variables.endurance_s)
+    # bat_range = flight_profile_energy_per_WTO(variables, range_m=variables.range_m, endurance_s=0.0)
+    # # variables.bmf = bat_endurance
+    # if variables.Woew_classII != 0 and variables.Woew_classII != None:
+    #     variables.Woew = variables.Woew_classII
+    # else:
+    #     if bat_range > bat_endurance:
+    #         variables.rangecritical = True
+    #         variables.Woew = a * (variables.WTO - 0.5 * variables.WPL) + b
+    #         variables.Wbat = (variables.WTO - variables.WPL * 0.5) * variables.bmf
+    #     else:
+    #         variables.rangecritical = False
+    #         variables.Woew = a * variables.WTO + b
+    #         variables.Wbat = variables.WTO * variables.bmf
+    #
+    # if variables.rangecritical == False:
+    #     batcandirange = (variables.WTO - variables.WPL * 0.5) * bat_range
+    #     batcandiendurance = variables.WTO * bat_endurance
+    # else:
+    #     batcandirange = variables.WTO * bat_range
+    #     batcandiendurance = (variables.WTO + variables.WPL * 0.5) * bat_endurance
+    # if batcandiendurance > batcandirange:
+    #     variables.rangecritical = False
+    # else:
+    #     variables.rangecritical = True
+    # variables.Wbat = max(batcandirange, batcandiendurance)
+    # return variables
 
 
 if __name__ == "__main__":

@@ -106,31 +106,30 @@ def energy_avionics():
     return avionics_energy
 
 
-## Testing
-# THESE ARE TEST VARIABLES!
-class Test_variables_pp:
-    def __init__(self):
-        self.CD0            = 0.0280
-        self.A              = 12
-        self.e              = 0.83
-        self.rho0           = 1.225
-        self.WP             = 0.131
-        self.WS             = 434
-        self.Especif_bat    = 900000
-        self.rho_bat        = 500*3600
-        self.eff_tot_prop   = 0.72
-        self.g0             = 9.80665
-        self.WTO_endurance  = 9978.38
-        self.WTO_range      = self.WTO_endurance
-        self.range_m        = 250000
-        self.endurance_s    = 2.5*3600
-        self.P_max          = self.WTO_endurance/self.WP
-        self.S              = self.WTO_endurance/self.WS
-
-
 if __name__ ==  "__main__":
+    ## Testing
+    # THESE ARE TEST VARIABLES!
+    class Test_variables_pp:
+        def __init__(self):
+            self.CD0 = 0.0280
+            self.A = 12
+            self.e = 0.83
+            self.rho0 = 1.225
+            self.WP = 0.131
+            self.WS = 434
+            self.Especif_bat = 900000
+            self.rho_bat = 500 * 3600
+            self.eff_tot_prop = 0.72
+            self.g0 = 9.80665
+            self.WTO_endurance = 9978.38
+            self.WTO_range = self.WTO_endurance
+            self.range_m = 250000
+            self.endurance_s = 2.5 * 3600
+            self.P_max = self.WTO_endurance / self.WP
+            self.S = self.WTO_endurance / self.WS
+
     test_v = Test_variables_pp()
-    print(energy_engine(test_v, endurance_s= 0.0 )/3600/1000, "[Wh]")
+    print(energy_engine(test_v, endurance_s = 0.0 )/3600/1000, "[kWh]")
 
 
 

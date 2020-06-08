@@ -56,7 +56,7 @@ def CalculateDistributionCoefficients(wingsurface,wingspan,taper,twist,liftslope
     #samplepoints = TransformSpan(samplepoints,wingspan)   # Convert sample points to theta-coordinates
     
     samplepoints = np.linspace((wingspan/2-np.pi/2)/N,np.pi/2,N)
-    print(len(samplepoints)-N)
+    # print(len(samplepoints)-N)
     for i in range(N):
         theta_sample = samplepoints[i] # Use sample point i
         
@@ -79,7 +79,7 @@ def CalculateDistributionCoefficients(wingsurface,wingspan,taper,twist,liftslope
                 matrix[i,j] = 0.
     
     matrix_inverse = la.inv(matrix) # Calculate inverse of the matrix
-    print(la.det(matrix))
+    # print(la.det(matrix))
     # Calculate the columns of the coefficient matrix
     column1 = np.matmul(matrix_inverse, np.ones((N,1)))
     column2 = np.matmul(matrix_inverse, column2)
@@ -104,28 +104,36 @@ def calcLiftDistribution(alpha, Acoeff, b, taper, S, V, rho, AR):
     Cl_distr = []
     yPnts = np.linspace(-b/2, b/2, 100)
     for y in yPnts:
-        theta = TransformSpan(y, b)
+        theta = -TransformSpan(y, b)
         Cl = (2 * circ(theta))/(V * CalculateChord(theta, taper, S, b))
         Cl_distr.append(Cl)
 
     return Cl_distr, yPnts, CL
 
-def calcCLmax(alphaRange, yPnts, Cl_distr, ClmaxDistr):
-    ClmaxDistr = ClmaxDistr(yPnts)
+def calcCLmax(alphaRange, ClmaxDistr, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A):
 
-    for alpha in range(*alphaRange):
+    diff = []
+    alphaRange = np.arange(*alphaRange, 1)
+
+    for alpha in alphaRange:
         alpha = np.radians(alpha)
-        Cl_distr, yPnts, CL = calcLiftDistribution(alpha, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
+        Cl_distr, yPnts, CL = calcLiftDistribution(alpha, Acoeff, b, taper, S, V, rho, AR)
 
-        print(np.argmax(Cl_distr))
+        Clmax_idx = np.argmax(Cl_distr)
+        diff.append( np.abs( Cl_distr[Clmax_idx] - ClmaxDistr((Clmax_idx/yPnts.size - 0.5)*np.max(yPnts)*2) ) )
 
-def plotLiftDistribution(y, Cl_range, ClmaxDistr, range=False):
+    alphaMax = alphaRange[np.argmin(diff)]
+    Cl_distr, yPnts, CL = calcLiftDistribution(np.radians(alphaMax), Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
+    
+    return CL, alphaMax
+
+def plotLiftDistribution(y, Cl_range, ClmaxDistr=None):
     fig = plt.figure(figsize=(10, 4.5))
     ax1 = fig.add_subplot(111)
 
     for distr in Cl_range:
         ax1.plot(y, distr, linewidth=2, color='green', marker='o', fillstyle='none', markevery=5)
-        #ax1.plot(y, ClmaxDistr(y), linewidth=1, color='red')
+        if ClmaxDistr: ax1.plot(y, ClmaxDistr(y), linewidth=1, color='red')
 
     ax1.axvline(x=0, linewidth=2, color='black')
     ax1.axhline(y=0, linewidth=2, color='black')
@@ -146,27 +154,19 @@ if __name__ == "__main__":
     # M = CalculateDistributionCoefficients(16,0.4,24,6,6,0,0,30)
     M = CalculateDistributionCoefficients(v.S, v.b, 0.9, 0.0872664626, 2*np.pi, 2*np.pi, 0, 0, 0, 20)
     
-    print(M)
-    
-    Acoeff = np.array([
-        [0.2316, 0], # A_n, aL=0 _n
-        [0.0277, 0], 
-        [0.0040, 0]
-    ])
-
     Acoeff = M
 
+    # CLrange:
     Cl_distr_range = []
-    for alpha in range(9,10):
+    for alpha in range(13,14):
         alpha = np.radians(alpha)
         Cl_distr, yPnts, CL = calcLiftDistribution(alpha, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
         Cl_distr_range.append(Cl_distr)
     
+    print(f'CL = {CL}')
+    plotLiftDistribution(yPnts, Cl_distr_range)
+
     # CLmax:
     ClmaxDistr = lambda y: (v.Clmax_t - v.Clmax_r)/(v.b/2) * abs(y) + v.Clmax_r
-
-    # calcCLmax([-15, 15], yPnts, Cl_distr, ClmaxDistr)
-
-    print(f'CL = {CL}')
-    plotLiftDistribution(yPnts, Cl_distr_range, ClmaxDistr, range=True)
-    
+    CLmax, alphaMax = calcCLmax([0, 20], ClmaxDistr, Acoeff)
+    print(f'CLmax = {round(CLmax, 2)} @ a = {alphaMax}')
