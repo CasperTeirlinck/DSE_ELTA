@@ -84,11 +84,11 @@ def energy_engine(variables, taxi=2, climb=1, endurance_s=9000., range_m=250000.
         total_energy += E_cruise_range(variables, range_m)
 
     # Returning total energy required
-    return total_energy
+    return total_energy/variables.eff_tot_prop
 
 
 ## Calculating the energy required by the avionics
-def energy_avionics():
+def energy_avionics(variables):
     """
     This function calculates the required energy for the avionics
     :return: Energy required for the avionics, note that this is independent of the take-off weight
@@ -103,7 +103,7 @@ def energy_avionics():
     total_power = pfd_mfd + autopilot + intercom + portible_instrument_panel
     total_time = 2.5*3600 + 2*330 + (914.4/2 + 30) # 2.5h endurance + 2*taxi phase + climb phase
     avionics_energy = total_power * total_time
-    return avionics_energy
+    return avionics_energy/variables.eff_batt
 
 
 if __name__ ==  "__main__":
@@ -119,7 +119,8 @@ if __name__ ==  "__main__":
             self.WS = 434
             self.Especif_bat = 900000
             self.rho_bat = 500 * 3600
-            self.eff_tot_prop = 0.72
+            self.eff_tot_prop = 0.95* 0.88
+            self.eff_batt = 0.95
             self.g0 = 9.80665
             self.WTO_endurance = 9978.38
             self.WTO_range = self.WTO_endurance

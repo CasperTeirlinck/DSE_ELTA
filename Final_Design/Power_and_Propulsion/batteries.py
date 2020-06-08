@@ -13,7 +13,7 @@ class cell_type:
         if name == "Sam_21700_50E":
             self.diameter   = 0.0211 # Cell diameter [m]
             self.length     = 0.0707 # Cell length [m]
-            self.volume     = pi * (self.diameter/2)**2 * self.length
+            self.volume     = pi * (self.diameter/2)**2 * self.length # [m^3]
             self.mass       = 0.0687 # Cell mass [kg]
             self.V_nom      = 3.6 # Nominal voltage [V]
             self.V_max      = 4.2 # Maximum voltage [V]
@@ -29,7 +29,7 @@ class cell_type:
         if name == "Sam_21700_40T":
             self.diameter   = 0.0211 # Cell diameter [m]
             self.length     = 0.0704 # Cell length [m]
-            self.volume     = pi * (self.diameter/2)**2 * self.length
+            self.volume     = pi * (self.diameter/2)**2 * self.length # [m^3]
             self.mass       = 0.0669 # Cell mass [kg]
             self.V_nom      = 3.6 # Nominal voltage [V]
             self.V_max      = 4.2 # Maximum voltage [V]
@@ -45,7 +45,7 @@ class cell_type:
         if name == "Pan_18650B":
             self.diameter   = 0.0185 # Cell diameter [m]
             self.length     = 0.0653 # Cell length [m]
-            self.volume     = pi * (self.diameter/2)**2 * self.length
+            self.volume     = pi * (self.diameter/2)**2 * self.length # [m^3]
             self.mass       = 0.0475 # Cell mass [kg]
             self.V_nom      = 3.6 # Nominal voltage [V]
             self.V_max      = 4.2 # Maximum voltage [V]
