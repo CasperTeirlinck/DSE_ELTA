@@ -120,8 +120,8 @@ def calcCLmax(alphaRange, ClmaxDistr):
 
     alphaMax = alphaRange[np.argmin(diff)]
     Cl_distr, yPnts, CL = calcLiftDistribution(np.radians(alphaMax), Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
-    # plotLiftDistribution(yPnts, [Cl_distr], ClmaxDistr)
-    print(f'CLmax = {CL} @ a = {alphaMax}')
+    
+    return CL, alphaMax
 
 def plotLiftDistribution(y, Cl_range, ClmaxDistr=None):
     fig = plt.figure(figsize=(10, 4.5))
@@ -153,16 +153,17 @@ if __name__ == "__main__":
 
     Acoeff = M
 
+    # CLrange:
     Cl_distr_range = []
     for alpha in range(13,14):
         alpha = np.radians(alpha)
         Cl_distr, yPnts, CL = calcLiftDistribution(alpha, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
         Cl_distr_range.append(Cl_distr)
     
-    # CLmax:
-    ClmaxDistr = lambda y: (v.Clmax_t - v.Clmax_r)/(v.b/2) * abs(y) + v.Clmax_r
-
-    calcCLmax([0, 20], ClmaxDistr)
-
     print(f'CL = {CL}')
     plotLiftDistribution(yPnts, Cl_distr_range)
+
+    # CLmax:
+    ClmaxDistr = lambda y: (v.Clmax_t - v.Clmax_r)/(v.b/2) * abs(y) + v.Clmax_r
+    CLmax, alphaMax = calcCLmax([0, 20], ClmaxDistr)
+    print(f'CLmax = {round(CLmax, 2)} @ a = {alphaMax}')
