@@ -89,9 +89,6 @@ def aileron_sizing(variables):
         p_TO = roll_rate(VTO,cla_TO,cd0_TO,clda_TO)
         p_L = roll_rate(VL,cla_L,cd0_L,clda_L)
 
-        print('p_TO =',p_TO)
-        print('p_L =',p_L,'\n')
-
         # Check whether both p are larger than required
         # If one of the p is smaller than required
         if p_TO<p_req or p_L<p_req:
