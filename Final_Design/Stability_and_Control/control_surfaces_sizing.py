@@ -226,7 +226,7 @@ def flap_sizing(variables):
             bfl = max(bfllst)
             return bfl
         else:
-            print('There is a problem with the flap sizing. (control_surfaces_sizing.py)')
+            print('There is a problem with the flap sizing! (control_surfaces_sizing.py)')
             return 0
 
     bfl = flap_span(sweepLE,sweepTE,cf2,Swf)
