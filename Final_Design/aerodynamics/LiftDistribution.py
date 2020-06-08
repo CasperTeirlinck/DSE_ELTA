@@ -32,7 +32,7 @@ def CalculateTwistAngle(theta,wingspan,twist,gamma):
 
 # Verified
 def CalculateZeroLiftAngle(theta,wingspan,twist,zeroliftangle_root,zeroliftangle_tip,gamma):
-    alpha_geometric = 0 #CalculateTwistAngle(theta,wingspan,twist,gamma)
+    alpha_geometric = CalculateTwistAngle(theta,wingspan,twist,gamma)
     y = TransformTheta(theta,wingspan)
     return 2./wingspan*(zeroliftangle_tip - zeroliftangle_root)*abs(y) + zeroliftangle_root - alpha_geometric
 
@@ -45,6 +45,7 @@ def CalculateLiftSlope(theta,wingspan,liftslope_root,liftslope_tip):
 def CalculateFuselageContribution():
     return 0
 
+#def 
 
 # Verified without lift slope & twist implementation
 def CalculateDistributionCoefficients(wingsurface,wingspan,taper,twist,liftslope_root,liftslope_tip,zeroliftangle_root,zeroliftangle_tip,gamma,N,FuselageIncluded=False):
@@ -53,15 +54,18 @@ def CalculateDistributionCoefficients(wingsurface,wingspan,taper,twist,liftslope
 
     #samplepoints = np.arange(0,wingspan/2,wingspan/(2*N)) # Create uniform sampling distribution
     #samplepoints = TransformSpan(samplepoints,wingspan)   # Convert sample points to theta-coordinates
+    
     samplepoints = np.linspace((wingspan/2-np.pi/2)/N,np.pi/2,N)
     print(len(samplepoints)-N)
     for i in range(N):
         theta_sample = samplepoints[i] # Use sample point i
+        
         a0 = CalculateLiftSlope(theta_sample,wingspan,liftslope_root,liftslope_tip) # Calculate the lift slope of sample point i
         c = CalculateChord(theta_sample,taper,wingsurface,wingspan)            # Calculate the chord of sample point i
+       
         zeroliftangle = CalculateZeroLiftAngle(theta_sample,wingspan,twist,zeroliftangle_root,zeroliftangle_tip,gamma) # Calculate the zero lift angle
         fuselageangle = FuselageIncluded*CalculateFuselageContribution() # Calculate the fuselage contribution to the angle of attack.
-        
+        print(zeroliftangle)
         column2[i] = - zeroliftangle - fuselageangle # Calculate element (i,1) of the coefficient matrix
 
         for j in range(N): 
@@ -138,9 +142,9 @@ if __name__ == "__main__":
     print("a0 =",CalculateLiftSlope(np.pi/6,10,2.1*np.pi,1.9*np.pi))
     print("alpha0 =",CalculateZeroLiftAngle(2*np.pi/3,15,0,-2,-0.5,0))
     
-    """
+    
     # M = CalculateDistributionCoefficients(16,0.4,24,6,6,0,0,30)
-    M = CalculateDistributionCoefficients(v.S, v.b, 0.4, 0, 1.85*np.pi, 2.1*np.pi, 0, 0, 0, 20)
+    M = CalculateDistributionCoefficients(v.S, v.b, 0.9, 0.0872664626, 2*np.pi, 2*np.pi, 0, 0, 0, 20)
     
     print(M)
     
@@ -165,4 +169,4 @@ if __name__ == "__main__":
 
     print(f'CL = {CL}')
     plotLiftDistribution(yPnts, Cl_distr_range, ClmaxDistr, range=True)
-    """
+    
