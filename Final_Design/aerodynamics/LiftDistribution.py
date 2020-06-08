@@ -13,30 +13,30 @@ def TransformSpan(y,wingspan):
 def TransformTheta(theta,wingspan):
     return -.5*wingspan*np.cos(theta)
 
-# NOT verified
+# Verified
 def CalculateChord(theta,taper,wingsurface,wingspan):
     y = TransformTheta(theta,wingspan)
     return 2*wingsurface/(wingspan+taper*wingspan)*(1-(1/wingspan-taper/wingspan)*abs(2*y))
 
-# NOT verified
+# Verified
 def CalculateTwistAngle(theta,wingspan,twist,gamma):
     y = TransformTheta(theta,wingspan)
+    b_half = .5*wingspan
     if gamma != 0:
-        C1 = twist/(1-np.exp(gamma*wingspan))
-        C2 = C1*np.exp(gamma*wingspan)
-        return C1 - C2*np.exp(-gamma*y)
+        C1 = twist/(1-np.exp(gamma*b_half))
+        C2 = C1*np.exp(gamma*b_half)
+        return C1 - C2*np.exp(-gamma*abs(y))
     else:
         
         return twist*(1-abs(y)/wingspan)
 
-# NOT verified
+# Verified
 def CalculateZeroLiftAngle(theta,wingspan,twist,zeroliftangle_root,zeroliftangle_tip,gamma):
-    alpha_geometric = CalculateTwistAngle(theta,wingspan,twist,gamma)
+    alpha_geometric = 0 #CalculateTwistAngle(theta,wingspan,twist,gamma)
     y = TransformTheta(theta,wingspan)
-    #return 2./wingspan(zeroliftangle_tip - zeroliftangle_root)*abs(y) - zeroliftangle_root - alpha_geometric
-    return 0
+    return 2./wingspan*(zeroliftangle_tip - zeroliftangle_root)*abs(y) + zeroliftangle_root - alpha_geometric
 
-# NOT Verified
+# Verified
 def CalculateLiftSlope(theta,wingspan,liftslope_root,liftslope_tip):
     y = TransformTheta(theta,wingspan)
     return 2./wingspan*(liftslope_tip - liftslope_root)*abs(y) + liftslope_root
@@ -133,6 +133,12 @@ def plotLiftDistribution(y, Cl_range, ClmaxDistr, range=False):
     plt.show()
 
 if __name__ == "__main__":
+    print("c =",CalculateChord(2*np.pi/3,0.4,30,16))
+    print("twist =",CalculateTwistAngle(2*np.pi/3,12,3,1.0))
+    print("a0 =",CalculateLiftSlope(np.pi/6,10,2.1*np.pi,1.9*np.pi))
+    print("alpha0 =",CalculateZeroLiftAngle(2*np.pi/3,15,0,-2,-0.5,0))
+    
+    """
     # M = CalculateDistributionCoefficients(16,0.4,24,6,6,0,0,30)
     M = CalculateDistributionCoefficients(v.S, v.b, 0.4, 0, 1.85*np.pi, 2.1*np.pi, 0, 0, 0, 20)
     
@@ -159,3 +165,4 @@ if __name__ == "__main__":
 
     print(f'CL = {CL}')
     plotLiftDistribution(yPnts, Cl_distr_range, ClmaxDistr, range=True)
+    """
