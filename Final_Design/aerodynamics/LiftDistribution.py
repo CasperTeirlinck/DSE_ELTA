@@ -110,22 +110,34 @@ def calcLiftDistribution(alpha, Acoeff, b, taper, S, V, rho, AR):
 
     return Cl_distr, yPnts, CL
 
+
 def calcCLmax(alphaRange, ClmaxDistr, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A):
 
-    diff = []
-    alphaRange = np.arange(*alphaRange, 1)
+    alphaRange = np.arange(*alphaRange, 0.1)
+
+    alphaMax = None
+    Cl_distrMax = None
+    yPntsMax = None
+    CLmax = None
 
     for alpha in alphaRange:
+        if alphaMax: break
+
         alpha = np.radians(alpha)
         Cl_distr, yPnts, CL = calcLiftDistribution(alpha, Acoeff, b, taper, S, V, rho, AR)
 
-        Clmax_idx = np.argmax(Cl_distr)
-        diff.append( np.abs( Cl_distr[Clmax_idx] - ClmaxDistr((Clmax_idx/yPnts.size - 0.5)*np.max(yPnts)*2) ) )
+        for Cl, y in zip(Cl_distr, yPnts):
+            Clmax = ClmaxDistr((y/yPnts.size - 0.5)*np.max(yPnts)*2)
 
-    alphaMax = alphaRange[np.argmin(diff)]
-    Cl_distr, yPnts, CL = calcLiftDistribution(np.radians(alphaMax), Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
-    
-    return CL, alphaMax
+            if np.abs(Cl - ClmaxDistr(y)) <= 0.01:
+                alphaMax = alpha
+                Cl_distrMax = Cl_distr
+                yPntsMax = yPnts
+                CLmax = CL
+                break
+
+    if not alphaMax: return None
+    return CLmax, alphaMax, yPntsMax, Cl_distrMax
 
 def plotLiftDistribution(y, Cl_range, ClmaxDistr=None):
     fig = plt.figure(figsize=(10, 4.5))
@@ -145,14 +157,8 @@ def plotLiftDistribution(y, Cl_range, ClmaxDistr=None):
     plt.show()
 
 if __name__ == "__main__":
-    print("c =",CalculateChord(2*np.pi/3,0.4,30,16))
-    print("twist =",CalculateTwistAngle(2*np.pi/3,12,3,1.0))
-    print("a0 =",CalculateLiftSlope(np.pi/6,10,2.1*np.pi,1.9*np.pi))
-    print("alpha0 =",CalculateZeroLiftAngle(2*np.pi/3,15,0,-2,-0.5,0))
     
-    
-    # M = CalculateDistributionCoefficients(16,0.4,24,6,6,0,0,30)
-    M = CalculateDistributionCoefficients(v.S, v.b, 0.9, 0.0872664626, 2*np.pi, 2*np.pi, 0, 0, 0, 20)
+    M = CalculateDistributionCoefficients(v.S, v.b, 0.9, 0, 2*np.pi, 2*np.pi, 0, 0, 0, 20)
     
     Acoeff = M
 
@@ -166,7 +172,14 @@ if __name__ == "__main__":
     print(f'CL = {CL}')
     plotLiftDistribution(yPnts, Cl_distr_range)
 
+    # CLa:
+    # calcCLa(Acoeff)
+    # A = np.array([ A[0]*alpha + A[1] for A in Acoeff ])
+    CLa = np.pi*v.A*Acoeff[0][0]
+    print(f'CLa = {CLa}')
+
     # CLmax:
     ClmaxDistr = lambda y: (v.Clmax_t - v.Clmax_r)/(v.b/2) * abs(y) + v.Clmax_r
-    CLmax, alphaMax = calcCLmax([0, 20], ClmaxDistr, Acoeff)
+    CLmax, alphaMax, yPnts, Cl_distr = calcCLmax([0, 20], ClmaxDistr, Acoeff)
     print(f'CLmax = {round(CLmax, 2)} @ a = {alphaMax}')
+    plotLiftDistribution(yPnts, [Cl_distr], ClmaxDistr)
