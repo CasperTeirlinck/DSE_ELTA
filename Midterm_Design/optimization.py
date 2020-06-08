@@ -1,5 +1,8 @@
 import Midterm_Design
 from collections import OrderedDict
+from functools import partial
+import copy
+from math import sqrt, pi
 
 from loading_diagram import *
 from class_I import *
@@ -18,17 +21,41 @@ from main import *
 if __name__ == "__main__":
     conceptnumber = 3
 
-    v = CurrentVariables(*conceptparameters(conceptnumber))
-    v1 = CurrentVariables(*conceptparameters(conceptnumber))
+    voriginal = CurrentVariables(*conceptparameters(conceptnumber))
+    variation = [5,10]  # [%]
 
-    basefactor = 0.765*0.7
-    variation = [1,2]  # [%]
+    # Either of the following three commented augmentations will reduce the TO mass to <750 kg:
+    # voriginal.endurance_s *= 2.1/2.5
 
-    v.designpointfactor = basefactor
-    v.designpointfactor = basefactor
+    # voriginal.Especif_bat *= 1.13
 
-    v, _ = do_loop(v)
-    v_dict = vars(v)
+    # voriginal.Especif_bat *= 1.05
+    # voriginal.eff_propeller *= 1.05
+    # voriginal.e *= 1.05
+
+    v = copy.deepcopy(voriginal)
+
+    tweakVars = [
+        ['designpointfactor', 'Design point choice, WS vs WP'],
+        ['A', 'aspect ratio'],
+        ['e', 'oswald efficiency factor'],
+        ['A_h', 'aspect ratio htail'],
+        ['A_v', 'aspect ratio vtail'],
+        ['x_htail', 'aerodynamic center htail'],
+        ['x_vtail', 'aerodynamic center htail'],
+        ['n_blades', 'nr. of propeller blades'],
+        ['eff_propeller', 'propeller eff.'],
+        # ['tcr_h', 'Thickness-to-rootchord ratio htail'],
+        # ['tcr_v', 'Thickness-to-rootchord ratio vtail'],
+        ['CD0', 'Zero-lift drag coefficient'],
+        ['V', 'cruise speed'],
+        ['CLmaxclean', 'CLmax clean configuration'],
+        ['CLmaxto', 'CLmax take-off configuration'],
+        ['CLmaxland', 'CLmax landing configuration'],
+        ['sto', 'Take-off field length'],
+        # ['endurance_s', 'endurance'],
+        # ['range_m', 'range']
+    ]
 
     freeVars = [
         ['A', 'aspect ratio'],
@@ -41,8 +68,8 @@ if __name__ == "__main__":
         ['eff_propeller', 'propeller eff.'],
         ['tcr_h', 'Thickness-to-rootchord ratio htail'],
         ['tcr_v', 'Thickness-to-rootchord ratio vtail'],
-        ['V', 'cruise speed'],
-        ['designpointfactor', 'Design point choice, WS vs WP']
+        ['CD0', 'Zero-lift drag coefficient'],
+        ['V', 'cruise speed']
     ]
 
     statVars = [
@@ -65,33 +92,46 @@ if __name__ == "__main__":
 
     sensDict = {}
 
-    for var, label in freeVars:
-    # for var, label in statVars:
-    # for var, label in reqVars:
-    #     if var == 'Vmax_kts':
-    #         variation[0] = 4.7
-    #     else:
-    #         variation[0] = 5
+    v, _ = do_loop(v)
+    print(v.WTO/9.81, v.b)
+    v_dict = vars(v)
+    print(v_dict)
 
-        v2 = CurrentVariables(*conceptparameters(conceptnumber))
+    def changefunction(key, x1, x2):
+        return (getattr(x2, key) - getattr(x1, key)) / getattr(x1, key) * 100
+
+    changevariable = "WTO"
+    # changevariable = "b"
+    func = partial(changefunction, changevariable)
+
+    for var, label in tweakVars:
+        # for var, label in freeVars:
+        # for var, label in statVars:
+        # for var, label in reqVars:
+        #     if var == 'Vmax_kts':
+        #         variation[0] = 4.7
+        #     else:
+        #         variation[0] = 5
+
+        v2 = copy.deepcopy(voriginal)
         setattr(v2, var, getattr(v2, var) * (1 + variation[0] / 100))
         v2, _ = do_loop(v2)
-        WTOchangePos1 = (v2.WTO - v.WTO) / v.WTO * 100
+        WTOchangePos1 = func(v, v2)
 
-        v2 = CurrentVariables(*conceptparameters(conceptnumber))
+        v2 = copy.deepcopy(voriginal)
         setattr(v2, var, getattr(v2, var) * (1 + variation[1] / 100))
         v2, _ = do_loop(v2)
-        WTOchangePos2 = (v2.WTO - v.WTO) / v.WTO * 100
+        WTOchangePos2 = func(v, v2)
 
-        v2 = CurrentVariables(*conceptparameters(conceptnumber))
+        v2 = copy.deepcopy(voriginal)
         setattr(v2, var, getattr(v2, var) * (1 - variation[0] / 100))
         v2, _ = do_loop(v2)
-        WTOchangeNeg1 = (v2.WTO - v.WTO) / v.WTO * 100
+        WTOchangeNeg1 = func(v, v2)
 
-        v2 = CurrentVariables(*conceptparameters(conceptnumber))
+        v2 = copy.deepcopy(voriginal)
         setattr(v2, var, getattr(v2, var) * (1 - variation[1] / 100))
         v2, _ = do_loop(v2)
-        WTOchangeNeg2 = (v2.WTO - v.WTO) / v.WTO * 100
+        WTOchangeNeg2 = func(v, v2)
 
         sensDict[label] = [[WTOchangePos1, WTOchangeNeg1], [WTOchangePos2, WTOchangeNeg2]]
 
@@ -110,11 +150,11 @@ if __name__ == "__main__":
 
     ax.axvline(linewidth=1, color='black')
 
-    ax.set_xlabel('WTO [%]')
+    ax.set_xlabel('{} [%]'.format(changevariable))
     ax.set_yticks(xAx + width / 2)
     ax.set_yticklabels(list(orderedSensDict.keys()))
     ax.xaxis.grid(color='black', linestyle='--')
-    fig.suptitle('Original WTO={} kg'.format(v.WTO/9.81), fontsize=16)
+    # fig.suptitle('Original WTO={} kg'.format(v.WTO/9.81), fontsize=16)
 
     plt.gca().invert_yaxis()
     # plt.legend(loc='lower right')
