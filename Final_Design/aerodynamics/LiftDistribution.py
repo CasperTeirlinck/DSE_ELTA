@@ -22,37 +22,44 @@ def CalculateChord(theta,taper,wingsurface,wingspan):
 def CalculateTwistAngle(theta,wingspan,twist,gamma):
     y = TransformTheta(theta,wingspan)
     if gamma != 0:
-        C1 = twist/(1-exp(gamma*wingspan))
-        C2 = C1*exp(gamma*wingspan)
-        return C1 - C2*exp(-gamma*y)
+        C1 = twist/(1-np.exp(gamma*wingspan))
+        C2 = C1*np.exp(gamma*wingspan)
+        return C1 - C2*np.exp(-gamma*y)
     else:
-        print("NOT IMPLEMENTED YET")
-        return None
+        
+        return twist*(1-abs(y)/wingspan)
 
-def CalculateZeroLiftAngle(theta,wingspan,twist,zeroliftangle_1,zeroliftangle_2,gamma):
+# NOT verified
+def CalculateZeroLiftAngle(theta,wingspan,twist,zeroliftangle_root,zeroliftangle_tip,gamma):
+    alpha_geometric = CalculateTwistAngle(theta,wingspan,twist,gamma)
+    y = TransformTheta(theta,wingspan)
+    #return 2./wingspan(zeroliftangle_tip - zeroliftangle_root)*abs(y) - zeroliftangle_root - alpha_geometric
     return 0
 
 # NOT Verified
-def CalculateLiftSlope(theta,wingspan,a_airfoil1,a_airfoil2):
-    return 2*np.pi
+def CalculateLiftSlope(theta,wingspan,liftslope_root,liftslope_tip):
+    y = TransformTheta(theta,wingspan)
+    return 2./wingspan*(liftslope_tip - liftslope_root)*abs(y) + liftslope_root
+    
 
 def CalculateFuselageContribution():
     return 0
 
 
 # Verified without lift slope & twist implementation
-def CalculateDistributionCoefficients(wingsurface,wingspan,taper,twist,liftslope_1,liftslope_2,zeroliftangle_1,zeroliftangle_2,gamma,N,FuselageIncluded=False):
+def CalculateDistributionCoefficients(wingsurface,wingspan,taper,twist,liftslope_root,liftslope_tip,zeroliftangle_root,zeroliftangle_tip,gamma,N,FuselageIncluded=False):
     matrix = np.ndarray((N,N)) # Create sample matrix
     column2 = np.zeros((N,1)) # Create column for twist and fuselage contributions
 
-    samplepoints = np.arange(0,wingspan/2,wingspan/(2*N)) # Create uniform sampling distribution
-    samplepoints = TransformSpan(samplepoints,wingspan)   # Convert sample points to theta-coordinates
-    
+    #samplepoints = np.arange(0,wingspan/2,wingspan/(2*N)) # Create uniform sampling distribution
+    #samplepoints = TransformSpan(samplepoints,wingspan)   # Convert sample points to theta-coordinates
+    samplepoints = np.linspace((wingspan/2-np.pi/2)/N,np.pi/2,N)
+    print(len(samplepoints)-N)
     for i in range(N):
         theta_sample = samplepoints[i] # Use sample point i
-        a0 = CalculateLiftSlope(theta_sample,wingspan,liftslope_1,liftslope_2) # Calculate the lift slope of sample point i
+        a0 = CalculateLiftSlope(theta_sample,wingspan,liftslope_root,liftslope_tip) # Calculate the lift slope of sample point i
         c = CalculateChord(theta_sample,taper,wingsurface,wingspan)            # Calculate the chord of sample point i
-        zeroliftangle = CalculateZeroLiftAngle(theta_sample,wingspan,twist,zeroliftangle_1,zeroliftangle_2,gamma) # Calculate the zero lift angle
+        zeroliftangle = CalculateZeroLiftAngle(theta_sample,wingspan,twist,zeroliftangle_root,zeroliftangle_tip,gamma) # Calculate the zero lift angle
         fuselageangle = FuselageIncluded*CalculateFuselageContribution() # Calculate the fuselage contribution to the angle of attack.
         
         column2[i] = - zeroliftangle - fuselageangle # Calculate element (i,1) of the coefficient matrix
@@ -61,20 +68,20 @@ def CalculateDistributionCoefficients(wingsurface,wingspan,taper,twist,liftslope
             element = np.sin(theta_sample*(2*j+1))*(4*wingspan/(a0*c) + (2*j+1)/np.sin(theta_sample)) # Calculate element (i,j) of the matrix
             
             # Add element to matrix; if element is close to zero, add zero.
-            if abs(element) > 1e-6:
+            if abs(element) > 1e-4:
                 matrix[i,j] = element
 
             else:
                 matrix[i,j] = 0.
     
     matrix_inverse = la.inv(matrix) # Calculate inverse of the matrix
-
+    print(la.det(matrix))
     # Calculate the columns of the coefficient matrix
     column1 = np.matmul(matrix_inverse, np.ones((N,1)))
     column2 = np.matmul(matrix_inverse, column2)
 
     coefficientmatrix = np.concatenate((column1,column2),axis=1) # Merge columns into one matrix
-
+    
     return coefficientmatrix
 
 def calcLiftDistribution(alpha, Acoeff, b, taper, S, V, rho, AR):
@@ -114,7 +121,7 @@ def plotLiftDistribution(y, Cl_range, ClmaxDistr, range=False):
 
     for distr in Cl_range:
         ax1.plot(y, distr, linewidth=2, color='green', marker='o', fillstyle='none', markevery=5)
-        ax1.plot(y, ClmaxDistr(y), linewidth=1, color='red')
+        #ax1.plot(y, ClmaxDistr(y), linewidth=1, color='red')
 
     ax1.axvline(x=0, linewidth=2, color='black')
     ax1.axhline(y=0, linewidth=2, color='black')
@@ -127,8 +134,8 @@ def plotLiftDistribution(y, Cl_range, ClmaxDistr, range=False):
 
 if __name__ == "__main__":
     # M = CalculateDistributionCoefficients(16,0.4,24,6,6,0,0,30)
-    M = CalculateDistributionCoefficients(v.S, v.b, v.taper, 0, 1.2, 1.4, 1, 2, 0.001, 3)
-
+    M = CalculateDistributionCoefficients(v.S, v.b, 0.4, 0, 1.85*np.pi, 2.1*np.pi, 0, 0, 0, 20)
+    
     print(M)
     
     Acoeff = np.array([
@@ -140,7 +147,7 @@ if __name__ == "__main__":
     Acoeff = M
 
     Cl_distr_range = []
-    for alpha in range(-10, 10):
+    for alpha in range(9,10):
         alpha = np.radians(alpha)
         Cl_distr, yPnts, CL = calcLiftDistribution(alpha, Acoeff, b=v.b, taper=1, S=v.S, V=v.V, rho=v.rho, AR=v.A)
         Cl_distr_range.append(Cl_distr)
