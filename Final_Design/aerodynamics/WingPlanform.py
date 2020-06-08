@@ -23,9 +23,11 @@ class WingPlanform:
 
         self.coeff = None
 
-    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t):
+    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, Cd0_r, Cd0_t):
         self.Clmax_r = Clmax_r
         self.Clmax_t = Clmax_t
+        self.Cd0_r = Cd0_r
+        self.Cd0_t = Cd0_t
         self.Cla_r = Cla_r
         self.Cla_t = Cla_t
         self.a0_r = a0_r
@@ -69,9 +71,6 @@ class WingPlanform:
         column2 = np.zeros((N,1)) # Create column for twist and fuselage contributions
 
         samplepoints = np.linspace((self.b/2-np.pi/2)/N, np.pi/2, N)
-        # samplepoints = np.arange(0,self.b/2,self.b/(2*N)) # Create uniform sampling distribution
-        # samplepoints = self.transformSpan(samplepoints, self.b)   # Convert sample points to theta-coordinates
-        print(samplepoints/(0.5*self.b))
 
         for i in range(N):
             theta_sample = samplepoints[i] # Use sample point i
@@ -107,9 +106,24 @@ class WingPlanform:
         A1 = self.coeff[0][0]*alpha + self.coeff[0][1]
         return np.pi * self.A * A1
         
-    def calcLiftDistribution(self, alpha, N, V):
+    def calcLiftDistribution(self, alpha, N, showCircComponents=False):
 
         A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
+
+        def _showCircComponents():
+            testfig = plt.figure(figsize=(10, 4.5))
+            testax = testfig.add_subplot(111)
+            testy = np.linspace(-self.b/2, self.b/2, 1000)
+            print(testy)
+            for n in range(A.size):
+                i = n
+                n = 2*n+1
+
+                term = lambda theta: 2 * self.b * A[i]*np.sin(n*theta)
+                testax.plot(testy, term(self.transformSpan(testy, self.b)))
+
+            plt.show()    
+        if showCircComponents: _showCircComponents()
         
         def _circ(theta):
             nsum = 0
@@ -117,13 +131,13 @@ class WingPlanform:
                 i = n
                 n = 2*n+1
                 nsum += A[i]*np.sin(n*theta)
-            return 2 * self.b * V * nsum
+            return 2 * self.b * nsum
 
         Cl_distr = []
         yPnts = np.linspace(-self.b/2, self.b/2, N)
         for y in yPnts:
             theta = -self.transformSpan(y, self.b)
-            Cl = (2 * _circ(theta))/(V * self.calculateChord(theta, self.taper, self.S, self.b))
+            Cl = (2 * _circ(theta))/(self.calculateChord(theta, self.taper, self.S, self.b))
             Cl_distr.append(Cl)
 
         return Cl_distr, yPnts
@@ -132,7 +146,7 @@ class WingPlanform:
         CLa = np.pi*self.A*self.coeff[0][0]
         return CLa
     
-    def calcCLmax(self, V):
+    def calcCLmax(self):
 
         alphaRange = np.radians(np.arange(0, 20, 0.1))
         ClmaxDistr = lambda y: (self.Clmax_t - self.Clmax_r)/(self.b/2) * abs(y) + self.Clmax_r
@@ -142,7 +156,7 @@ class WingPlanform:
         for alpha in alphaRange:
             if alphaMax: break
 
-            Cl_distr, yPnts = self.calcLiftDistribution(alpha, 100, V)
+            Cl_distr, yPnts = self.calcLiftDistribution(alpha, 100)
 
             for Cl, y in zip(Cl_distr, yPnts):
                 if np.abs(Cl - ClmaxDistr(y)) <= 0.01:
@@ -159,16 +173,26 @@ class WingPlanform:
         formfactor = 1 + 2.7*thicknesstochord + 100*thicknesstochord**4
         return 2*frictioncoefficient*formfactor
 
-    def calcCD0wing(S, b, taper, zeroliftdrag_root, zeroliftdrag_tip):
+    def calcCD0wing(S, b, taper):
         # DO NOT USE WITH LOW TAPER RATIOS
         croot = self.calculateChord(np.pi/2, taper, S, b)
         ctip = self.calculateChord(0, taper, S, b)
         cmean = np.mean([croot, ctip])
-        return croot*zeroliftdrag_root/(2*cmean) + ctip*zeroliftdrag_tip/(2*cmean)
+        return croot*self.Cd0_r/(2*cmean) + ctip*self.Cd0_t/(2*cmean)
 
-    def calcCDi(self):
+    def calcCDi(self, alpha):
         
-
+        def _delta(A):
+            nsum = 0
+            for n in range(A.size):
+                i = n
+                n = 2*n+1
+                nsum += n*(A[i]/A[0])**2
+            return nsum
+        
+        A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
+        CL = self.calcCL(alpha)
+        return CL**2/(np.pi*self.A) * (1 + _delta(A))
 
 def plotLiftDistribution(y, Cl_range, ClmaxDistr=None):
     fig = plt.figure(figsize=(10, 4.5))
@@ -191,8 +215,8 @@ def plotLiftDistribution(y, Cl_range, ClmaxDistr=None):
 if __name__ == "__main__":
 
     wing = WingPlanform(v.S, v.A, v.taper, v.twist, v.gamma)
-    wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t)
-    wing.calcCoefficients(500)
+    wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t)
+    wing.calcCoefficients(100)
 
     """ Test convergence """
     if False:
@@ -210,19 +234,22 @@ if __name__ == "__main__":
 
     """ Lift Distribution """
     if True:
-        alpha = np.radians(-5)
+        alpha = np.radians(5)
         CL = wing.calcCL(alpha)
         print(f'CL = {round(CL, 2)} @ a = {round(np.degrees(alpha), 2)}')
 
-    Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100, 50)
-    plotLiftDistribution(yPnts, [Cl_distr])
+        CDi = wing.calcCDi(alpha)
+        print(f'CDi = {CDi} @ a = {round(np.degrees(alpha), 2)}')
+
+        Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
+        plotLiftDistribution(yPnts, [Cl_distr])
 
     # Cl_distr_range = []
     # # alphaRange = [5]
     # alphaRange = np.arange(-15, 15, 1)
     # for alpha in alphaRange:
     #     alpha = np.radians(alpha)
-    #     Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 50)
+    #     Cl_distr, yPnts = wing.calcLiftDistribution(alpha)
     #     Cl_distr_range.append(Cl_distr)
     # plotLiftDistribution(yPnts, Cl_distr_range)
 
@@ -232,6 +259,6 @@ if __name__ == "__main__":
 
     """ CLmax """
     if False:
-        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax(50)
+        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax()
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr)

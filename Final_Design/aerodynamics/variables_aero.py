@@ -13,5 +13,7 @@ Clmax_t = 1.5 # Clmax tip airfoil
 
 Cla_r = 0.7/np.radians(7)
 Cla_t = 1/np.radians(10)
+Cd0_r = 0.006
+Cd0_t = 0.004
 a0_r = np.radians(-2)
 a0_t = np.radians(-4)
