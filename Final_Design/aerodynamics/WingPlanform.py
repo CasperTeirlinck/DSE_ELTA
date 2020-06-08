@@ -159,6 +159,16 @@ class WingPlanform:
         formfactor = 1 + 2.7*thicknesstochord + 100*thicknesstochord**4
         return 2*frictioncoefficient*formfactor
 
+    def calcCD0wing(S, b, taper, zeroliftdrag_root, zeroliftdrag_tip):
+        # DO NOT USE WITH LOW TAPER RATIOS
+        croot = self.calculateChord(np.pi/2, taper, S, b)
+        ctip = self.calculateChord(0, taper, S, b)
+        cmean = np.mean([croot, ctip])
+        return croot*zeroliftdrag_root/(2*cmean) + ctip*zeroliftdrag_tip/(2*cmean)
+
+    def calcCDi(self):
+        
+
 
 def plotLiftDistribution(y, Cl_range, ClmaxDistr=None):
     fig = plt.figure(figsize=(10, 4.5))
@@ -199,9 +209,10 @@ if __name__ == "__main__":
         plt.show()
 
     """ Lift Distribution """
-    alpha = np.radians(-5)
-    CL = wing.calcCL(alpha)
-    print(f'CL = {round(CL, 2)} @ a = {round(np.degrees(alpha), 2)}')
+    if True:
+        alpha = np.radians(-5)
+        CL = wing.calcCL(alpha)
+        print(f'CL = {round(CL, 2)} @ a = {round(np.degrees(alpha), 2)}')
 
     Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100, 50)
     plotLiftDistribution(yPnts, [Cl_distr])
@@ -220,6 +231,7 @@ if __name__ == "__main__":
     print(f'CLa = {CLa}')
 
     """ CLmax """
-    CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax(50)
-    print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
-    plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr)
+    if False:
+        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax(50)
+        print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
+        plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr)
