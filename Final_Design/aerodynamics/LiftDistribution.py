@@ -45,7 +45,6 @@ def CalculateLiftSlope(theta,wingspan,liftslope_root,liftslope_tip):
 def CalculateFuselageContribution():
     return 0
 
-#def 
 
 # Verified without lift slope & twist implementation
 def CalculateDistributionCoefficients(wingsurface,wingspan,taper,twist,liftslope_root,liftslope_tip,zeroliftangle_root,zeroliftangle_tip,gamma,N,FuselageIncluded=False):
@@ -137,6 +136,10 @@ def calcCLmax(alphaRange, ClmaxDistr, Acoeff, b=v.b, taper=v.taper, S=v.S, V=v.V
 
     if not alphaMax: return None
     return CLmax, alphaMax, yPntsMax, Cl_distrMax
+
+def calcCD0wing(thicknesstochord,frictioncoefficient=0.0055):
+    formfactor = 1 + 2.7*thicknesstochord + 100*thicknesstochord**4
+    return 2*frictioncoefficient*formfactor
 
 def plotLiftDistribution(y, Cl_range, ClmaxDistr=None):
     fig = plt.figure(figsize=(10, 4.5))
