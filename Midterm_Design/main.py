@@ -41,7 +41,7 @@ def dosubloop(v: CurrentVariables, subdifference=0.1, maxsubiterations=40):
 
 def loop(v: CurrentVariables):
     v = get_design_point(v)
-    v = classIestimation_alt(v)
+    v = classIestimation_alt3(v)
     v = motor_mass_volume(v)
     v = propeller_weight(v)
     v = wing_planform(v)
@@ -59,7 +59,7 @@ def do_loop(v: CurrentVariables, difference=0.1, maxiterations=500):
     for iteration in range(maxiterations):
         if v.Woew_classII != None and abs(v.Woew - v.Woew_classII) < difference*9.81:
             # print("Converged! Woew_classII={} N and Woew={} N".format(v.Woew_classII, v.Woew))
-            print(f'concept {v.concept_number} converged!')
+            # print(f'concept {v.concept_number} converged!')
             return v, OEWS
         else:
             v = loop(v)
@@ -94,7 +94,6 @@ if __name__ == "__main__":
             # plt.plot(oews[:,0])
             # plt.plot(oews[:,1])
             # plt.show()
-            
     else:
         conceptnumber = 3
 
@@ -200,8 +199,8 @@ if __name__ == "__main__":
         sensDict = {}
 
         # for var, label in freeVars:
-        # for var, label in statVars:
-        for var, label in reqVars:
+        for var, label in statVars:
+        # for var, label in reqVars:
             if var == 'Vmax_kts': variation[0] = 4.7
             else: variation[0] = 5
 
@@ -253,21 +252,21 @@ if __name__ == "__main__":
         plt.tight_layout()
         plt.show()
 
-        """ WTF is going on with Vmax??? """
+        """ WTF is going on with Vmax???  """
 
-        # diffs = []
-        # x = []
-        # for i in np.arange(0, 15, 0.1):
-        #     v3 = CurrentVariables(*conceptparameters(conceptnumber))
-        #     v3.Vmax_kts = v3.Vmax_kts*(1 - i/100)
-        #     v3, _ = do_loop(v3)
+        diffs = []
+        x = []
+        for i in np.arange(0, 15, 0.1):
+            v3 = CurrentVariables(*conceptparameters(conceptnumber))
+            v3.Vmax_kts = v3.Vmax_kts*(1 - i/100)
+            v3, _ = do_loop(v3)
 
-        #     diff = (v3.WTO-v.WTO)/v.WTO*100
-        #     diffs.append(diff)
-        #     x.append(i)
+            diff = (v3.WTO-v.WTO)/v.WTO*100
+            diffs.append(diff)
+            x.append(i)
 
-        # plt.plot(x, diffs)
-        # plt.show()
+        plt.plot(x, diffs)
+        plt.show()
             
 
 
