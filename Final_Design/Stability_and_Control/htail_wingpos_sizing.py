@@ -193,6 +193,8 @@ Inputs:
 
 Outputs:
     ShS_min [float]:    Minimum required horizontal tail surface [-]
+
+V&V:    Verified
 '''
 
 def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
@@ -346,6 +348,8 @@ Outputs:
                          - xcg_min [float]:     Minimum center of gravity location [%MAC]
                          - xcg_max [float]:     Maximum center of gravity location [%MAC]
                          - Sh_min [float]:      Minimum required horizontal tail surface [m2]
+
+V&V:    Verified
 '''
 
 def sizing_htail_wingpos(variables,plot=False):
@@ -442,7 +446,7 @@ class Test_variables_sc:
     def __init__(self):
         self.xcg_min = None     # [%MAC]    Minimum center of gravity location
         self.xcg_max = None     # [%MAC]    Maximum center of gravity location
-        self.Sh_min = None     # [m2]      Minimum required horizontal tail surface
+        self.Sh_min = None      # [m2]      Minimum required horizontal tail surface
 
 if __name__ ==  "__main__":
     test_v = Test_variables_sc()
