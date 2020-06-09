@@ -13,7 +13,7 @@ class cell_type:
         if name == "Sam_21700_50E":
             self.diameter   = 0.0211 # Cell diameter [m]
             self.length     = 0.0707 # Cell length [m]
-            self.volume     = pi * (self.diameter/2)**2 * self.length
+            self.volume     = pi * (self.diameter/2)**2 * self.length # [m^3]
             self.mass       = 0.0687 # Cell mass [kg]
             self.V_nom      = 3.6 # Nominal voltage [V]
             self.V_max      = 4.2 # Maximum voltage [V]
@@ -29,7 +29,7 @@ class cell_type:
         if name == "Sam_21700_40T":
             self.diameter   = 0.0211 # Cell diameter [m]
             self.length     = 0.0704 # Cell length [m]
-            self.volume     = pi * (self.diameter/2)**2 * self.length
+            self.volume     = pi * (self.diameter/2)**2 * self.length # [m^3]
             self.mass       = 0.0669 # Cell mass [kg]
             self.V_nom      = 3.6 # Nominal voltage [V]
             self.V_max      = 4.2 # Maximum voltage [V]
@@ -45,7 +45,7 @@ class cell_type:
         if name == "Pan_18650B":
             self.diameter   = 0.0185 # Cell diameter [m]
             self.length     = 0.0653 # Cell length [m]
-            self.volume     = pi * (self.diameter/2)**2 * self.length
+            self.volume     = pi * (self.diameter/2)**2 * self.length # [m^3]
             self.mass       = 0.0475 # Cell mass [kg]
             self.V_nom      = 3.6 # Nominal voltage [V]
             self.V_max      = 4.2 # Maximum voltage [V]
@@ -74,7 +74,7 @@ def num_of_cells(cell_data, E_req, V_req, I_req, DoD, eta_batt_load = 1.0):
 
     # Required capacity
     C_req = E_req/(V_req * eta_batt_load * (DoD/100))
-    # C_req = 233/0.80
+    #C_req = 233
 
     # Number of cells is series for voltage
     Ns = V_req/cell_data.V_nom
@@ -104,7 +104,6 @@ if __name__ == "__main__":
     cell3 = "Pan_18650B"
 
     cell = cell_type(name = cell1)
-
     # Test run
     lol = num_of_cells(cell, E_req = 52*1000, V_req = 400, I_req = 189.75, DoD = 90)
     print("Ns :", lol[0])
@@ -114,6 +113,13 @@ if __name__ == "__main__":
     print("Batt mass [kg] ESTIMATE!:", lol[2]*cell.mass, "* 1.4:", lol[2]*cell.mass*1.4)
     print("Batt mass2 [kg]:", (52*1000)/250)
 
+
+    # # Tesla validation: 74p, 6s, https://hsrmotors.com/products/battery_modules
+    # # Uncomment line 77! set cell to cell3!
+    # tesla_val = num_of_cells(cell, E_req = 0.0, V_req = 22.2, I_req = 0.0, DoD = 90)
+    # print("Ns :", tesla_val[0])
+    # print("Np :", tesla_val[1])
+    # print("N  :", tesla_val[2])
 
 
 
