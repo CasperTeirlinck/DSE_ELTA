@@ -6,50 +6,7 @@ Author: Bob
 import numpy as np
 from math import pi,sqrt,tan,cos,atan
 import matplotlib.pyplot as plt
-
-
-'''
-XLEMAC() :              Calculates the distance nose - leading edge of the MAC
-
-Inputs:
-    lfn [float]:        Distance nose - wing leading edge root chord [m]
-    sweep [float]:      Quarter chord sweep angle [rad]
-    cr [float]:         Root chord [m]
-    b [float]:          Span [m]
-    taper [float]:      Taper ratio [-]
-
-Outputs:
-    xmac [float]:       Distance LE root chord - LE of the MAC [m]
-    xlemac [float]:     Distance nose - leading edge of the MAC [m]
-'''
-
-def XLEMAC(lfn,sweep,cr,b,taper):
-    sweepLE = atan(tan(sweep) - cr/(2*b)*(taper-1))
-    ymac = (b/6)*((1+2*taper)/(1+taper))
-    xmac = ymac*tan(sweepLE)
-    xlemac = lfn + xmac
-
-    return xlemac,xmac
-
-
-'''
-percMAC() :             Calculates the center of gravity as a fraction of the MAC
-
-Inputs:
-    xcg [float/array]:  Center of gravity location [m]
-    MAC [float]:        Mean aerodynamic chord [m]
-    xlemac [float]:     Distance nose - leading edge mean aerodynamic chord [m]
-    percentage [bool]:  Return percentage (True) or fraction (False)
-
-Outputs:
-    [float]:            Center of gravity location [%MAC]
-'''
-
-def percMAC(xcg,MAC,xlemac,percentage=False):
-    if percentage:
-        return (xcg-xlemac)/MAC * 100
-    else:
-        return (xcg-xlemac)/MAC
+from wing_properties import XMAC,XLEMAC
 
 
 '''
@@ -58,31 +15,32 @@ loading_diagram() :     Creates the loading diagram
 Inputs:
     variables [class]:  
     xcg_wing [float]:   Wing center of gravity location [m]
-    xlemac [float]:     Distance nose - leading edge Mean Aerodynamic Chord [m]
     plot [bool]:        Create a plot (True or False), default is False
 
 Outputs:
     xcg_min [float]:    Minimum cg location [%MAC]
     xcg_max [float]:    Maximum cg location [%MAC]
+
+V&V:    Verified
 '''
 
-def loading_diagram(variables,xcg_wing,xlemac,plot=False):
+def loading_diagram(variables,xcg_wing,plot=False):
     # Inputs TODO Get values out of variables class
     MAC = 1.47                          # [m]       Mean Aerodynamic Chord
 
-    m_wing = 100                        # [kg]      Wing mass
-    m_fgroup = 300                      # [kg]      Fuselage group mass
+    m_wing = 150                        # [kg]      Wing mass
+    m_fgroup = 100                      # [kg]      Fuselage group mass
     xcg_fgroup = 3                      # [m]       Fuselage group center of gravity
 
     m_oe = m_wing + m_fgroup            # [kg]      Operational Empty mass
     xcg_oew = (xcg_wing*m_wing + xcg_fgroup*m_fgroup)/m_oe
                                         # [m]       OEW center of gravity
 
-    m_bat = 150                         # [kg]      Battery mass
+    m_bat = 300                         # [kg]      Battery mass
     xcg_bat = 3                         # [m]       Battery center of gravity
     m_repbat = 100                      # [kg]      Replaceable battery mass
     xcg_repbat = 3                      # [m]       Replaceable battery center of gravity
-    m_pax = 100                         # [kg]      Pilot/Passenger mass
+    m_pax = 100                         # [kg]      Single Pilot/Passenger mass
     xcg_pax = 1                         # [m]       Pilot/Passenger center of gravity
 
     sm = 0.05                           # [-]       Safety Margin
@@ -134,7 +92,7 @@ def loading_diagram(variables,xcg_wing,xlemac,plot=False):
     m_lst.append(m_new)
     bp_m_pax.append(m_new)
     xcg_lst.append(xcg_new)
-    bp_xcg_pax.append((xcg_new))
+    bp_xcg_pax.append(xcg_new)
 
     # First Pilot, then Battery
     # Pilot loading
@@ -190,12 +148,12 @@ def loading_diagram(variables,xcg_wing,xlemac,plot=False):
     pb_m_pax = np.array(pb_m_pax)
     p_m = np.array(p_m)
 
-    xcg_lst = percMAC(np.array(xcg_lst),MAC,xlemac)
-    bp_xcg_repbat = percMAC(np.array(bp_xcg_repbat),MAC,xlemac)
-    bp_xcg_pax = percMAC(np.array(bp_xcg_pax),MAC,xlemac)
-    pb_xcg_repbat = percMAC(np.array(pb_xcg_repbat),MAC,xlemac)
-    pb_xcg_pax = percMAC(np.array(pb_xcg_pax),MAC,xlemac)
-    p_xcg = percMAC(np.array(p_xcg),MAC,xlemac)
+    xcg_lst = np.array(xcg_lst)/MAC
+    bp_xcg_repbat = np.array(bp_xcg_repbat)/MAC
+    bp_xcg_pax = np.array(bp_xcg_pax)/MAC
+    pb_xcg_repbat = np.array(pb_xcg_repbat)/MAC
+    pb_xcg_pax = np.array(pb_xcg_pax)/MAC
+    p_xcg = np.array(p_xcg)/MAC
 
     # Get Maximum and minimum center of gravity location and apply safety margin
     xcg_min = min(xcg_lst) - sm/2
@@ -257,6 +215,7 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     sweepw = 0                  # [rad]     Wing quarter chord sweep angle
     taperw = 0.4                # [-]       Wing taper ratio
     twistwr = 0                 # [deg]     Wing twist at the root
+    crw = 1.98                  # [m]       Wing root chord
 
     lh = 6.2                    # [m]       Tail arm
     hh = 1.5                    # [m]       Height horizontal tail from ground
@@ -268,7 +227,6 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     Vcruise = 50                # [m/s]     Cruise speed
     hcruise = 914.4             # [m]       Cruise altitude
 
-    xacw = 0.25                 # [%MAC]    Wing location aerodynamic center TODO Check if aerodynamics guys determine this value
     eta = 0.95                  # [-]       Airfoil efficiency coefficient TODO Check if aerodynamics guys determine this value
     CLaw = 5.4                  # [/rad]    Wing lift rate coefficient TODO Check if aerodynamics guys determine this value
     Cm0af = 0.05                # [-]       Airfoil zero lift pitching moment coefficient TODO Check this value
@@ -286,6 +244,9 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     sm = 0.1                    # [-]       Safety margin
 
     # Parameter calculations
+    # xlemac
+    xlemacw = XLEMAC(lfn,bw,sweepw,taperw,crw)
+
     # Tail lift rate coefficient
     Vh = VhV*Vcruise
     Tcruise = T0 + lmbda*hcruise
@@ -297,12 +258,13 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     # Lift rate coefficient of the aircraft less tail
     CLaA_h = CLaw * (1 + 2.15*bf/bw) * Snet/Sw + pi/2*bf**2/Sw
 
-    # Aerodynamic center of the aircraft less tail
+    # Aerodynamic center
+    xacw = (0.25*MAC+xlemacw)/MAC
     cg = Sw/bw
     xacf1 = -1.8/CLaA_h * bf*hf*lfn/(Sw*MAC)
     xacf2 = 0.273/(1 + taperw) * bf*cg*(bw-bf)/(MAC**2*(bw + 2.15*bf)) * tan(sweepw)
     xacwf = xacw + xacf1 + xacf2
-    xacn = 0 # TODO Check this
+    xacn = 0
     xac = xacwf + xacn
 
     # Wing downwash gradient
@@ -381,28 +343,27 @@ Inputs:
 
 Outputs:
     variables [class]:  The class contains updated values of:
-                         - lfn [float]:         Distance nose - wing leading edge root chord [m]
-                         - xcg_wing [float]:    Wing center of gravity location [m]
-                         - xlemacw [float]:     Distance nose - leading edge Mean Aerodynamic Chord [m]
                          - xcg_min [float]:     Minimum center of gravity location [%MAC]
                          - xcg_max [float]:     Maximum center of gravity location [%MAC]
-                         - ShS_min [float]:     Minimum required horizontal tail surface [-]
+                         - Sh_min [float]:      Minimum required horizontal tail surface [m2]
 '''
 
 def sizing_htail_wingpos(variables,plot=False):
     # Inputs
     lf = 6                          # [m]   Fuselage length
     lfn = 1.5                       # [m]   Distance nose - wing
+    Sw = 23                         # [m2]  Wing surface area
     sweepw = 0                      # [rad] Wing quarter chord sweep angle
     taperw = 0.4                    # [-]   Wing taper ratio
     bw = 16.6                       # [m]   Wing span
     crw = 1.98                      # [m]   Wing root chord
-    MAC = 1.47                      # [m]   Mean Aerodynamic Chord
-    xcg_wing = 1.5                  # [m]   Wing center of gravity
+    xcg_wing = 1.7                  # [m]   Wing center of gravity
 
     # Parameter calculations
-    xlemacw,xmacw = XLEMAC(lfn,sweepw,crw,bw,taperw)
-    pxcg_wing = percMAC(xcg_wing,MAC,xlemacw)
+    # xlemac and xmac
+    xmacw = XMAC(bw,sweepw,taperw,crw)
+    # Distance leading edge root chord - centre of gravity wing
+    LEcr_xcgw = xcg_wing-lfn
 
     # Create lists
     xlemaclf_lst = np.arange(0,1.001,0.001)
@@ -414,9 +375,9 @@ def sizing_htail_wingpos(variables,plot=False):
     for xlemaclf in xlemaclf_lst:
         xlemacw_i = xlemaclf*lf
         lfn_i = xlemacw_i - xmacw
-        xcg_wing_i = lfn_i + pxcg_wing*MAC
+        xcg_wing_i = lfn_i + LEcr_xcgw
 
-        xcg_min_i,xcg_max_i = loading_diagram(variables,xcg_wing_i,xlemacw_i)
+        xcg_min_i,xcg_max_i = loading_diagram(variables,xcg_wing_i)
         ShS_min_i = scissor_plot(variables,lfn_i,xcg_min_i,xcg_max_i)
 
         xcgmin_lst.append(xcg_min_i)
@@ -425,6 +386,7 @@ def sizing_htail_wingpos(variables,plot=False):
 
     # Determine minimum horizontal tail surface
     ShS_min = min(ShSmin_lst)
+    Sh_min = ShS_min*Sw
     # Get index of minimum horizontal tail surface
     i = ShSmin_lst.index(ShS_min)
 
@@ -436,7 +398,7 @@ def sizing_htail_wingpos(variables,plot=False):
     xlemaclf = xlemaclf_lst[i]
     xlemacw = xlemaclf*lf
     lfn = xlemacw - xmacw
-    xcg_wing = lfn + pxcg_wing*MAC
+    xcg_wing = lfn + LEcr_xcgw
 
     # Update values in variables class
     #variables.lfn = lfn
@@ -444,7 +406,7 @@ def sizing_htail_wingpos(variables,plot=False):
     #variables.xlemacw = xlemacw
     variables.xcg_min = xcg_min
     variables.xcg_max = xcg_max
-    variables.ShS_min = ShS_min
+    variables.Sh_min = Sh_min
 
     # Create plots
     if plot:
@@ -454,7 +416,7 @@ def sizing_htail_wingpos(variables,plot=False):
         xcgmax_lst = np.array(xcgmax_lst)
 
         # Loading diagram
-        loading_diagram(variables,xcg_wing,xlemacw,plot)
+        loading_diagram(variables,xcg_wing,plot)
 
         # Scissor plot
         scissor_plot(variables,lfn,xcg_min,xcg_max,plot)
@@ -480,12 +442,12 @@ class Test_variables_sc:
     def __init__(self):
         self.xcg_min = None     # [%MAC]    Minimum center of gravity location
         self.xcg_max = None     # [%MAC]    Maximum center of gravity location
-        self.ShS_min = None     # [m2]      Minimum required horizontal tail surface
+        self.Sh_min = None     # [m2]      Minimum required horizontal tail surface
 
 if __name__ ==  "__main__":
     test_v = Test_variables_sc()
 
     test_v = sizing_htail_wingpos(test_v,plot=True)
-    print('xcg_min =',test_v.xcg_min)
-    print('xcg_max =',test_v.xcg_max)
-    print('Sh/S =',test_v.ShS_min)
+    print('xcg_min =',round(test_v.xcg_min,2),'%MAC')
+    print('xcg_max =',round(test_v.xcg_max,2),'%MAC')
+    print('Sh =',round(test_v.Sh_min,2),'m2')
