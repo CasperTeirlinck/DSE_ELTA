@@ -261,4 +261,5 @@ if __name__ ==  "__main__":
     test_v = Test_variables_sc()
 
     test_v = aileron_sizing(test_v)
+    print(test_v.b1)
     test_v = flap_sizing(test_v)
