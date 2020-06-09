@@ -1,9 +1,9 @@
-
 import numpy as np
 from numpy import linalg as la
 import variables_aero as v
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+import os
 
 class WingPlanform:
     def __init__(self, S, A, taper, twist, gamma):
@@ -192,73 +192,6 @@ class WingPlanform:
         
         A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
         CL = self.calcCL(alpha)
-        return CL**2/(np.pi*self.A) * (1 + _delta(A))
-
-def plotLiftDistribution(y, Cl_range, ClmaxDistr=None):
-    fig = plt.figure(figsize=(10, 4.5))
-    ax1 = fig.add_subplot(111)
-
-    for distr in Cl_range:
-        ax1.plot(y, distr, linewidth=2, color='green', marker='o', fillstyle='none', markevery=5)
-        if ClmaxDistr: ax1.plot(y, ClmaxDistr(y), linewidth=1.5, linestyle='-.', color='black')
-
-    ax1.axvline(x=0, linewidth=2, color='black')
-    ax1.axhline(y=0, linewidth=2, color='black')
-    ax1.set_xlabel('Wingspan [m]')
-    ax1.set_ylabel('')
-    ax1.xaxis.grid(color='black', linestyle='--')
-    ax1.yaxis.grid(color='black', linestyle='--')
-    plt.tight_layout(rect=[0, 0, 1, 0.93])
-    plt.show()
-
-
-if __name__ == "__main__":
-
-    wing = WingPlanform(v.S, v.A, v.taper, v.twist, v.gamma)
-    wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t)
-    wing.calcCoefficients(100)
-
-    """ Test convergence """
-    if False:
-        CLlist = []
-        alpha = np.radians(13)
-        Nmax = 100
-        for N in range(1, Nmax):
-            coeff = wing.calcCoefficients(N)
-            A1 = coeff[0][0]*alpha + coeff[0][1]
-            CL = np.pi * v.A * A1
-            print(f'N: {N}')
-            CLlist.append(CL)
-        plt.plot(range(1, Nmax), CLlist)
-        plt.show()
-
-    """ Lift Distribution """
-    if True:
-        alpha = np.radians(5)
-        CL = wing.calcCL(alpha)
-        print(f'CL = {round(CL, 2)} @ a = {round(np.degrees(alpha), 2)}')
-
-        CDi = wing.calcCDi(alpha)
-        print(f'CDi = {CDi} @ a = {round(np.degrees(alpha), 2)}')
-
-        Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
-        plotLiftDistribution(yPnts, [Cl_distr])
-
-    # Cl_distr_range = []
-    # # alphaRange = [5]
-    # alphaRange = np.arange(-15, 15, 1)
-    # for alpha in alphaRange:
-    #     alpha = np.radians(alpha)
-    #     Cl_distr, yPnts = wing.calcLiftDistribution(alpha)
-    #     Cl_distr_range.append(Cl_distr)
-    # plotLiftDistribution(yPnts, Cl_distr_range)
-
-    """ CLa """
-    CLa = wing.calcCLa()
-    print(f'CLa = {CLa}')
-
-    """ CLmax """
-    if False:
-        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax()
-        print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
-        plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr)
+        CDi = CL**2/(np.pi*self.A) * (1 + _delta(A))
+        e = 1/(1+_delta(A))
+        return CDi, e
