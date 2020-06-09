@@ -343,18 +343,16 @@ Inputs:
 
 Outputs:
     variables [class]:  The class contains updated values of:
-                         - lfn [float]:         Distance nose - wing leading edge root chord [m]
-                         - xcg_wing [float]:    Wing center of gravity location [m]
-                         - xlemacw [float]:     Distance nose - leading edge Mean Aerodynamic Chord [m]
                          - xcg_min [float]:     Minimum center of gravity location [%MAC]
                          - xcg_max [float]:     Maximum center of gravity location [%MAC]
-                         - ShS_min [float]:     Minimum required horizontal tail surface [-]
+                         - Sh_min [float]:      Minimum required horizontal tail surface [m2]
 '''
 
 def sizing_htail_wingpos(variables,plot=False):
     # Inputs
     lf = 6                          # [m]   Fuselage length
     lfn = 1.5                       # [m]   Distance nose - wing
+    Sw = 23                         # [m2]  Wing surface area
     sweepw = 0                      # [rad] Wing quarter chord sweep angle
     taperw = 0.4                    # [-]   Wing taper ratio
     bw = 16.6                       # [m]   Wing span
@@ -388,6 +386,7 @@ def sizing_htail_wingpos(variables,plot=False):
 
     # Determine minimum horizontal tail surface
     ShS_min = min(ShSmin_lst)
+    Sh_min = ShS_min*Sw
     # Get index of minimum horizontal tail surface
     i = ShSmin_lst.index(ShS_min)
 
@@ -407,7 +406,7 @@ def sizing_htail_wingpos(variables,plot=False):
     #variables.xlemacw = xlemacw
     variables.xcg_min = xcg_min
     variables.xcg_max = xcg_max
-    variables.ShS_min = ShS_min
+    variables.Sh_min = Sh_min
 
     # Create plots
     if plot:
@@ -443,12 +442,12 @@ class Test_variables_sc:
     def __init__(self):
         self.xcg_min = None     # [%MAC]    Minimum center of gravity location
         self.xcg_max = None     # [%MAC]    Maximum center of gravity location
-        self.ShS_min = None     # [m2]      Minimum required horizontal tail surface
+        self.Sh_min = None     # [m2]      Minimum required horizontal tail surface
 
 if __name__ ==  "__main__":
     test_v = Test_variables_sc()
 
     test_v = sizing_htail_wingpos(test_v,plot=True)
-    print('xcg_min =',test_v.xcg_min)
-    print('xcg_max =',test_v.xcg_max)
-    print('Sh/S =',test_v.ShS_min)
+    print('xcg_min =',round(test_v.xcg_min,2),'%MAC')
+    print('xcg_max =',round(test_v.xcg_max,2),'%MAC')
+    print('Sh =',round(test_v.Sh_min,2),'m2')
