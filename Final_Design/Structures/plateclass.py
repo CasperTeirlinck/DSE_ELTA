@@ -133,12 +133,12 @@ class Sheet:
         forcematrix[1:,0] = self.a/(self.ts*self.b*self.material.E)
         for idx, stringer in enumerate(stringers):
             forcematrix[idx+1, idx+1] = -stringer.properties.Le/(stringer.properties.total_area*stringer.properties.material.E)
-        print(forcematrix)
+        # print(forcematrix)
         bvector = np.zeros(size)
         bvector[0] = 1.
-        print(bvector)
+        # print(bvector)
         fractions = np.linalg.solve(forcematrix, bvector)
-        print(fractions)
+        # print(fractions)
         self.stresses = np.copy(fractions)
         self.stresses[0] = self.stresses[0]/(self.ts*self.b)
         for idx, stringer in enumerate(stringers):
@@ -167,27 +167,27 @@ class Sheet:
 if __name__ == "__main__":
 
     Le, a, b, ts = 0.3, 0.3, 0.6, 0.0009
+    materials = {}
+    materials['alu2024'] = MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, name="AA2024", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA2024T81
+    materials['alu5052'] = MatProps(sigma_y=255000000, E=72300000000, poisson=0.33, rho=2.68, name="AA5052", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA5052H38
+    materials['alu6061'] = MatProps(sigma_y=455000000, E=69000000000, poisson=0.33, rho=2.70, name="AA6061", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA6061T913
+    materials['alu6063'] = MatProps(sigma_y=295000000, E=69000000000, poisson=0.33, rho=2.70, name="AA6063", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA6063T835
+    materials['alu7050'] = MatProps(sigma_y=490000000, E=71700000000, poisson=0.33, rho=2.83, name="AA7050", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA7050T765
+    materials['alu7075'] = MatProps(sigma_y=503000000, E=71700000000, poisson=0.33, rho=2.81, name="AA7075", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA7075T6
+    materials['carbonfibre'] = MatProps(sigma_y=600000000, E=70000000000, poisson=0.1, rho=1.60, sigma_comp=570000000, name="carbonfibre") # http://www.performance-composites.com/carbonfibre/mechanicalproperties_2.asp
+    materials['glassfibre'] = MatProps(sigma_y=440000000, E=25000000000, poisson=0.2, rho=1.90, sigma_comp=425000000, name="glassfibre") # http://www.performance-composites.com/carbonfibre/mechanicalproperties_2.asp
 
-    alu2024 = MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, name="AA2024", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA2024T81
-    alu5052 = MatProps(sigma_y=255000000, E=72300000000, poisson=0.33, rho=2.68, name="AA5052", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA5052H38
-    alu6061 = MatProps(sigma_y=455000000, E=69000000000, poisson=0.33, rho=2.70, name="AA6061", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA6061T913
-    alu6063 = MatProps(sigma_y=295000000, E=69000000000, poisson=0.33, rho=2.70, name="AA6063", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA6063T835
-    alu7050 = MatProps(sigma_y=490000000, E=71700000000, poisson=0.33, rho=2.83, name="AA7050", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA7050T765
-    alu7075 = MatProps(sigma_y=503000000, E=71700000000, poisson=0.33, rho=2.81, name="AA7075", alpha=0.8, n=0.6) # http://asm.matweb.com/search/SpecificMaterial.asp?bassnum=MA7075T6
-    # carbonfibre = MatProps(sigma_y=600000000, E=70000000000, poisson=0.1, rho=1.60, simga_comp=570000000, name="carbonfibre") # http://www.performance-composites.com/carbonfibre/mechanicalproperties_2.asp
-    glassfibre = MatProps(sigma_y=440000000, E=25000000000, poisson=0.2, rho=1.90, sigma_comp=425000000, name="glassfibre")
-    # materials = [alu2024, alu5052, alu6061, alu6063, alu7050, alu7075, carbonfibre, glassfibre]
-    materials = [alu2024, alu5052, alu6061, alu6063, alu7050, alu7075, glassfibre]
     functions = [J_Stringer, Z_Stringer]
+    # functions = []
 
-    l = [materials, functions, materials]
+    l = [materials.values(), functions, materials.values()]
 
-    best_ratio = 0
-    best_names = [None, None, None]
+    best_ratio, best_names = 0, []
 
     for stringermat, stringertype, panelmat in itertools.product(*l):
+        # print(stringermat, stringertype, panelmat)
         templatestringer = stringertype(Le=0.4, material=stringermat)
-        stringers = make_stringers([(5,2),(-2,3),(3,4)], templatestringer)
+        stringers = make_stringers([(6,0),(-2,0),(3,0)], templatestringer)
         panel = Sheet(a=a, b=b, ts = ts, material=panelmat)
         make_panel(panel, *stringers)
 
@@ -201,7 +201,7 @@ if __name__ == "__main__":
         print("stiffmat={}, stringertype={}, panelmat={}".format(stringermat.name, stringertype.name, panelmat.name))
         print("mass={} kg, sig_cr={} MPa, sig_cr/mass={} MPa/kg\n".format(mass, round(sigma_cr/1000000, 2), round(sigma_cr/mass, 1)))
 
-    print("Best: {}, {}".format(best_ratio, best_names))
+    print("Best sig_cr/mass={} MPa/kg; {}".format(best_ratio, best_names))
 
     # panel.print_stiffening_effect()
     # print(panel.stringers[0].properties.Ixx)

@@ -103,7 +103,7 @@ class J_Stringer():
 class Z_Stringer(J_Stringer):
     name = "Z_Stringer"
     def __init__(self, Le, material, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
-                 b1=0.005, b2=0.006, b4=0.005):
+                 b1=0.005, b2=0.006, b4=0.005, t3=None, b3=None):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png without the t3 and b3 elements
         super().__init__(Le=Le, material=material, stiff_ratio=stiff_ratio,
                          ts=ts, t1=t1, t2=t2, t4=t4, b1=b1, b2=b2, b4=b4)
@@ -146,9 +146,24 @@ class Stringer:
 
 
 if __name__ == "__main__":
-    aluminium = MatProps(sigma_y=450000000, E=72000000000, poisson=0.3, alpha=0.8, n=0.6)
-    j = J_Stringer(Le=0.4, material=aluminium)
-    print("\nZ_stringer\n")
-    z = Z_Stringer(Le=0.4, material=aluminium)
+    aluminium = MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, name="AA2024", alpha=0.8, n=0.6)
+
+    kwargs = {'t1':0.001, 't2':0.001, 't3':0.001, 't4':0.001, 'b1':0.005, 'b2':0.005, 'b3':0.005, 'b4':0.005}
+
+    j = J_Stringer(Le=0.4, material=aluminium, ts=0.001, **kwargs)
+    z = Z_Stringer(Le=0.4, material=aluminium, ts=0.001, **kwargs)
+
+    print(j.total_area)
+    print(z.total_area)
+
+    factor = sqrt(1.8/2.3)
+    for key in kwargs:
+        kwargs[key] *= factor
+    j = J_Stringer(Le=0.4, material=aluminium, **kwargs)
+
+    print(j.total_area)
+    print(j.Ixx)
+    print(z.Ixx)
+    print(z.Ixx/j.Ixx)
 
 

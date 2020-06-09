@@ -93,7 +93,8 @@ if __name__ == "__main__":
     sensDict = {}
 
     v, _ = do_loop(v)
-    print(v.WTO/9.81, v.b)
+
+    print("WTO={} kg, b={} m".format(v.WTO/9.81, v.b))
     v_dict = vars(v)
     print(v_dict)
 
