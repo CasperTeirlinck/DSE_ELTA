@@ -43,7 +43,7 @@ class WingPlanform:
         y = self.transformTheta(theta, b)
         return 2*S/(b + taper*b)*(1-(1/b - taper/b)*abs(2*y))
 
-    def calcCoefficients(self, N, FuselageIncluded=False): # Verified without lift slope & twist implementation
+    def calcCoefficients(self, N, tipCutoff=0.9, FuselageIncluded=False): # Verified without lift slope & twist implementation
         
         def _calcLiftSlope(theta, b, Cla_r, Cla_t): # Verified
             y = self.transformTheta(theta, b)
@@ -70,7 +70,7 @@ class WingPlanform:
         matrix = np.ndarray((N,N)) # Create sample matrix
         column2 = np.zeros((N,1)) # Create column for twist and fuselage contributions
 
-        samplepoints = np.linspace((self.b/2-np.pi/2)/N, np.pi/2, N)
+        samplepoints = np.linspace(( self.b/2*tipCutoff - np.pi/2)/N, np.pi/2, N)
 
         for i in range(N):
             theta_sample = samplepoints[i] # Use sample point i
@@ -181,17 +181,29 @@ class WingPlanform:
         return croot*self.Cd0_r/(2*cmean) + ctip*self.Cd0_t/(2*cmean)
 
     def calcCDi(self, alpha):
-        
+        ###!!! ONLY RUN FOR TIPCUTOFF < 0.8 !!!###
+
         def _delta(A):
+            deltasum = 0
+            for n in range(1, A.size):
+                i = n
+                n = 2*n+1
+                deltasum += n*(A[i]/A[0])**2
+            return deltasum
+
+        def _nsum(A):
             nsum = 0
             for n in range(A.size):
                 i = n
                 n = 2*n+1
-                nsum += n*(A[i]/A[0])**2
+                nsum += n*A[i]**2
             return nsum
         
         A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
+
         CL = self.calcCL(alpha)
-        CDi = CL**2/(np.pi*self.A) * (1 + _delta(A))
+        CDi1 = (CL**2)/(np.pi*self.A) * (1 + _delta(A))
+        CDi2 = np.pi*self.A * _nsum(A)
+
         e = 1/(1+_delta(A))
-        return CDi, e
+        return CDi1, e   
