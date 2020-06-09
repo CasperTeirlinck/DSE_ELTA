@@ -45,15 +45,15 @@ def bat_print_func(N_bat1, N_bat2,  E_engine, E_avionics, m_bat1 = 0.0, V_bat1 =
           "Number of cells in series:", N_bat1[0], "\nNumber of cells in parallel:", N_bat1[1], "\nTotal number of cells:", N_bat1[2],
           "Energy required :", E_engine/3600/1000, "[kWh]\n"
           "Energy produced :", E_prod1, "[kWh]\n"
-          "Battery 1 mass  :", m_bat1, "[kg]\n"
+          "Battery 1 mass cells  :", m_bat1, "[kg]\n"
           "Battery 1 volume:", V_bat1, "[L]\n"
           "\n------Battery 2------\n"
           "Number of cells in series:", N_bat2[0], "\nNumber of cells in parallel:", N_bat2[1], "\nTotal number of cells:", N_bat2[2],
           "\nEnergy required :", E_avionics/3600/1000, "[kWh]\n"
           "Energy produced :", E_prod2, "[kWh]\n"
-          "Battery 2 mass  :", m_bat2, "[kg]\n"
+          "Battery 2 mass cells  :", m_bat2, "[kg]\n"
           "Battery 2 volume:", V_bat2, "[L]\n"
-          "\nTotal mass:", m_bat1+m_bat2, "[kg]\n")
+          "\nTotal mass:", m_bat1+m_bat2, "* 1.15 =", (m_bat1+m_bat2)*1.15, "[kg]\n")
     return None
 
 
