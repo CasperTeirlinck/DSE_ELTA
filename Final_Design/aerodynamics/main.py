@@ -40,7 +40,7 @@ def plotLiftDistribution(y, Cl_range, y2=None, Cl_range2=None, ClmaxDistr=None, 
 def get_xfoil_data(alpha):
     y = []
     Cl = []
-    with open(os.path.join(os.path.dirname(__file__), f'wing{alpha}.dat'), 'r') as f:
+    with open(os.path.join(os.path.dirname(__file__), f'wingValidationData/wing{alpha}.dat'), 'r') as f:
         for line in f.readlines()[21:58]:
             columns = line.strip().split()
             if len(columns) > 0:
@@ -60,8 +60,8 @@ if __name__ == "__main__":
 
     wing = WingPlanform(v.S, v.A, v.taper, v.twist, v.gamma)
     wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t)
-    wing.calcCoefficients(1000, tipCutoff=0.5) # use for CDi
-    # wing.calcCoefficients(1000, tipCutoff=0.9)
+    # wing.calcCoefficients(1000, tipCutoff=0.5) # use to get sensible CDi
+    wing.calcCoefficients(500, tipCutoff=0.9)
 
     """ Test convergence """
     if False:
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         plt.show()
 
     """ Lift Distribution Validation """
-    if True:
+    if False:
         Cl_distr_range = []
         Cl_distr2_range = []
         yPnts2_range = []
@@ -105,11 +105,12 @@ if __name__ == "__main__":
         plotLiftDistribution(yPnts, Cl_distr_range, y2=yPnts2_range, Cl_range2=Cl_distr2_range, legend=True)
 
     """ CLa """
-    CLa = wing.calcCLa()
-    print(f'CLa = {CLa} [/rad] or {CLa*np.pi/180} [deg]')
+    if False:
+        CLa = wing.calcCLa()
+        print(f'CLa = {CLa} [/rad] or {CLa*np.pi/180} [deg]')
 
     """ CLmax """
-    if False:
-        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax()
+    if True:
+        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax(plotProgression=True)
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr)
