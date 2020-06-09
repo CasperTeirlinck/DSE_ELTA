@@ -146,13 +146,12 @@ class WingPlanform:
         CLa = np.pi*self.A*self.coeff[0][0]
         return CLa
     
-    def calcCLmax(self):
+    def calcCLmax(self, plotProgression=False):
 
         alphaRange = np.radians(np.arange(0, 20, 0.1))
         ClmaxDistr = lambda y: (self.Clmax_t - self.Clmax_r)/(self.b/2) * abs(y) + self.Clmax_r
 
         alphaMax = None
-
         for alpha in alphaRange:
             if alphaMax: break
 
@@ -165,6 +164,38 @@ class WingPlanform:
                     yPntsMax = yPnts
                     CLmax = self.calcCL(alphaMax)
                     break
+
+        stallLocs = None
+        stallAlphas = None
+        if plotProgression:
+            stallLocs = []
+            stallAlphas = []
+            for alpha in np.arange(alphaMax, alphaRange[-1], np.radians(0.1)):
+                Cl_distr, yPnts = self.calcLiftDistribution(alpha, 100)
+                Cl_distr = np.array_split(Cl_distr, 2)[1]
+                yPnts = np.array_split(yPnts, 2)[1]
+
+                diff = np.abs(Cl_distr - ClmaxDistr(yPnts))
+                idx = np.argmin(diff)
+
+                stallAlphas.append(alpha)
+                stallLocs.append(yPnts[idx])
+            
+            fig = plt.figure(figsize=(10, 4.5))
+            ax1 = fig.add_subplot(111)
+
+            ax1.plot(stallLocs, stallAlphas, linewidth=2, color='red', marker='v', fillstyle='full', markevery=2)
+            ax1.plot(-1*np.array(stallLocs), stallAlphas, linewidth=2, color='red', marker='v', fillstyle='full', markevery=2)
+
+            ax1.axvline(x=0, linewidth=2, color='black')
+            ax1.axhline(y=0, linewidth=2, color='black')
+            ax1.set_xlabel('Wingspan [m]')
+            ax1.set_ylabel('alpha [deg]')
+            ax1.xaxis.grid(color='black', linestyle='--')
+            ax1.yaxis.grid(color='black', linestyle='--')
+            fig.suptitle('Spanwise Stall Progression', fontsize=16, y=0.97)
+            plt.tight_layout(rect=[0, 0, 1, 0.93])
+            plt.show()
 
         if not alphaMax: return None
         return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr
