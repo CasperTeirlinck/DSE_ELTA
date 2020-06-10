@@ -6,24 +6,16 @@ import os
 
 from WingPlanform import WingPlanform
 
-def plotLiftDistribution(y, Cl_range, y2=None, Cl_range2=None, ClmaxDistr=None, legend=False):
+def plotLiftDistribution(y, Cl_range, ClmaxDistr=None, legend=False):
     fig = plt.figure(figsize=(10, 4.5))
     ax1 = fig.add_subplot(111)
-
-    if (y2 and Cl_range2):
-        i = 0
-        for y2, distr2 in zip(y2, Cl_range2):
-            marker = 'o' if i == 0 else 'v' if i == 1 else 's'
-            alpha = 2 if i == 0 else 6 if i == 1 else 10
-            ax1.plot(y2, distr2, linewidth=2, color='black', marker=marker, fillstyle='none', markevery=2, label=f'Xflr5 @ alpha={alpha}')
-            i += 1
 
     i = 0
     for distr in Cl_range:
         marker = 'o' if i == 0 else 'v' if i == 1 else 's'
         alpha = 2 if i == 0 else 6 if i == 1 else 10
-        ax1.plot(y, distr, linewidth=2, color='green', marker=marker, fillstyle='full', markevery=5, label=f'Model @ alpha={alpha}')
-        if ClmaxDistr: ax1.plot(y, ClmaxDistr(y), linewidth=1.5, linestyle='-.', color='black')
+        ax1.plot(y, distr, linewidth=2, color='green', marker=marker, fillstyle='full', markevery=5, label=f'Lift ditribution @ alpha={alpha}')
+        if ClmaxDistr: ax1.plot(y, ClmaxDistr(y), linewidth=1.5, linestyle='-.', color='black', label='Local stall limit')
         i += 1
 
     ax1.axvline(x=0, linewidth=2, color='black')
@@ -33,7 +25,7 @@ def plotLiftDistribution(y, Cl_range, y2=None, Cl_range2=None, ClmaxDistr=None, 
     ax1.xaxis.grid(color='black', linestyle='--')
     ax1.yaxis.grid(color='black', linestyle='--')
     if legend: plt.legend(loc='lower center')
-    fig.suptitle('Model Lift Distribution vs Xflr5', fontsize=16, y=0.97)
+    fig.suptitle('Model Lift Distribution', fontsize=16, y=0.97)
     plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()
 
@@ -63,9 +55,9 @@ if __name__ == "__main__":
     # wing.calcCoefficients(1000, tipCutoff=0.5) # use to get sensible CDi
     wing.calcCoefficients(500, tipCutoff=0.9)
     
-    alpha = np.radians(5)
-    Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
-    plotLiftDistribution(yPnts, [Cl_distr])
+    # alpha = np.radians(5)
+    # Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
+    # plotLiftDistribution(yPnts, [Cl_distr])
 
     """ CLa """
     if False:
@@ -73,7 +65,7 @@ if __name__ == "__main__":
         print(f'CLa = {CLa} [/rad] or {CLa*np.pi/180} [deg]')
 
     """ CLmax """
-    if False:
+    if True:
         CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax(plotProgression=True)
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
-        plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr)
+        plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr, legend=True)

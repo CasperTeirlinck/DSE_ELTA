@@ -170,9 +170,9 @@ class WingPlanform:
         stallAlphas = None
         if plotProgression:
             stallLocs = []
-            stallLocsSmooth = []
             stallAlphas = []
-            ClmaxDistrSmooth = lambda y: (self.deltaAlphaStall_t - self.deltaAlphaStall_r)/(self.b/2) * abs(y) + self.deltaAlphaStall_r
+            stallAlphasSmooth = []
+            stallAlphaDistrSmooth = lambda y: (self.deltaAlphaStall_t - self.deltaAlphaStall_r)/(self.b/2) * abs(y) + self.deltaAlphaStall_r
 
             for alpha in np.arange(alphaMax, alphaRange[-1], np.radians(0.1)):
                 Cl_distr, yPnts = self.calcLiftDistribution(alpha, 100)
@@ -183,16 +183,17 @@ class WingPlanform:
                 idx = np.argmin(diff)
 
                 stallAlphas.append(alpha)
+                stallAlphasSmooth.append(alpha + stallAlphaDistrSmooth(yPnts[idx]))
                 stallLocs.append(yPnts[idx])
-                stallLocsSmooth.append(yPnts[idx] + ClmaxDistrSmooth(yPnts[idx]))
             
             fig = plt.figure(figsize=(10, 4.5))
             ax1 = fig.add_subplot(111)
 
-            ax1.plot(stallLocs, stallAlphas, linewidth=2, color='red', marker='v', fillstyle='full', markevery=4)
-            ax1.plot(-1*np.array(stallLocs), stallAlphas, linewidth=2, color='red', marker='v', fillstyle='full', markevery=4)
+            ax1.plot(stallLocs, np.degrees(stallAlphas), linewidth=2, color='red', marker='o', fillstyle='none', markevery=4, label='stall onset')
+            ax1.plot(-1*np.array(stallLocs), np.degrees(stallAlphas), linewidth=2, color='red', marker='o', fillstyle='none', markevery=4)
             
-            ax1.plot(stallLocsSmooth, stallAlphas, linewidth=2, color='blue', marker='v', fillstyle='full', markevery=4)
+            ax1.plot(stallLocs, np.degrees(stallAlphasSmooth), linewidth=2, color='blue', linestyle='-.', label='full stall')
+            ax1.plot(-1*np.array(stallLocs), np.degrees(stallAlphasSmooth), linewidth=2, color='blue', linestyle='-.')
 
             ax1.axvline(x=0, linewidth=2, color='black')
             ax1.axhline(y=0, linewidth=2, color='black')
@@ -200,6 +201,7 @@ class WingPlanform:
             ax1.set_ylabel('alpha [deg]')
             ax1.xaxis.grid(color='black', linestyle='--')
             ax1.yaxis.grid(color='black', linestyle='--')
+            plt.legend(loc='lower right')
             fig.suptitle('Spanwise Stall Progression', fontsize=16, y=0.97)
             plt.tight_layout(rect=[0, 0, 1, 0.93])
             plt.show()
