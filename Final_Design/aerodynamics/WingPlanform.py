@@ -39,10 +39,12 @@ class WingPlanform:
 
     def transformSpan(self, y, b): # Verified
         return -np.arccos(2*y/b)
-
+    
     def calculateChord(self, theta, taper, S, b): # Verified
         y = self.transformTheta(theta, b)
-        return 2*S/(b + taper*b)*(1-(1/b - taper/b)*abs(2*y))
+        cr = (2*S)/(b*(1+taper))
+        ct = taper*cr
+        return 2*(ct-cr)/b * abs(y) + cr
 
     def calcCoefficients(self, N, tipCutoff=0.9, FuselageIncluded=False): # Verified without lift slope & twist implementation
         
@@ -147,7 +149,7 @@ class WingPlanform:
         CLa = np.pi*self.A*self.coeff[0][0]
         return CLa
     
-    def calcCLmax(self, plotProgression=False):
+    def calcCLmax(self, plotProgression=False, printMaxLoc=False):
 
         alphaStep = 0.1
         alphaRange = np.radians(np.arange(0, 20, alphaStep))
@@ -158,6 +160,8 @@ class WingPlanform:
             if alphaMax: break
 
             Cl_distr, yPnts = self.calcLiftDistribution(alpha, 100)
+            Cl_distr = np.array_split(Cl_distr, 2)[1]
+            yPnts = np.array_split(yPnts, 2)[1]
 
             for Cl, y in zip(Cl_distr, yPnts):
                 if np.abs(Cl - ClmaxDistr(y)) <= 0.01:
@@ -165,6 +169,7 @@ class WingPlanform:
                     Cl_distrMax = Cl_distr
                     yPntsMax = yPnts
                     CLmax = self.calcCL(alphaMax)
+                    if printMaxLoc: print(f'CLmax location @ y = {round(y, 2)}')
                     break
 
         if plotProgression:
