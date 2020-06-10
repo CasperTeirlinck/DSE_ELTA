@@ -59,50 +59,13 @@ def calc_err(x1, y1, x2, y2, errrange, rangestep):
 if __name__ == "__main__":
 
     wing = WingPlanform(v.S, v.A, v.taper, v.twist, v.gamma)
-    wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t)
+    wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t, v.deltaAlphaStall_r, v.deltaAlphaStall_t)
     # wing.calcCoefficients(1000, tipCutoff=0.5) # use to get sensible CDi
     wing.calcCoefficients(500, tipCutoff=0.9)
-
-    """ Test convergence """
-    if False:
-        CLlist = []
-        alpha = np.radians(13)
-        Nmax = 100
-        for N in range(1, Nmax):
-            coeff = wing.calcCoefficients(N)
-            A1 = coeff[0][0]*alpha + coeff[0][1]
-            CL = np.pi * v.A * A1
-            print(f'N: {N}')
-            CLlist.append(CL)
-        plt.plot(range(1, Nmax), CLlist)
-        plt.show()
-
-    """ Lift Distribution Validation """
-    if False:
-        Cl_distr_range = []
-        Cl_distr2_range = []
-        yPnts2_range = []
-        for a in [2, 6, 10]:
-            alpha = np.radians(a)
-            Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
-            yPnts2, Cl_distr2 = get_xfoil_data(a)
-            Cl_distr_range.append(Cl_distr)
-            Cl_distr2_range.append(Cl_distr2)
-            yPnts2_range.append(yPnts2)
-
-            CL = wing.calcCL(alpha)
-            print(f'CL: {round(CL, 2)} @ a = {a}')
-
-            CDi1, e = wing.calcCDi(alpha)
-            # wing.calcCoefficients(1000, tipCutoff=0.5)
-            print(f'CDi: {round(CDi1, 3)} @ a = {a}')
-            print(f'e: {round(e, 2)} @ a = {a}')
-
-            err_range = (yPnts[0], yPnts[-1])
-            err = calc_err(yPnts, Cl_distr, yPnts2, Cl_distr2, err_range, 0.1)
-            print(f'error: {round(err, 1)}% @ a = {a}\n')
-
-        plotLiftDistribution(yPnts, Cl_distr_range, y2=yPnts2_range, Cl_range2=Cl_distr2_range, legend=True)
+    
+    alpha = np.radians(5)
+    Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
+    plotLiftDistribution(yPnts, [Cl_distr])
 
     """ CLa """
     if False:
@@ -110,7 +73,7 @@ if __name__ == "__main__":
         print(f'CLa = {CLa} [/rad] or {CLa*np.pi/180} [deg]')
 
     """ CLmax """
-    if True:
+    if False:
         CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax(plotProgression=True)
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr)

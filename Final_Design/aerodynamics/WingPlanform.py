@@ -22,7 +22,7 @@ class WingPlanform:
 
         self.coeff = None
 
-    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, Cd0_r, Cd0_t):
+    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, Cd0_r, Cd0_t, deltaAlphaStall_r=0, deltaAlphaStall_t=0):
         self.Clmax_r = Clmax_r
         self.Clmax_t = Clmax_t
         self.Cd0_r = Cd0_r
@@ -31,6 +31,8 @@ class WingPlanform:
         self.Cla_t = Cla_t
         self.a0_r = a0_r
         self.a0_t = a0_t
+        self.deltaAlphaStall_r = deltaAlphaStall_r
+        self.deltaAlphaStall_t = deltaAlphaStall_t
 
     def transformTheta(self, theta, b): # Verified
         return -.5*b*np.cos(theta)
@@ -168,7 +170,10 @@ class WingPlanform:
         stallAlphas = None
         if plotProgression:
             stallLocs = []
+            stallLocsSmooth = []
             stallAlphas = []
+            ClmaxDistrSmooth = lambda y: (self.deltaAlphaStall_t - self.deltaAlphaStall_r)/(self.b/2) * abs(y) + self.deltaAlphaStall_r
+
             for alpha in np.arange(alphaMax, alphaRange[-1], np.radians(0.1)):
                 Cl_distr, yPnts = self.calcLiftDistribution(alpha, 100)
                 Cl_distr = np.array_split(Cl_distr, 2)[1]
@@ -179,12 +184,15 @@ class WingPlanform:
 
                 stallAlphas.append(alpha)
                 stallLocs.append(yPnts[idx])
+                stallLocsSmooth.append(yPnts[idx] + ClmaxDistrSmooth(yPnts[idx]))
             
             fig = plt.figure(figsize=(10, 4.5))
             ax1 = fig.add_subplot(111)
 
-            ax1.plot(stallLocs, stallAlphas, linewidth=2, color='red', marker='v', fillstyle='full', markevery=2)
-            ax1.plot(-1*np.array(stallLocs), stallAlphas, linewidth=2, color='red', marker='v', fillstyle='full', markevery=2)
+            ax1.plot(stallLocs, stallAlphas, linewidth=2, color='red', marker='v', fillstyle='full', markevery=4)
+            ax1.plot(-1*np.array(stallLocs), stallAlphas, linewidth=2, color='red', marker='v', fillstyle='full', markevery=4)
+            
+            ax1.plot(stallLocsSmooth, stallAlphas, linewidth=2, color='blue', marker='v', fillstyle='full', markevery=4)
 
             ax1.axvline(x=0, linewidth=2, color='black')
             ax1.axhline(y=0, linewidth=2, color='black')
