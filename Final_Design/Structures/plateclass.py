@@ -22,10 +22,9 @@ def make_stringers(positions, stringerinstance):
     return stringers
 
 
-
-def make_panel(panel, *args):
-    for arg in args:
-        panel.addStringer(arg)
+def make_panel(panel, *stringers):
+    for stringer in stringers:
+        panel.addStringer(stringer)
     panel.recalculate_stringer_effects()
     return None
 
@@ -186,8 +185,10 @@ if __name__ == "__main__":
 
     for stringermat, stringertype, panelmat in itertools.product(*l):
         # print(stringermat, stringertype, panelmat)
+
         templatestringer = stringertype(Le=0.4, material=stringermat)
         stringers = make_stringers([(6,0),(-2,0),(3,0)], templatestringer)
+
         panel = Sheet(a=a, b=b, ts = ts, material=panelmat)
         make_panel(panel, *stringers)
 
