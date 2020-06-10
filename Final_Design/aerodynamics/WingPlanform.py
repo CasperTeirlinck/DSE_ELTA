@@ -149,7 +149,8 @@ class WingPlanform:
     
     def calcCLmax(self, plotProgression=False):
 
-        alphaRange = np.radians(np.arange(0, 20, 0.1))
+        alphaStep = 0.1
+        alphaRange = np.radians(np.arange(0, 20, alphaStep))
         ClmaxDistr = lambda y: (self.Clmax_t - self.Clmax_r)/(self.b/2) * abs(y) + self.Clmax_r
 
         alphaMax = None
@@ -166,34 +167,35 @@ class WingPlanform:
                     CLmax = self.calcCL(alphaMax)
                     break
 
-        stallLocs = None
-        stallAlphas = None
         if plotProgression:
-            stallLocs = []
-            stallAlphas = []
-            stallAlphasSmooth = []
             stallAlphaDistrSmooth = lambda y: (self.deltaAlphaStall_t - self.deltaAlphaStall_r)/(self.b/2) * abs(y) + self.deltaAlphaStall_r
+            stallProgression = []
+            stallProgressionSmooth = []
 
-            for alpha in np.arange(alphaMax, alphaRange[-1], np.radians(0.1)):
+            for alpha in np.arange(alphaMax, alphaRange[-1], np.radians(alphaStep)):
                 Cl_distr, yPnts = self.calcLiftDistribution(alpha, 100)
                 Cl_distr = np.array_split(Cl_distr, 2)[1]
                 yPnts = np.array_split(yPnts, 2)[1]
 
-                diff = np.abs(Cl_distr - ClmaxDistr(yPnts))
-                idx = np.argmin(diff)
+                idxs = np.argwhere(np.diff(np.sign(Cl_distr - ClmaxDistr(yPnts)))).flatten()
 
-                stallAlphas.append(alpha)
-                stallAlphasSmooth.append(alpha + stallAlphaDistrSmooth(yPnts[idx]))
-                stallLocs.append(yPnts[idx])
-            
+                for idx in idxs:
+                    stallProgression.append([yPnts[idx], alpha])
+                    stallProgressionSmooth.append([yPnts[idx], alpha + stallAlphaDistrSmooth(yPnts[idx])])
+
+            stallProgression = sorted(stallProgression, key=lambda dataPnt: dataPnt[0])
+            stallProgression = np.array(stallProgression)
+            stallProgressionSmooth = sorted(stallProgressionSmooth, key=lambda dataPnt: dataPnt[0])
+            stallProgressionSmooth = np.array(stallProgressionSmooth)
+
             fig = plt.figure(figsize=(10, 4.5))
             ax1 = fig.add_subplot(111)
 
-            ax1.plot(stallLocs, np.degrees(stallAlphas), linewidth=2, color='red', marker='o', fillstyle='none', markevery=4, label='stall onset')
-            ax1.plot(-1*np.array(stallLocs), np.degrees(stallAlphas), linewidth=2, color='red', marker='o', fillstyle='none', markevery=4)
-            
-            ax1.plot(stallLocs, np.degrees(stallAlphasSmooth), linewidth=2, color='blue', linestyle='-.', label='full stall')
-            ax1.plot(-1*np.array(stallLocs), np.degrees(stallAlphasSmooth), linewidth=2, color='blue', linestyle='-.')
+            ax1.plot(stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='', fillstyle='none', markevery=4, label='stall onset')
+            ax1.plot(-1*stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='', fillstyle='none', markevery=4)
+
+            ax1.plot(stallProgressionSmooth[:,0], np.degrees(stallProgressionSmooth[:,1]), linewidth=2, color='blue', linestyle='-.', label='full stall')
+            ax1.plot(-1*stallProgressionSmooth[:,0], np.degrees(stallProgressionSmooth[:,1]), linewidth=2, color='blue', linestyle='-.')
 
             ax1.axvline(x=0, linewidth=2, color='black')
             ax1.axhline(y=0, linewidth=2, color='black')

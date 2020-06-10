@@ -29,25 +29,6 @@ def plotLiftDistribution(y, Cl_range, ClmaxDistr=None, legend=False):
     plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()
 
-def get_xfoil_data(alpha):
-    y = []
-    Cl = []
-    with open(os.path.join(os.path.dirname(__file__), f'wingValidationData/wing{alpha}.dat'), 'r') as f:
-        for line in f.readlines()[21:58]:
-            columns = line.strip().split()
-            if len(columns) > 0:
-                y.append(float(columns[0]))
-                Cl.append(float(columns[3]))
-    return y, Cl
-
-def calc_err(x1, y1, x2, y2, errrange, rangestep):
-    ipx = np.arange(*errrange, rangestep)
-    ipy1 = interp1d(x1, y1, kind='linear', fill_value='extrapolate')(ipx)
-    ipy2 = interp1d(x2, y2, kind='linear', fill_value='extrapolate')(ipx)
-    err = np.abs(ipy2 - ipy1)
-    rmsd = np.sqrt(np.sum(err**2 / err.size)) / (np.max(y2) - np.min(y2)) * 100 # https://en.wikipedia.org/wiki/Root-mean-square_deviation
-    return rmsd
-
 if __name__ == "__main__":
 
     wing = WingPlanform(v.S, v.A, v.taper, v.twist, v.gamma)
