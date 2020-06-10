@@ -1,6 +1,5 @@
 import numpy as np
 from numpy import linalg as la
-import variables_aero as v
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import os
@@ -23,7 +22,7 @@ class WingPlanform:
 
         self.coeff = None
 
-    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, Cd0_r, Cd0_t):
+    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, Cd0_r, Cd0_t, deltaAlphaStall_r=0, deltaAlphaStall_t=0):
         self.Clmax_r = Clmax_r
         self.Clmax_t = Clmax_t
         self.Cd0_r = Cd0_r
@@ -32,18 +31,22 @@ class WingPlanform:
         self.Cla_t = Cla_t
         self.a0_r = a0_r
         self.a0_t = a0_t
+        self.deltaAlphaStall_r = deltaAlphaStall_r
+        self.deltaAlphaStall_t = deltaAlphaStall_t
 
     def transformTheta(self, theta, b): # Verified
         return -.5*b*np.cos(theta)
 
     def transformSpan(self, y, b): # Verified
         return -np.arccos(2*y/b)
-
+    
     def calculateChord(self, theta, taper, S, b): # Verified
         y = self.transformTheta(theta, b)
-        return 2*S/(b + taper*b)*(1-(1/b - taper/b)*abs(2*y))
+        cr = (2*S)/(b*(1+taper))
+        ct = taper*cr
+        return 2*(ct-cr)/b * abs(y) + cr
 
-    def calcCoefficients(self, N, FuselageIncluded=False): # Verified without lift slope & twist implementation
+    def calcCoefficients(self, N, tipCutoff=0.9, FuselageIncluded=False): # Verified without lift slope & twist implementation
         
         def _calcLiftSlope(theta, b, Cla_r, Cla_t): # Verified
             y = self.transformTheta(theta, b)
@@ -70,7 +73,7 @@ class WingPlanform:
         matrix = np.ndarray((N,N)) # Create sample matrix
         column2 = np.zeros((N,1)) # Create column for twist and fuselage contributions
 
-        samplepoints = np.linspace((self.b/2-np.pi/2)/N, np.pi/2, N)
+        samplepoints = np.linspace(( self.b/2*tipCutoff - np.pi/2)/N, np.pi/2, N)
 
         for i in range(N):
             theta_sample = samplepoints[i] # Use sample point i
@@ -146,17 +149,19 @@ class WingPlanform:
         CLa = np.pi*self.A*self.coeff[0][0]
         return CLa
     
-    def calcCLmax(self):
+    def calcCLmax(self, plotProgression=False, printMaxLoc=False):
 
-        alphaRange = np.radians(np.arange(0, 20, 0.1))
+        alphaStep = 0.1
+        alphaRange = np.radians(np.arange(0, 20, alphaStep))
         ClmaxDistr = lambda y: (self.Clmax_t - self.Clmax_r)/(self.b/2) * abs(y) + self.Clmax_r
 
         alphaMax = None
-
         for alpha in alphaRange:
             if alphaMax: break
 
             Cl_distr, yPnts = self.calcLiftDistribution(alpha, 100)
+            Cl_distr = np.array_split(Cl_distr, 2)[1]
+            yPnts = np.array_split(yPnts, 2)[1]
 
             for Cl, y in zip(Cl_distr, yPnts):
                 if np.abs(Cl - ClmaxDistr(y)) <= 0.01:
@@ -164,7 +169,49 @@ class WingPlanform:
                     Cl_distrMax = Cl_distr
                     yPntsMax = yPnts
                     CLmax = self.calcCL(alphaMax)
+                    if printMaxLoc: print(f'CLmax location @ y = {round(y, 2)}')
                     break
+
+        if plotProgression:
+            stallAlphaDistrSmooth = lambda y: (self.deltaAlphaStall_t - self.deltaAlphaStall_r)/(self.b/2) * abs(y) + self.deltaAlphaStall_r
+            stallProgression = []
+            stallProgressionSmooth = []
+
+            for alpha in np.arange(alphaMax, alphaRange[-1], np.radians(alphaStep)):
+                Cl_distr, yPnts = self.calcLiftDistribution(alpha, 100)
+                Cl_distr = np.array_split(Cl_distr, 2)[1]
+                yPnts = np.array_split(yPnts, 2)[1]
+
+                idxs = np.argwhere(np.diff(np.sign(Cl_distr - ClmaxDistr(yPnts)))).flatten()
+
+                for idx in idxs:
+                    stallProgression.append([yPnts[idx], alpha])
+                    stallProgressionSmooth.append([yPnts[idx], alpha + stallAlphaDistrSmooth(yPnts[idx])])
+
+            stallProgression = sorted(stallProgression, key=lambda dataPnt: dataPnt[0])
+            stallProgression = np.array(stallProgression)
+            stallProgressionSmooth = sorted(stallProgressionSmooth, key=lambda dataPnt: dataPnt[0])
+            stallProgressionSmooth = np.array(stallProgressionSmooth)
+
+            fig = plt.figure(figsize=(10, 4.5))
+            ax1 = fig.add_subplot(111)
+
+            ax1.plot(stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='', fillstyle='none', markevery=4, label='stall onset')
+            ax1.plot(-1*stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='', fillstyle='none', markevery=4)
+
+            ax1.plot(stallProgressionSmooth[:,0], np.degrees(stallProgressionSmooth[:,1]), linewidth=2, color='blue', linestyle='-.', label='full stall')
+            ax1.plot(-1*stallProgressionSmooth[:,0], np.degrees(stallProgressionSmooth[:,1]), linewidth=2, color='blue', linestyle='-.')
+
+            ax1.axvline(x=0, linewidth=2, color='black')
+            ax1.axhline(y=0, linewidth=2, color='black')
+            ax1.set_xlabel('Wingspan [m]')
+            ax1.set_ylabel('alpha [deg]')
+            ax1.xaxis.grid(color='black', linestyle='--')
+            ax1.yaxis.grid(color='black', linestyle='--')
+            plt.legend(loc='lower right')
+            fig.suptitle('Spanwise Stall Progression', fontsize=16, y=0.97)
+            plt.tight_layout(rect=[0, 0, 1, 0.93])
+            plt.show()
 
         if not alphaMax: return None
         return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr
@@ -181,17 +228,29 @@ class WingPlanform:
         return croot*self.Cd0_r/(2*cmean) + ctip*self.Cd0_t/(2*cmean)
 
     def calcCDi(self, alpha):
-        
+        ###!!! ONLY RUN FOR TIPCUTOFF < 0.8 !!!###
+
         def _delta(A):
+            deltasum = 0
+            for n in range(1, A.size):
+                i = n
+                n = 2*n+1
+                deltasum += n*(A[i]/A[0])**2
+            return deltasum
+
+        def _nsum(A):
             nsum = 0
             for n in range(A.size):
                 i = n
                 n = 2*n+1
-                nsum += n*(A[i]/A[0])**2
+                nsum += n*A[i]**2
             return nsum
         
         A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
+
         CL = self.calcCL(alpha)
-        CDi = CL**2/(np.pi*self.A) * (1 + _delta(A))
+        CDi1 = (CL**2)/(np.pi*self.A) * (1 + _delta(A))
+        CDi2 = np.pi*self.A * _nsum(A)
+
         e = 1/(1+_delta(A))
-        return CDi, e
+        return CDi1, e   

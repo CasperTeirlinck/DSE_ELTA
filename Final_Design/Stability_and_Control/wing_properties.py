@@ -49,6 +49,27 @@ def chord(y,b,sweepc4,taper,cr):
 
 
 '''
+XMAC() :                Calculates the distance wing leading edge root chord - leading edge of the MAC
+
+Inputs:
+    b [float]:          Span [m]
+    sweepc4 [float]:    Quarter chord sweep angle [rad]
+    taper [float]:      Taper ratio [-]
+    cr [float]:         Root chord [m]
+
+Outputs:
+    xmac [float]:       Distance LE root chord - LE of the MAC [m]
+
+V&V:    Verified
+'''
+
+def XMAC(b,sweepc4,taper,cr):
+    sweepLE = sweep(0,b,sweepc4,taper,cr)
+    ymac = (b/6)*((1+2*taper)/(1+taper))
+    return ymac*tan(sweepLE)
+
+
+'''
 XLEMAC() :              Calculates the distance nose - leading edge of the MAC
 
 Inputs:
@@ -59,16 +80,11 @@ Inputs:
     taper [float]:      Taper ratio [-]
 
 Outputs:
-    xmac [float]:       Distance LE root chord - LE of the MAC [m]
     xlemac [float]:     Distance nose - leading edge of the MAC [m]
 
 V&V:    Verified
 '''
 
 def XLEMAC(lfn,b,sweepc4,taper,cr):
-    sweepLE = sweep(0,b,sweepc4,taper,cr)
-    ymac = (b/6)*((1+2*taper)/(1+taper))
-    xmac = ymac*tan(sweepLE)
-    xlemac = lfn + xmac
-
-    return xlemac,xmac
+    xmac = XMAC(b,sweepc4,taper,cr)
+    return lfn + xmac
