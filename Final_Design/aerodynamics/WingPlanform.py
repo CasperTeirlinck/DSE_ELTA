@@ -1,6 +1,5 @@
 import numpy as np
 from numpy import linalg as la
-import variables_aero as v
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import os

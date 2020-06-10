@@ -1,5 +1,5 @@
 import numpy as np
-import variables as v
+import variables_validation as v
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import os
@@ -111,6 +111,6 @@ if __name__ == "__main__":
 
     """ CLmax """
     if True:
-        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax(plotProgression=True)
+        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax()
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr)
