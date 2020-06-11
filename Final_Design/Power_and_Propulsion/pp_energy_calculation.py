@@ -100,8 +100,9 @@ def energy_avionics(variables):
     intercom = 8.4
     portible_instrument_panel = 12
     engine_computer = 6.1
+    lights = 28
 
-    total_power = pfd_mfd + autopilot + intercom + portible_instrument_panel + engine_computer
+    total_power = pfd_mfd + autopilot + intercom + portible_instrument_panel + engine_computer + lights
     total_time = 2.5*3600 + 2*330 + (914.4/2 + 30) # 2.5h endurance + 2*taxi phase + climb phase
     avionics_energy = total_power * total_time
     return avionics_energy/variables.eff_batt
