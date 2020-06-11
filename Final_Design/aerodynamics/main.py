@@ -22,13 +22,12 @@ def optimize():
             
             CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, stallpos = wing.calcCLmax()
             espan = wing.calcespan()
-
-            # if stallpos <= 0.5*wing.b and CLmax >= 1.40:
-            if True:
-                WingList.append([taper, twist, CLmax, stallpos, alphaMax, espan])
+            e_oswald = wing.calcOswald(v.w_fuselage,v.CD0,v.h_wl,v.kwl,True)
+            if True: #stallpos <= 0.5*wing.b and CLmax >= 1.40:
+                WingList.append([taper, twist, CLmax, stallpos, alphaMax, espan, e_oswald])
 
     with open('Final_Design/aerodynamics/winglist.csv', 'w') as file:
-        file.write('taper, twist, CLmax, stallpos, alphaMax, espan\n')
+        file.write('taper, twist, CLmax, stallpos, alphaMax, espan, e_oswald\n')
         for wingOption in WingList:
             for prop in wingOption:
                 file.write(f'{round(prop, 3)}, ')

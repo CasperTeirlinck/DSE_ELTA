@@ -290,3 +290,17 @@ class WingPlanform:
 
         return alphai_distr, yPnts
 
+    def calcOswald(self,fuselagewidth,CD0,h_wl,kwl,has_winglet=False):
+        k_fuselage = 1-2*(fuselagewidth/self.b)**2
+        Q = 1/(self.calcespan()*k_fuselage)
+        P = 0.38*CD0
+        k_winglet = (1+2*h_wl/(kwl*self.b))**2
+        
+        if not has_winglet:
+            return 1/(Q+P*np.pi*self.A)
+
+        else:
+            return k_winglet/(Q+P*np.pi*self.A)
+
+
+
