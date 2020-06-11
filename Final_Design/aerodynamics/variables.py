@@ -6,14 +6,13 @@ S = 15 # [m2] Wing surface
 taper = 0.9 # [-] Taper ratio
 twist = np.radians(2)
 gamma = 0
-"""
+
 # NACA 651412
-Clmax_t = 1.5
-Cla_t = 6.016
-Cd0_t = 0.0055
-a0_t = np.radians(-3)
-deltaAlphaStall_t = np.radians(2.5)
-"""
+# Clmax_t = 1.5
+# Cla_t = 6.016
+# Cd0_t = 0.0055
+# a0_t = np.radians(-3)
+# deltaAlphaStall_t = np.radians(2.5)
 
 # NACA 4415
 Clmax_r = 1.6
