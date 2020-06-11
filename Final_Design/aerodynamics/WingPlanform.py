@@ -156,6 +156,7 @@ class WingPlanform:
         ClmaxDistr = lambda y: (self.Clmax_t - self.Clmax_r)/(self.b/2) * abs(y) + self.Clmax_r
 
         alphaMax = None
+        alphaMaxLoc = None
         for alpha in alphaRange:
             if alphaMax: break
 
@@ -169,7 +170,8 @@ class WingPlanform:
                     Cl_distrMax = Cl_distr
                     yPntsMax = yPnts
                     CLmax = self.calcCL(alphaMax)
-                    if printMaxLoc: print(f'CLmax location @ y = {round(y, 2)}')
+                    alphaMaxLoc = y
+                    if printMaxLoc: print(f'CLmax location @ y = {round(alphaMaxLoc, 2)}')
                     break
 
         if plotProgression:
@@ -214,7 +216,7 @@ class WingPlanform:
             plt.show()
 
         if not alphaMax: return None
-        return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr
+        return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, alphaMaxLoc
 
     def calcCD0wing(self, thicknesstochord, frictioncoefficient=0.0055):
         formfactor = 1 + 2.7*thicknesstochord + 100*thicknesstochord**4
@@ -254,3 +256,25 @@ class WingPlanform:
 
         e = 1/(1+_delta(A))
         return CDi1, e   
+
+    def calcAlphai(self, alpha, N):
+
+        def _alphai(A, theta):
+            nsum = 0
+            for n in range(A.size):
+                i = n
+                n = 2*n+1
+                nsum += n*A[i]* np.sin(n*theta)/np.sin(theta)
+            return nsum
+
+        A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
+
+        alphai_distr = []
+        tipCutoff = 0.9
+        yPnts = np.linspace(-self.b/2 * tipCutoff, self.b/2 * tipCutoff, N)
+        for y in yPnts:
+            theta = self.transformSpan(y, self.b)
+            alphai_distr.append(-_alphai(A, theta))
+
+        return alphai_distr, yPnts
+
