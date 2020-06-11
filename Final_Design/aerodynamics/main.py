@@ -29,9 +29,7 @@ def plotLiftDistribution(y, Cl_range, ClmaxDistr=None, legend=False):
     plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()
 
-if __name__ == "__main__":
-    # OPTIMISATION LOOP
-    # WingList = np.array([])
+def optimize():
     WingList = []
     for taper in np.linspace(0.1,1.0,11):
         for twist in np.linspace(0,np.radians(6),7):
@@ -40,30 +38,68 @@ if __name__ == "__main__":
 
             wing = WingPlanform(v.S, v.A, taper, twist, v.gamma)
             wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t, v.deltaAlphaStall_r, v.deltaAlphaStall_t)
-    # wing.calcCoefficients(1000, tipCutoff=0.5) # use to get sensible CDi
             wing.calcCoefficients(200, tipCutoff=0.6)
             
-            # alpha = np.radians(5)
-            # Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
-            # plotLiftDistribution(yPnts, [Cl_distr])
-
-
             CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, stallpos = wing.calcCLmax()
-            # plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr, legend=True)
+            espan = wing.calcespan()
 
-            CDi1,e1 = wing.calcCDi(np.radians(2))
-            CDi2,e2 = wing.calcCDi(np.radians(6))
-            CDi3,e3 = wing.calcCDi(np.radians(10))
             if stallpos <= 0.5*wing.b and CLmax >= 1.40:
-                # WingList = np.append(WingList, [[taper,twist,CLmax,stallpos,alphaMax,e1,e2,e3]])
-                WingList.append([taper,twist,CLmax,stallpos,alphaMax,e1,e2,e3])
+                WingList.append([taper, twist, CLmax, stallpos, alphaMax, espan])
 
     with open('Final_Design/aerodynamics/winglist.csv', 'w') as file:
-        file.write('taper, twist, CLmax, stallpos, alphaMax, e1, e2, e3\n')
+        file.write('taper, twist, CLmax, stallpos, alphaMax, espan\n')
         for wingOption in WingList:
             for prop in wingOption:
                 file.write(f'{round(prop, 3)}, ')
             file.write('\n')
+
+def readWinglist():
+    taper_lst = []
+    twist_lst = []
+    CLmax_lst = []
+    espan_lst = []
+    
+    # CLmax_taper = {}
+    with open('Final_Design/aerodynamics/winglist.csv', 'r') as f:
+        for line in f.readlines()[1:]:
+            columns = line.strip().split(',')
+            if len(columns) > 0:
+                # CLmax_taper.[columns[1]] = np.append(CLmax_taper.[columns[1]], )
+                taper_lst.append(float(columns[0]))
+                twist_lst.append(float(columns[1]))
+                CLmax_lst.append(float(columns[2]))
+
+    # CLmax_taper = {}
+
+    return taper_lst, twist_lst, CLmax_lst, espan_lst
+
+def plotDesignParams(x, y, z, xlabel='', ylabel='', zlabel=''):
+    fig = plt.figure(figsize=(10, 4.5))
+    ax1 = fig.add_subplot(111)
+
+    ax1.plot(x, CLmax_lst, linewidth=2, color='blue', marker='o', fillstyle='none', markevery=2)
+
+    ax1.axvline(x=0, linewidth=2, color='black')
+    ax1.axhline(y=0, linewidth=2, color='black')
+    ax1.set_xlabel(xlabel)
+    ax1.set_ylabel(ylabel)
+    ax1.xaxis.grid(color='black', linestyle='--')
+    ax1.yaxis.grid(color='black', linestyle='--')
+    plt.legend(loc='upper right')
+    fig.suptitle('', fontsize=16, y=0.97)
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.show()
+
+if __name__ == "__main__":
+    
+    optimize()
+    # readWinglist()
+    # plotDesignParams(taper_lst, CLmax_lst, twist_lst, 'Taper', 'CLmax', 'Twist [deg]')
+
+
+    # wing = WingPlanform(v.S, v.A, taper, twist, v.gamma)
+    # wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t, v.deltaAlphaStall_r, v.deltaAlphaStall_t)
+    # wing.calcCoefficients(200, tipCutoff=0.6)
 
     # alpha = np.radians(5)
     # Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
