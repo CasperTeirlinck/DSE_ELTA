@@ -7,6 +7,12 @@ taper = 0.9 # [-] Taper ratio
 twist = np.radians(2)
 gamma = 0
 
+w_fuselage = 1.2
+CD0 = 0.0045*3.7
+
+h_wl = 0.4
+kwl = 2
+
 # NACA 651412
 # Clmax_t = 1.5
 # Cla_t = 6.016
