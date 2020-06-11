@@ -51,8 +51,8 @@ if __name__ == "__main__":
         print(f'CLa = {CLa} [/rad] or {CLa*np.pi/180} [deg]')
 
     """ CLmax """
-    if False:
-        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax(plotProgression=False)
+    if True:
+        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax(plotProgression=False, printMaxLoc=True)
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr, legend=True)
 
