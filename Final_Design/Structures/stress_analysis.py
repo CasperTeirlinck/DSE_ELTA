@@ -86,11 +86,22 @@ class StiffenedWing(WingPlanform):
         l_u    = []
         l_l    = []
         l_lst  = []
+        l_cum  = []
+        
+        string_z_u = []
+        string_x_u = []
+        
+        string_z_l = []
+        string_x_l = []
+            
+        
         
         for cross_section in self.cross_sections:
             l_u_cs    = []
             l_l_cs    = []
             l_lst_cs  = []
+            l_cum_cs  = [0]
+            
             
             for i in range(len(self.cross_sections[0][0])-1):
                 x0 = cross_section[0][i]
@@ -99,6 +110,7 @@ class StiffenedWing(WingPlanform):
                 z1 = cross_section[1][i+1]
                 l = np.sqrt((z1-z0)**2+(x1-x0)**2)
                 l_lst_cs.append(l)
+                l_cum_cs.append(sum(l_lst_cs[:i+1]))
                 
                 if z0 >=0 and z1 >=0:
                     l_u_cs.append(l)
@@ -106,9 +118,13 @@ class StiffenedWing(WingPlanform):
                 elif z0 <=0 and z0 <=0 or z0>=0 and z1<=0:
                     l_l_cs.append(l)
             
+            
             l_ucs.append(l_u_cs)
             l_lcs.append(l_l_cs)
             l_lst.append(l_lst_cs)
+            
+            
+            l_cum.append(l_cum_cs)
             l_u.append(sum(l_u_cs))
             l_l.append(sum(l_l_cs))
         
@@ -183,19 +199,57 @@ class StiffenedWing(WingPlanform):
             string_pos_u.append(string_pos_u_cs)
             string_pos_l.append(string_pos_l_cs)
             
-        #TODO: DEPENDING ON S-WISE LOCATION ALONG AIRFOIL GET X AND Z COORDINATE
-        #TODO: MAKE CUMULATIVE LENGTH LIST, SEE WHERE STRING POINT LIES ON THAT LIST
-        #TODO: INTERPOLATE BETWEEN TWO COORDINATES AND OBTAIN X AND Z
-    
-    
         
-        return string_pos_u, string_pos_l
+            l_cum_lst = l_cum[j]
+            
+            string_z_u_cs = []
+            string_x_u_cs = []
+            
+            string_z_l_cs = []
+            string_x_l_cs = []
+            
+            
+            for string_posu in string_pos_u_cs:
+                for m in range(len(l_cum_lst)-1):
+                    if l_cum_lst[m] <= string_posu  <= l_cum_lst[m+1]:
+                        sint  = (cross_section[1][m+1]-cross_section[1][m])/(l_cum_lst[m+1]-l_cum_lst[m])
+                        cost = (cross_section[0][m+1]-cross_section[0][m])/(l_cum_lst[m+1]-l_cum_lst[m])
+                        
+                        string_zi = (string_posu-l_cum_lst[m])*sint+cross_section[1][m]
+                        string_xi = (string_posu-l_cum_lst[m])*cost+cross_section[0][m]
+                        
+                        string_z_u_cs.append(string_zi)
+                        string_x_u_cs.append(string_xi)
+                        
+                        break
+            for string_posl in string_pos_l_cs:
+                for m in range(len(l_cum_lst)-1):
+                    if l_cum_lst[m] <= string_posl  <= l_cum_lst[m+1]:
+                        sint  = (cross_section[1][m+1]-cross_section[1][m])/(l_cum_lst[m+1]-l_cum_lst[m])
+                        cost = (cross_section[0][m+1]-cross_section[0][m])/(l_cum_lst[m+1]-l_cum_lst[m])
+                        
+                        string_zi = (string_posl-l_cum_lst[m])*sint+cross_section[1][m]
+                        string_xi = (string_posl-l_cum_lst[m])*cost+cross_section[0][m]
+                        
+                        string_z_l_cs.append(string_zi)
+                        string_x_l_cs.append(string_xi)
+                        
+                        break
+            
+        
+            string_z_u.append(string_z_u_cs)
+            string_x_u.append(string_x_u_cs)
+            string_z_l.append(string_z_l_cs)
+            string_x_l.append(string_x_l_cs)
+            
+        return string_z_u, string_x_u, string_z_l, string_x_l
+    
     
     
     
 wing = StiffenedWing(5,None,None,None,None, 0.25, 0.75)
 
-string_pos_u, string_pos_l = wing.position_stringers(5,5)
+string_z_u, string_x_u, string_z_l, string_x_l = wing.position_stringers(10,10)
 
 #plt.plot(x_box_u[0], z_box_u[0], x_box_l[0], z_box_l[0])
 #plt.axes('equal')
