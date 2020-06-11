@@ -147,7 +147,7 @@ flap_sizing()               Sizing of the ailerons
 
 Inputs:
     variables [class]:      The class should contain:
-                             - b1 [float]:          Aileron start
+                             (- b1 [float]:          Aileron start)
                              - f1 [float]:          Flap start
                              - f2 [float]:          Flap end
     fix_position [string]:  Choose 'fuselage end' or 'aileron start'
