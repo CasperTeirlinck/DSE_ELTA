@@ -6,6 +6,7 @@ Author: Bob
 import numpy as np
 from math import pi,cos,tan,atan,sqrt
 from wing_properties import chord,sweep
+import matplotlib.pyplot as plt
 
 '''
 aileron_sizing()        Sizing of the ailerons
@@ -142,13 +143,14 @@ def aileron_sizing(variables):
 
 
 '''
-flap_sizing()           Sizing of the ailerons
+flap_sizing()               Sizing of the ailerons
 
 Inputs:
-    variables[class]:   The class should contain:
-                         - b1 [float]:          Aileron start
-                         - f1 [float]:          Flap start
-                         - f2 [float]:          Flap end
+    variables [class]:      The class should contain:
+                             (- b1 [float]:          Aileron start)
+                             - f1 [float]:          Flap start
+                             - f2 [float]:          Flap end
+    fix_position [string]:  Choose 'fuselage end' or 'aileron start'
 
 Outputs:
     variables [class]:  The class contains updated values of:
@@ -158,30 +160,44 @@ Outputs:
 V&V:    Verified
 '''
 
-def flap_sizing(variables):
-    S = 23.0                    # [m2]      Wing surface area
-    b = 16.6                    # [m]       Wing span
+def flap_sizing(variables,fix_position='fuselage end'):
+    # Check input
+    fix_positionlst = ['fuselage end','aileron start']
+    if not fix_position in fix_positionlst:
+        print("Wrong fix_position input ("+fix_position+"). Choose 'fuselage end' or 'aileron start'")
+    else: pass
+
+    # Inputs
+    S = 21.09                   # [m2]      Wing surface area
+    b = sqrt(S*10.1)            # [m]       Wing span
     sweepc4 = 0                 # [rad]     Wing quarter chord sweep angle
     taper = 0.4                 # [rad]     Wing taper ratio
-    cr = 1.98                   # [m]       Wing root chord
-
-    bf = 1.5                    # [m]       Fuselage width
+    cr = 2*S/((1+taper)*b)      # [m]       Wing root chord
 
     CLmax_req = 1.8             # [-]       Required maximum lift coefficient
-    CLmax_wing = 1.5            # [-]       Wing maximum lift coefficient
+    CLmax_wing = 1.4            # [-]       Wing maximum lift coefficient
     CLa = 2*pi                  # [/rad]    Wing lift curve slope
 
     dClmax = 1.3                # [-]
     da0l_airfoil = -15*pi/180   # [rad]
 
     cfc = 0.8                   # [-]       Start of the flap as percentage of the chord
-    d_af = 0.05                 # [m]       Spacing between flap and aileron
-
-    b1 = variables.b1           # [m]       Aileron start
 
     sm = 0.1                    # [-]       Safety margin
 
     # Parameter calculations
+    # Flap star/end location
+    # Chord at flap start/end location
+    if fix_position == 'fuselage end':
+        bf = 1.5                # [m]       Fuselage width
+        d_ff = 0.05             # [m]       Spacing between fuselage and flap
+        f1 = bf/2 + d_ff
+        cf1 = chord(f1, b, sweepc4, taper, cr)
+    else:
+        b1 = variables.b1       # [m]       Aileron start
+        d_af = 0.05             # [m]       Spacing between flap and aileron
+        f2 = b1 - d_af
+        cf2 = chord(f2, b, sweepc4, taper, cr)
     # Leading edge sweep angle
     sweepLE = sweep(0,b,sweepc4,taper,cr)
 
@@ -194,13 +210,6 @@ def flap_sizing(variables):
     # Increase in lift coefficient
     dCLmax = CLmax_req - CLmax_wing
 
-    # Flap end location
-    f2 = b1-d_af
-
-    # Chord at flap end location
-    cf2 = chord(f2,b,sweepc4,taper,cr)
-
-
     # Required flapped surface
     SwfS = dCLmax/(0.9*dClmax*cos(sweep_hinge)) * (1+sm)
     Swf = SwfS*S
@@ -211,38 +220,61 @@ def flap_sizing(variables):
     # Change in lift curve slope
     CLa_flapped = CLa
 
-    # Flap location
     # Flap span calculation
-    def flap_span(sweepLE,sweepTE,cf2,Swf):
-        # Solving the equation:
-        # Cf2*bfl + 0.5*bf^2*tan(sweepLE) - 0.5*bf^2*tan(sweepTE) = Swf/2
-        # a*bfl^2 + b*bfl + c = 0
-        A = 0.5*(tan(sweepLE)-tan(sweepTE))
-        B = cf2
+    # Solving the equation:
+    # 'fuselage end': cf1*bfl - 0.5*bf^2*tan(sweepLE) + 0.5*bf^2*tan(sweepTE) = Swf/2
+    # 'aileron start': cf2*bfl + 0.5*bf^2*tan(sweepLE) - 0.5*bf^2*tan(sweepTE) = Swf/2
+    # a*bfl^2 + b*bfl + c = 0
+
+    # Fuselage end
+    if fix_position == 'fuselage end':
+        A = 0.5*(-tan(sweepLE)+tan(sweepTE))
+        B = cf1
         C = -Swf/2
 
         D = B**2 - 4*A*C
 
-        bfllst = [0,0]
-        if D >=0:
+        if not D >= 0:
+            print('There is a problem with the flap sizing! (control_surfaces_sizing.py)')
+            return
+        else:
+            bfllst = [0,0]
             bfllst[0] = (-B+sqrt(D))/(2*A)
             bfllst[1] = (-B-sqrt(D))/(2*A)
-            bfl = max(bfllst)
-            return bfl
-        else:
-            print('There is a problem with the flap sizing! (control_surfaces_sizing.py)')
-            return 0
+            if bfllst[0]>0 and (f1+bfllst[0])<(b/2):
+                bfl = bfllst[0]
+            elif bfllst[1]>0 and (f1+bfllst[1])<(b/2):
+                bfl = bfllst[1]
+            else:
+                print("Flap is too large, it doesn't fit on the wing!")
 
-    bfl = flap_span(sweepLE,sweepTE,cf2,Swf)
-
-    # Flap start location
-    f1 = f2 - bfl
-
-    # Check if the flap fits on the wing
-    if f1<(bf/2):
-        print("Flap is too large, it doesn't fit on the wing!")
+    # Aileron start
     else:
-        pass
+        A = 0.5*(tan(sweepLE)-tan(sweepTE))
+        B = cf2
+        C = -Swf / 2
+
+        D = B**2 - 4*A*C
+
+        if not D >= 0:
+            print('There is a problem with the flap sizing! (control_surfaces_sizing.py)')
+            return
+        else:
+            bfllst = [0,0]
+            bfllst[0] = (-B+sqrt(D))/(2*A)
+            bfllst[1] = (-B-sqrt(D))/(2*A)
+            if bfllst[0]>0 and (f2-bfllst[0])>0:
+                bfl = bfllst[0]
+            elif bfllst[1]>0 and (f2-bfllst[1])>0:
+                bfl = bfllst[1]
+            else:
+                print("Flap is too large, it doesn't fit on the wing!")
+
+    # Flap start/end location
+    if fix_position == 'fuselage end':
+        f2 = f1 + bfl
+    else:
+        f1 = f2 - bfl
 
     # Update variables class
     variables.Swf = Swf
@@ -265,4 +297,4 @@ if __name__ ==  "__main__":
     test_v = Test_variables_sc()
 
     test_v = aileron_sizing(test_v)
-    test_v = flap_sizing(test_v)
+    test_v = flap_sizing(test_v,fix_position='fuselage end')

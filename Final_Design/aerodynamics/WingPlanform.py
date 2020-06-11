@@ -68,7 +68,8 @@ class WingPlanform:
             return 2./b*(a0_t - a0_r)*abs(y) + a0_r - alpha_geometric
 
         def _calculateFuselageContribution():
-            return 0
+            
+            return 0 #Rdu - 1
 
         matrix = np.ndarray((N,N)) # Create sample matrix
         column2 = np.zeros((N,1)) # Create column for twist and fuselage contributions
@@ -136,6 +137,14 @@ class WingPlanform:
                 nsum += A[i]*np.sin(n*theta)
             return 2 * self.b * nsum
 
+        def _alphai(theta):
+            nsum = 0
+            for n in range(A.size):
+                i = n
+                n = 2*n+1
+                nsum += n*A[i]* np.sin(n*theta)/np.sin(theta)
+            return nsum
+
         Cl_distr = []
         yPnts = np.linspace(-self.b/2, self.b/2, N)
         for y in yPnts:
@@ -151,11 +160,12 @@ class WingPlanform:
     
     def calcCLmax(self, plotProgression=False, printMaxLoc=False):
 
-        alphaStep = 0.1
-        alphaRange = np.radians(np.arange(0, 20, alphaStep))
+        alphaStep = 0.2
+        alphaRange = np.radians(np.arange(8, 20, alphaStep))
         ClmaxDistr = lambda y: (self.Clmax_t - self.Clmax_r)/(self.b/2) * abs(y) + self.Clmax_r
 
         alphaMax = None
+        alphaMaxLoc = None
         for alpha in alphaRange:
             if alphaMax: break
 
@@ -169,7 +179,8 @@ class WingPlanform:
                     Cl_distrMax = Cl_distr
                     yPntsMax = yPnts
                     CLmax = self.calcCL(alphaMax)
-                    if printMaxLoc: print(f'CLmax location @ y = {round(y, 2)}')
+                    alphaMaxLoc = y
+                    if printMaxLoc: print(f'CLmax location @ y = {round(alphaMaxLoc, 2)}')
                     break
 
         if plotProgression:
@@ -213,44 +224,80 @@ class WingPlanform:
             plt.tight_layout(rect=[0, 0, 1, 0.93])
             plt.show()
 
-        if not alphaMax: return None
-        return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr
+        if not alphaMax:
+            print('alphaMax not found')
+            return None
+        return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, alphaMaxLoc
 
-    def calcCD0wing(self, thicknesstochord, frictioncoefficient=0.0055):
-        formfactor = 1 + 2.7*thicknesstochord + 100*thicknesstochord**4
-        return 2*frictioncoefficient*formfactor
-
-    def calcCD0wing(S, b, taper):
+    def calcCD0wing(self, S, b, taper):
         # DO NOT USE WITH LOW TAPER RATIOS
         croot = self.calculateChord(np.pi/2, taper, S, b)
         ctip = self.calculateChord(0, taper, S, b)
         cmean = np.mean([croot, ctip])
         return croot*self.Cd0_r/(2*cmean) + ctip*self.Cd0_t/(2*cmean)
 
+    def calcDelta(self, alpha):
+        A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
+        deltasum = 0
+        for n in range(1, A.size):
+            i = n
+            n = 2*n+1
+            deltasum += n*(A[i]/A[0])**2
+        return deltasum
+
     def calcCDi(self, alpha):
         ###!!! ONLY RUN FOR TIPCUTOFF < 0.8 !!!###
 
-        def _delta(A):
-            deltasum = 0
-            for n in range(1, A.size):
-                i = n
-                n = 2*n+1
-                deltasum += n*(A[i]/A[0])**2
-            return deltasum
+        A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
 
-        def _nsum(A):
+        def _nsum():
             nsum = 0
             for n in range(A.size):
                 i = n
                 n = 2*n+1
                 nsum += n*A[i]**2
             return nsum
-        
+
+        CDi = np.pi*self.A * _nsum()
+
+        return CDi
+
+    def calcespan(self):
+        elist = []
+        for alpha in np.radians(np.linspace(2, 10, 3)):
+            elist.append( 1/(1 + self.calcDelta(alpha)) )
+
+        return sum(elist)/len(elist)
+
+    def calcAlphai(self, alpha, N):
+
+        def _alphai(A, theta):
+            nsum = 0
+            for n in range(A.size):
+                i = n
+                n = 2*n+1
+                nsum += n*A[i]* np.sin(n*theta)/np.sin(theta)
+            return nsum
+
         A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
 
-        CL = self.calcCL(alpha)
-        CDi1 = (CL**2)/(np.pi*self.A) * (1 + _delta(A))
-        CDi2 = np.pi*self.A * _nsum(A)
+        alphai_distr = []
+        tipCutoff = 0.9
+        yPnts = np.linspace(-self.b/2 * tipCutoff, self.b/2 * tipCutoff, N)
+        for y in yPnts:
+            theta = self.transformSpan(y, self.b)
+            alphai_distr.append(-_alphai(A, theta))
 
-        e = 1/(1+_delta(A))
-        return CDi1, e   
+        return alphai_distr, yPnts
+
+    def calcOswald(self, fuselagewidth, CD0, h_wl, kwl, has_winglet=False):
+        k_fuselage = 1-2*(fuselagewidth/self.b)**2
+        Q = 1/(self.calcespan()*k_fuselage)
+        P = 0.38*CD0
+        k_winglet = (1+2*h_wl/(kwl*self.b))**2
+        
+        if not has_winglet:
+            return 1/(Q+P*np.pi*self.A)
+
+        else:
+            return k_winglet/(Q+P*np.pi*self.A)
