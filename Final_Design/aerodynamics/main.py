@@ -2,32 +2,12 @@ import numpy as np
 import variables as v
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+from matplotlib.lines import Line2D
+from collections import OrderedDict
 import os
+from utils import plotLiftDistribution, readWinglist, plotDesignParams
 
 from WingPlanform import WingPlanform
-
-def plotLiftDistribution(y, Cl_range, ClmaxDistr=None, legend=False):
-    fig = plt.figure(figsize=(10, 4.5))
-    ax1 = fig.add_subplot(111)
-
-    i = 0
-    for distr in Cl_range:
-        marker = 'o' if i == 0 else 'v' if i == 1 else 's'
-        alpha = 2 if i == 0 else 6 if i == 1 else 10
-        ax1.plot(y, distr, linewidth=2, color='green', marker=marker, fillstyle='full', markevery=5, label=f'Lift ditribution @ alpha={alpha}')
-        if ClmaxDistr: ax1.plot(y, ClmaxDistr(y), linewidth=1.5, linestyle='-.', color='black', label='Local stall limit')
-        i += 1
-
-    ax1.axvline(x=0, linewidth=2, color='black')
-    ax1.axhline(y=0, linewidth=2, color='black')
-    ax1.set_xlabel('Wingspan [m]')
-    ax1.set_ylabel('Cl [-]')
-    ax1.xaxis.grid(color='black', linestyle='--')
-    ax1.yaxis.grid(color='black', linestyle='--')
-    if legend: plt.legend(loc='lower center')
-    fig.suptitle('Model Lift Distribution', fontsize=16, y=0.97)
-    plt.tight_layout(rect=[0, 0, 1, 0.93])
-    plt.show()
 
 def optimize():
     WingList = []
@@ -43,7 +23,7 @@ def optimize():
             CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, stallpos = wing.calcCLmax()
             espan = wing.calcespan()
             e_oswald = wing.calcOswald(v.w_fuselage,v.CD0,v.h_wl,v.kwl,True)
-            if stallpos <= 0.5*wing.b and CLmax >= 1.40:
+            if True: #stallpos <= 0.5*wing.b and CLmax >= 1.40:
                 WingList.append([taper, twist, CLmax, stallpos, alphaMax, espan, e_oswald])
 
     with open('Final_Design/aerodynamics/winglist.csv', 'w') as file:
@@ -53,48 +33,14 @@ def optimize():
                 file.write(f'{round(prop, 3)}, ')
             file.write('\n')
 
-def readWinglist():
-    taper_lst = []
-    twist_lst = []
-    CLmax_lst = []
-    espan_lst = []
-    
-    # CLmax_taper = {}
-    with open('Final_Design/aerodynamics/winglist.csv', 'r') as f:
-        for line in f.readlines()[1:]:
-            columns = line.strip().split(',')
-            if len(columns) > 0:
-                # CLmax_taper.[columns[1]] = np.append(CLmax_taper.[columns[1]], )
-                taper_lst.append(float(columns[0]))
-                twist_lst.append(float(columns[1]))
-                CLmax_lst.append(float(columns[2]))
-
-    # CLmax_taper = {}
-
-    return taper_lst, twist_lst, CLmax_lst, espan_lst
-
-def plotDesignParams(x, y, z, xlabel='', ylabel='', zlabel=''):
-    fig = plt.figure(figsize=(10, 4.5))
-    ax1 = fig.add_subplot(111)
-
-    ax1.plot(x, CLmax_lst, linewidth=2, color='blue', marker='o', fillstyle='none', markevery=2)
-
-    ax1.axvline(x=0, linewidth=2, color='black')
-    ax1.axhline(y=0, linewidth=2, color='black')
-    ax1.set_xlabel(xlabel)
-    ax1.set_ylabel(ylabel)
-    ax1.xaxis.grid(color='black', linestyle='--')
-    ax1.yaxis.grid(color='black', linestyle='--')
-    plt.legend(loc='upper right')
-    fig.suptitle('', fontsize=16, y=0.97)
-    plt.tight_layout(rect=[0, 0, 1, 0.93])
-    plt.show()
-
 if __name__ == "__main__":
     
-    optimize()
-    # readWinglist()
-    # plotDesignParams(taper_lst, CLmax_lst, twist_lst, 'Taper', 'CLmax', 'Twist [deg]')
+    # optimize()
+    bestWing, taper, CLmax, espan = readWinglist()
+    print(f'\nOptimized wing:\t taper={bestWing[0]} \t twist={bestWing[1]} \t CLmax={bestWing[2]} \t espan={bestWing[3]} \n')
+    
+    plotDesignParams(taper, espan, CLmax, 'Taper', 'e span', 'CLmax')
+
 
 
     # wing = WingPlanform(v.S, v.A, taper, twist, v.gamma)
