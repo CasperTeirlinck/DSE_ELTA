@@ -161,7 +161,7 @@ class WingPlanform:
     def calcCLmax(self, plotProgression=False, printMaxLoc=False):
 
         alphaStep = 0.2
-        alphaRange = np.radians(np.arange(5, 20, alphaStep))
+        alphaRange = np.radians(np.arange(8, 20, alphaStep))
         ClmaxDistr = lambda y: (self.Clmax_t - self.Clmax_r)/(self.b/2) * abs(y) + self.Clmax_r
 
         alphaMax = None
