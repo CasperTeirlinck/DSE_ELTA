@@ -66,7 +66,8 @@ class WingPlanform:
             return 2./b*(a0_t - a0_r)*abs(y) + a0_r - alpha_geometric
 
         def _calculateFuselageContribution():
-            return 0
+            
+            return 0 #Rdu - 1
 
         matrix = np.ndarray((N,N)) # Create sample matrix
         column2 = np.zeros((N,1)) # Create column for twist and fuselage contributions
@@ -149,8 +150,8 @@ class WingPlanform:
     
     def calcCLmax(self, plotProgression=False):
 
-        alphaStep = 0.1
-        alphaRange = np.radians(np.arange(0, 20, alphaStep))
+        alphaStep = 0.2
+        alphaRange = np.radians(np.arange(8, 20, alphaStep))
         ClmaxDistr = lambda y: (self.Clmax_t - self.Clmax_r)/(self.b/2) * abs(y) + self.Clmax_r
 
         alphaMax = None
@@ -211,9 +212,6 @@ class WingPlanform:
         if not alphaMax: return None
         return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr
 
-    def calcCD0wing(self, thicknesstochord, frictioncoefficient=0.0055):
-        formfactor = 1 + 2.7*thicknesstochord + 100*thicknesstochord**4
-        return 2*frictioncoefficient*formfactor
 
     def calcCD0wing(S, b, taper):
         # DO NOT USE WITH LOW TAPER RATIOS
