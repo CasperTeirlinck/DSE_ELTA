@@ -38,10 +38,8 @@ if __name__ == "__main__":
     """ === OPTIMIZE === """
 
     # optimize()
-    
-    plotDesignParams(taper, espan, CLmax, 'Taper', 'e span', 'CLmax')
-
     bestWing, taper, CLmax, espan = readWinglist()
+    plotDesignParams(taper, espan, CLmax, 'Taper', 'e span', 'CLmax')
     print(f'\nOptimized wing for espan:\t taper={bestWing[0]} \t twist={bestWing[1]} \t CLmax={bestWing[2]} \t espan={bestWing[3]} \n')
 
     taper = bestWing[0]
@@ -62,7 +60,7 @@ if __name__ == "__main__":
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr, legend=True)
 
-    if False:
+    if True:
         alpha = np.radians(5)
         Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
         plotLiftDistribution(yPnts, [Cl_distr])
