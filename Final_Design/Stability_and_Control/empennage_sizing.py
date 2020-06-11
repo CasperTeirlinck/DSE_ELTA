@@ -1,5 +1,5 @@
 '''
-This script calculates the minimum required horizontal tail size and optimal wing position for stability and control.
+This script sizes the empennage.
 Author: Bob
 '''
 
