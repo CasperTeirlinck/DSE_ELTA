@@ -146,18 +146,13 @@ class WingPlanform:
             return nsum
 
         Cl_distr = []
-        CDi_distr = []
         yPnts = np.linspace(-self.b/2, self.b/2, N)
-        # yPntsCDi = []
         for y in yPnts:
             theta = -self.transformSpan(y, self.b)
             Cl = (2 * _circ(theta))/(self.calculateChord(theta, self.taper, self.S, self.b))
             Cl_distr.append(Cl)
-            # if abs(y) < self.b/2*0.9:
-                # CDi_distr.append(Cl*_alphai(theta))
-                # yPntsCDi.append(y)
 
-        return Cl_distr, yPnts#, CDi_distr, yPntsCDi
+        return Cl_distr, yPnts
 
     def calcCLa(self):
         CLa = np.pi*self.A*self.coeff[0][0]
