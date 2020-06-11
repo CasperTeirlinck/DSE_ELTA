@@ -33,15 +33,15 @@ if __name__ == "__main__":
     # OPTIMISATION LOOP
     # WingList = np.array([])
     WingList = []
-    for taper in np.linspace(0.1,1.0,4):
-        for twist in np.linspace(0,np.radians(6),2):
+    for taper in np.linspace(0.1,1.0,11):
+        for twist in np.linspace(0,np.radians(6),7):
             if twist == 0:
                 print(taper*100,"% completed")
 
             wing = WingPlanform(v.S, v.A, taper, twist, v.gamma)
             wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t, v.deltaAlphaStall_r, v.deltaAlphaStall_t)
     # wing.calcCoefficients(1000, tipCutoff=0.5) # use to get sensible CDi
-            wing.calcCoefficients(20, tipCutoff=0.6)
+            wing.calcCoefficients(200, tipCutoff=0.6)
             
             # alpha = np.radians(5)
             # Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
