@@ -77,6 +77,10 @@ if __name__ == "__main__":
         plt.plot(range(1, Nmax), CLlist)
         plt.show()
 
+    alpha = np.radians(5)
+    alphai_distr, yPnts = wing.calcAlphai(alpha, 100)
+    plotLiftDistribution(yPnts, [alphai_distr])
+
     """ Lift Distribution Validation """
     if False:
         Cl_distr_range = []
@@ -110,7 +114,7 @@ if __name__ == "__main__":
         print(f'CLa = {CLa} [/rad] or {CLa*np.pi/180} [deg]')
 
     """ CLmax """
-    if True:
+    if False:
         CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr = wing.calcCLmax()
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)}')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr)

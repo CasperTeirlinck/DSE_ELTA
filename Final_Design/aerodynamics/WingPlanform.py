@@ -137,6 +137,14 @@ class WingPlanform:
                 nsum += A[i]*np.sin(n*theta)
             return 2 * self.b * nsum
 
+        def _alphai(theta):
+            nsum = 0
+            for n in range(A.size):
+                i = n
+                n = 2*n+1
+                nsum += n*A[i]* np.sin(n*theta)/np.sin(theta)
+            return nsum
+
         Cl_distr = []
         yPnts = np.linspace(-self.b/2, self.b/2, N)
         for y in yPnts:
@@ -216,44 +224,50 @@ class WingPlanform:
             plt.tight_layout(rect=[0, 0, 1, 0.93])
             plt.show()
 
-        if not alphaMax: return None
+        if not alphaMax:
+            print('alphaMax not found')
+            return None
         return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, alphaMaxLoc
 
-
-    def calcCD0wing(S, b, taper):
+    def calcCD0wing(self, S, b, taper):
         # DO NOT USE WITH LOW TAPER RATIOS
         croot = self.calculateChord(np.pi/2, taper, S, b)
         ctip = self.calculateChord(0, taper, S, b)
         cmean = np.mean([croot, ctip])
         return croot*self.Cd0_r/(2*cmean) + ctip*self.Cd0_t/(2*cmean)
 
+    def calcDelta(self, alpha):
+        A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
+        deltasum = 0
+        for n in range(1, A.size):
+            i = n
+            n = 2*n+1
+            deltasum += n*(A[i]/A[0])**2
+        return deltasum
+
     def calcCDi(self, alpha):
         ###!!! ONLY RUN FOR TIPCUTOFF < 0.8 !!!###
 
-        def _delta(A):
-            deltasum = 0
-            for n in range(1, A.size):
-                i = n
-                n = 2*n+1
-                deltasum += n*(A[i]/A[0])**2
-            return deltasum
+        A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
 
-        def _nsum(A):
+        def _nsum():
             nsum = 0
             for n in range(A.size):
                 i = n
                 n = 2*n+1
                 nsum += n*A[i]**2
             return nsum
-        
-        A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
 
-        CL = self.calcCL(alpha)
-        CDi1 = (CL**2)/(np.pi*self.A) * (1 + _delta(A))
-        CDi2 = np.pi*self.A * _nsum(A)
+        CDi = np.pi*self.A * _nsum()
 
-        e = 1/(1+_delta(A))
-        return CDi1, e   
+        return CDi
+
+    def calcespan(self):
+        elist = []
+        for alpha in np.radians(np.linspace(2, 10, 3)):
+            elist.append( 1/(1 + self.calcDelta(alpha)) )
+
+        return sum(elist)/len(elist)
 
     def calcAlphai(self, alpha, N):
 
@@ -276,3 +290,14 @@ class WingPlanform:
 
         return alphai_distr, yPnts
 
+    def calcOswald(self, fuselagewidth, CD0, h_wl, kwl, has_winglet=False):
+        k_fuselage = 1-2*(fuselagewidth/self.b)**2
+        Q = 1/(self.calcespan()*k_fuselage)
+        P = 0.38*CD0
+        k_winglet = (1+2*h_wl/(kwl*self.b))**2
+        
+        if not has_winglet:
+            return 1/(Q+P*np.pi*self.A)
+
+        else:
+            return k_winglet/(Q+P*np.pi*self.A)
