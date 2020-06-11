@@ -37,16 +37,18 @@ def optimize():
 if __name__ == "__main__":
     
     # optimize()
-    bestWing, taper, CLmax, espan = readWinglist()
-    print(f'\nOptimized wing:\t taper={bestWing[0]} \t twist={bestWing[1]} \t CLmax={bestWing[2]} \t espan={bestWing[3]} \n')
     
     plotDesignParams(taper, espan, CLmax, 'Taper', 'e span', 'CLmax')
 
+    bestWing, taper, CLmax, espan = readWinglist()
+    print(f'\nOptimized wing for espan:\t taper={bestWing[0]} \t twist={bestWing[1]} \t CLmax={bestWing[2]} \t espan={bestWing[3]} \n')
 
+    taper = bestWing[0]
+    twist = bestWing[1]
 
-    # wing = WingPlanform(v.S, v.A, taper, twist, v.gamma)
-    # wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t, v.deltaAlphaStall_r, v.deltaAlphaStall_t)
-    # wing.calcCoefficients(200, tipCutoff=0.6)
+    wing = WingPlanform(v.S, v.A, taper, twist, v.gamma)
+    wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t, v.deltaAlphaStall_r, v.deltaAlphaStall_t)
+    wing.calcCoefficients(200, tipCutoff=0.6)
 
     # alpha = np.radians(5)
     # Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
