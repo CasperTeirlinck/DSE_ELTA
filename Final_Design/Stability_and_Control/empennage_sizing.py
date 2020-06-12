@@ -243,7 +243,8 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     CLA_h = 3                   # [-]       Aircraft less tail lift coefficient TODO Check this value
     CLh = -0.5                  # [-]       Horizontal tail lift coefficient TODO Check this value
 
-    sm = 0.1                    # [-]       Safety margin
+    sm_free = 0.05              # [-]       Fraction neutral point shift for stick-free stability
+    sm = 0.05                   # [-]       Stability margin
 
     # Parameter calculations
     # xlemac
@@ -290,14 +291,14 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     def stability(xcg):
         a = 1/(CLah/CLaA_h * (1-deda) * lh/MAC * VhV**2)
         b = -(xac-sm)/(CLah/CLaA_h * (1-deda) * lh/MAC * VhV**2)
-        return a*xcg + b
+        return (a*xcg/(1-sm_free) + b)
 
     ShS_stability = stability(xcg_max)
 
     # Controllability Analysis
     def control(xcg):
         a = 1/(CLh/CLA_h * lh/MAC * VhV**2)
-        b = (Cmac/CLA_h - xac - sm)/(CLh/CLA_h * lh/MAC * VhV**2)
+        b = (Cmac/CLA_h - xac)/(CLh/CLA_h * lh/MAC * VhV**2)
         return a*xcg + b
 
     ShS_Control = control(xcg_min)
@@ -308,10 +309,10 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     # Create Scissor Plot
     if plot:
         def stability_curve(ShS):
-            return xac + CLah/CLaA_h * (1-deda) * ShS*lh/MAC * VhV**2 - sm
+            return (1-sm_free)*(xac + CLah/CLaA_h * (1-deda) * ShS*lh/MAC * VhV**2) - sm
 
         def control_curve(ShS):
-            return xac - Cmac/CLA_h + CLh/CLA_h * ShS*lh/MAC * VhV**2 + sm
+            return xac - Cmac/CLA_h + CLh/CLA_h * ShS*lh/MAC * VhV**2
 
         ShS = np.arange(0,1.001,0.001)
 
@@ -321,7 +322,6 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
         plt.plot(xcg_stability*100,ShS,label='Stability curve')
         plt.plot((xcg_stability+sm)*100,ShS,'k--')
         plt.plot(xcg_control*100,ShS,label='Control curve')
-        plt.plot((xcg_control-sm)*100,ShS,'k--')
         plt.plot([xcg_min*100,xcg_max*100],[ShS_min,ShS_min],'r',label='Center of Gravity range')
         plt.title('Scissor Plot')
         plt.xlabel('$x_{cg}$/MAC (%)')
@@ -363,6 +363,8 @@ def sizing_htail_wingpos(variables,plot=False):
     crw = 1.98                      # [m]   Wing root chord
     xcg_wing = 1.7                  # [m]   Wing center of gravity
 
+    sm = 0.1                        # [-]   Safety margin
+
     # Parameter calculations
     # xlemac and xmac
     xmacw = XMAC(bw,sweepw,taperw,crw)
@@ -390,7 +392,7 @@ def sizing_htail_wingpos(variables,plot=False):
 
     # Determine minimum horizontal tail surface
     ShS_min = min(ShSmin_lst)
-    Sh_min = ShS_min*Sw
+    Sh_min = ShS_min*Sw*(1+sm)
     # Get index of minimum horizontal tail surface
     i = ShSmin_lst.index(ShS_min)
 
