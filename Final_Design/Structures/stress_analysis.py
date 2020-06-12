@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+from math import pi, sqrt
+import copy
 
 #################################################################
 ### SOME LINES NEED TO BE REVIEWED IF QC SWEEP IS IMPLEMENTED ###
@@ -18,7 +20,10 @@ class WingPlanform:
         self.airfoil    = 'naca4415'
         self.cr         = 1.98                   #m
         self.ct         = 0.79
-        
+
+
+
+
 
 class StiffenedWing(WingPlanform):
     def __init__(self, n, stringer_u, stringer_l, n_string_u, n_string_l, spar_le_loc, spar_te_loc):
@@ -33,7 +38,18 @@ class StiffenedWing(WingPlanform):
         self.cross_sections  = self.create_cross_sections(n)[0]         #list of cross sections x,z coordinates (output: [[[x1,x2],[z1,z2]],...])
         self.ylst            = self.create_cross_sections(n)[1]         #list of all y coordinates of the cross sections
         self.clst            = self.create_cross_sections(n)[2]         #list of all chord lengths of cross sections
-    
+
+        self.string_z_u      = self.position_stringers(n_string_u, n_string_l)[0]
+        self.string_x_u      = self.position_stringers(n_string_u, n_string_l)[1]
+        self.string_z_l      = self.position_stringers(n_string_u, n_string_l)[2]
+        self.string_x_l      = self.position_stringers(n_string_u, n_string_l)[3]
+        self.x_box_u         = self.position_stringers(n_string_u, n_string_l)[4]
+        self.z_box_u         = self.position_stringers(n_string_u, n_string_l)[5]
+        self.x_box_l         = self.position_stringers(n_string_u, n_string_l)[6]
+        self.z_box_l         = self.position_stringers(n_string_u, n_string_l)[7]
+        
+        
+        
     
     def create_cross_sections(self, n):
         theta = np.arctan((self.cr-self.ct)/2/self.b)
@@ -79,8 +95,10 @@ class StiffenedWing(WingPlanform):
     
     
         
-    def position_stringers(self, n_string_u, n_string_l):
-        
+    def position_stringers(self, n_string_u, n_string_l):   ############################################
+                                                            ### CREATE WB CS AND POSITIONS STRINGERS ###
+                                                            ### EQUIDISTANCE ALONG UP AND LOWER SEC- ###
+                                                            ### TIONS, RETURNS LIST OF
         l_ucs  = []
         l_lcs  = []
         l_u    = []
@@ -242,88 +260,173 @@ class StiffenedWing(WingPlanform):
             string_z_l.append(string_z_l_cs)
             string_x_l.append(string_x_l_cs)
             
-        return string_z_u, string_x_u, string_z_l, string_x_l
+        return string_z_u, string_x_u, string_z_l, string_x_l, x_box_u, z_box_u, x_box_l, z_box_l
     
-    
-    
-    
-wing = StiffenedWing(5,None,None,None,None, 0.25, 0.75)
-
-string_z_u, string_x_u, string_z_l, string_x_l = wing.position_stringers(10,10)
-
-#plt.plot(x_box_u[0], z_box_u[0], x_box_l[0], z_box_l[0])
-#plt.axes('equal')
-#plt.show
-                    
-                
+    def calc_cross_section_centroid(self, cross_sections):
         
         
+        
+        
+        
+        
+class Spar:
+    def __init__(self, t, material: MatProps, x_co, z_co, h):
+        self.t        = t
+        self.material = material
+        self.x_co     = x_co
+        self.z_co     = 
+        
+        
+        
+        
+
+
+class MatProps():
+    def __init__(self, sigma_y, E, poisson, rho, sigma_comp=None, name=None, alpha=0.8, n=0.6):
+        # Density (rho) in g/cc, NOT kg/m3!
+        self.sigma_y = sigma_y
+        if sigma_comp == None:
+            self.sigma_comp = sigma_y
+        else:
+            self.sigma_comp = sigma_comp
+        self.E = E
+        self.poisson = poisson
+        self.rho = rho*1000
+        self.alpha = alpha
+        self.n = n
+        if name != None:
+            self.name = name
+
+class J_Stringer():
+    name = "J_Stringer"
+    def __init__(self, Le, material: MatProps, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
+                 b1=0.005, b2=0.006, b3=0.005, b4=0.005):
+        # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png, gray area included in 2_alt
+        # Reference coordinate system is x positive to the left, y positive upwards, origin bottom right.
+        self.Le = Le
+
+        self.material = material
+
+        self.ts = ts
+
+        self.t1 = t1
+        self.t2 = t2
+        self.t3 = t3
+        self.t4 = t4
+        self.b1 = b1
+        self.b2 = b2
+        self.b3 = b3
+        self.b4 = b4
+        self.area1 = self.t1*self.b1
+        self.area2 = self.t2*self.b2
+        self.area2_alt = self.area2 + self.t2*(self.t1 + self.t4)
+        self.area3 = self.t3*self.b3
+        self.area4 = self.t4*self.b4
+        self.total_area = self.area1 + self.area2_alt + self.area3 + self.area4
+
+        self.xbar, self.ybar = self.calc_centroid()
+        self.Ixx, self.Iyy = self.momentofinertia()
+
+        self.sigma_cc = self.crippling_stress(self.material)
+
+        self.sigma_cr = self.calc_critical_stress(self.Le)
+
+
+    def calc_centroid(self):
+        # Returns xbar, ybar
+        Qx = self.area1 * (self.b2+self.t1*0.5+self.t3) + self.area2_alt * (self.t1+self.b2+self.t4)*0.5 + \
+             self.area4 * self.t4*0.5 + self.area3 * self.t3*0.5
+        Qy = self.area1 * (self.b4 + self.t2 + self.b1*0.5) + self.area2_alt * (self.b4 + self.t2*0.5) + \
+             self.area4 * self.b4*0.5 + self.area3 * (self.b4 + self.t2 + self.b3*0.5)
+        return Qy/self.total_area, Qx/self.total_area
+
+    def crippling_partial(self, t, b, C, material: MatProps):
+        return material.alpha * (C/material.sigma_comp * pi*pi*material.E*t*t/(b*b*12*(1-material.poisson)))**(1-material.n) * material.sigma_comp
+
+    def crippling_stress(self, material: MatProps):
+        return (self.crippling_partial(self.t1, self.b1, 0.425, material) * self.area1 +
+                self.crippling_partial(self.t2, self.b2, 0.400, material) * self.area2 +
+                self.crippling_partial(self.t4, self.b4, 0.425, material) * self.area4 +
+                self.crippling_partial(self.t3, self.b3, 0.425, material) * self.area3) / \
+               (self.total_area-self.area2_alt+self.area2)
+
+    def momentofinertia(self):
+        Ixx = (self.b1*self.t1**3+self.t2*(self.b2+self.t1+self.t4)**3+self.b4*self.t4**3+self.b3*self.t3**3)/12 + \
+              self.area1*(self.b2+self.t4+self.t1*0.5-self.ybar)**2 + \
+              self.area2_alt * (self.area2_alt/(2*self.t2)-self.ybar)**2 + \
+              self.area4*(self.t4*0.5-self.ybar)**2 + self.area3*(self.t3*0.5-self.ybar)**2
+        Iyy = (self.t1*self.b1**3+(self.b2+self.t1+self.t4)*self.t2**3+self.t4+self.b4**3+self.t3*self.b3**3) + \
+              self.area1*(self.b4+self.t2+self.b1*0.5-self.xbar)**2 + self.area2*(self.b4+self.t2*0.5-self.xbar)**2 + \
+              self.area4*(self.b4*0.5-self.xbar)**2 + self.area3*(self.b4+self.t2+self.b3*0.5-self.xbar)**2
+        return Ixx, Iyy
+
+    def calc_critical_stress(self, Le):
+        self.slendercrit = sqrt(2*pi*pi*self.material.E/self.sigma_cc)
+        rhoxx = sqrt(self.Ixx/self.total_area)
+        rhoyy = sqrt(self.Iyy/self.total_area)
+        self.slender = Le/min(rhoxx, rhoyy)
+        if self.slender < self.slendercrit:
+            sigma_cr = self.sigma_cc * (1 - self.sigma_cc * self.slender * self.slender / (4*pi*pi*self.material.E))
+        else:
+            sigma_cr = pi*pi*self.material.E / (self.slender*self.slender)
+
+        if sigma_cr < self.material.sigma_comp:
+            return sigma_cr
+        else:
+            return self.material.sigma_comp
+
+
+class Z_Stringer(J_Stringer):
+    name = "Z_Stringer"
+    def __init__(self, Le, material, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
+                 b1=0.005, b2=0.006, b4=0.005, t3=None, b3=None):
+        # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png without the t3 and b3 elements
+        super().__init__(Le=Le, material=material, stiff_ratio=stiff_ratio,
+                         ts=ts, t1=t1, t2=t2, t4=t4, b1=b1, b2=b2, b4=b4)
+
+        self.total_area = self.area1 + self.area2_alt + self.area4
+
+        self.sigma_cc=self.crippling_stress(self.material)*self.total_area
+        self.sigma_cr = self.calc_critical_stress(self.Le)
+
+    def calc_centroid(self):
+        # Returns xbar, ybar
+        Qx = self.area1 * (self.b2+self.t1*0.5+self.t3) + self.area2_alt * (self.t1+self.b2+self.t4)*0.5 + \
+             self.area4 * self.t4*0.5
+        Qy = self.area1 * (self.b4 + self.t2 + self.b1*0.5) + self.area2_alt * (self.b4 + self.t2*0.5) + \
+             self.area4 * self.b4*0.5
+        return Qy/self.total_area, Qx/self.total_area
+
+    def crippling_stress(self, material: MatProps):
+        return (self.crippling_partial(self.t1, self.b1, 0.425, material) * self.area1 +
+                self.crippling_partial(self.t2, self.b2, 0.400, material) * self.area2 +
+                self.crippling_partial(self.t4, self.b4, 0.425, material) * self.area4) / \
+               (self.total_area-self.area2_alt+self.area2)
+
+    def momentofinertia(self):
+        Ixx = (self.b1*self.t1**3+self.t2*(self.b2+self.t1+self.t4)**3+self.b4*self.t4**3)/12 + \
+              self.area1*(self.b2+self.t4+self.t1*0.5-self.ybar)**2 + \
+              self.area2_alt * (self.area2_alt/(2*self.t2)-self.ybar)**2 + \
+              self.area4*(self.t4*0.5-self.ybar)**2
+        Iyy = (self.t1*self.b1**3+(self.b2+self.t1+self.t4)*self.t2**3+self.t4+self.b4**3)/12 + \
+              self.area1*(self.b4+self.t2+self.b1*0.5-self.xbar)**2 + self.area2*(self.b4+self.t2*0.5-self.xbar)**2 + \
+              self.area4*(self.b4*0.5-self.xbar)**2
+        return Ixx, Iyy
     
 
-#def calc_MoI(cross_sections):
-#
-#
-#def create_half_wing(cross_sections, ylst):
+class Stringer:
+    def __init__(self, xpos, ypos, stringer_instance):
+        self.properties = copy.deepcopy(stringer_instance)
+        self.xpos = xpos
+        self.ypos = ypos 
 
 
 
-#cross_sections, ylst, clst = create_cross_sections(5)
-#
-#fig = plt.figure()
-#ax = plt.axes(projection='3d')
-#ax.contour3D(cross_sections[0][0], cross_sections[0][1], ylst[0])
-#plt.axes().set_aspect('equal')
-#plt.show()
+
+    
+wing = StiffenedWing(5,None,None,10,7, 0.25, 0.75)
 
 
-#plt.plot(cross_sections[-1][0], cross_sections[-1][1])
-#plt.axes().set_aspect('equal')
-#plt.show()
-
-
-#def create_cross_sections(n):
-#    wing = WingPlanform()
-#    theta = np.arctan((wing.cr-wing.ct)/2/wing.b)
-#    
-#    file_name = wing.airfoil+'.txt'
-#    
-#    file = open(file_name, 'r')
-#    lines = file.readlines()
-#    file.close()
-#
-#    xlst, zlst = [], []
-#
-#    for line in lines:
-#        xlst.append(line[:7])
-#        zlst.append(line[8:])
-#    
-#    for i in range(len(xlst)):
-#        xlst[i] = float(xlst[i])
-#        zlst[i] = float(zlst[i])
-#    
-#    clst = np.linspace(wing.cr, wing.ct, n)
-#    
-#    cross_sections = []
-#    
-#    for c in clst:
-#        xs = []
-#        zs = []
-#        for l in range(len(xlst)):
-#            xs.append(xlst[l]*c+0.25*(wing.cr-c))
-#            
-#            zs.append(zlst[l]*c)
-#
-#        cross_sections.append([xs,zs])
-#    
-#    ylst = []
-#    
-#    theta = np.arctan((wing.cr-wing.ct)/2/wing.b)
-#    
-#    for k in range(len(clst)):
-#        y = 0.25*(wing.cr-clst[k])/np.tan(theta)
-#        ylst.append(y)
-#    
-#    return cross_sections, ylst, clst
 
     
     
