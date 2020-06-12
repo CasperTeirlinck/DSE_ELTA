@@ -10,7 +10,7 @@ gamma = 0
 w_fuselage = 1.2
 CD0 = 0.0045*3.7
 
-h_wl = 0.4
+hwl = 0.4
 kwl = 2
 
 # NACA 651412

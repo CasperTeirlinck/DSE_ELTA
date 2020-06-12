@@ -5,7 +5,7 @@ from scipy.interpolate import interp1d
 import os
 
 class WingPlanform:
-    def __init__(self, S, A, taper, twist, gamma):
+    def __init__(self, S, A, taper, twist, gamma, CD0):
         self.S = S
         self.A = A
         self.taper = taper
@@ -20,6 +20,10 @@ class WingPlanform:
         self.a0_r = None
         self.a0_t = None
 
+        self.CD0 = CD0
+        self.hwl = None
+        self.kwl = None
+
         self.coeff = None
 
     def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, Cd0_r, Cd0_t, deltaAlphaStall_r=0, deltaAlphaStall_t=0):
@@ -33,6 +37,11 @@ class WingPlanform:
         self.a0_t = a0_t
         self.deltaAlphaStall_r = deltaAlphaStall_r
         self.deltaAlphaStall_t = deltaAlphaStall_t
+
+    def setWinglets(self, hwl, kwl):
+        self.hwl = hwl
+        self.kwl = kwl
+
 
     def transformTheta(self, theta, b): # Verified
         return -.5*b*np.cos(theta)
@@ -290,13 +299,13 @@ class WingPlanform:
 
         return alphai_distr, yPnts
 
-    def calcOswald(self, fuselagewidth, CD0, h_wl, kwl, has_winglet=False):
+    def calcOswald(self, fuselagewidth, hasWinglets=False):
         k_fuselage = 1-2*(fuselagewidth/self.b)**2
         Q = 1/(self.calcespan()*k_fuselage)
-        P = 0.38*CD0
-        k_winglet = (1+2*h_wl/(kwl*self.b))**2
+        P = 0.38*self.CD0
+        k_winglet = (1+2*self.hwl/(self.kwl*self.b))**2
         
-        if not has_winglet:
+        if not hasWinglets:
             return 1/(Q+P*np.pi*self.A)
 
         else:
