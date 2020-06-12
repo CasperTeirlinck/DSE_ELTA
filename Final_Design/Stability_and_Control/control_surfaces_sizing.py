@@ -14,6 +14,7 @@ aileron_sizing()        Sizing of the ailerons
 Inputs:
     variables[class]:   The class should contain:
                          - b1 [float]:          Aileron start
+                         - b2 [float]:          Aileron end
 
 Outputs:
     variables [class]:  The class contains updated values of:
