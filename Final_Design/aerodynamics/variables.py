@@ -1,14 +1,14 @@
 import numpy as np
 
-A = 11 # [-] Aspect ratio
-S = 15 # [m2] Wing surface
+A = 10.1 # [-] Aspect ratio
+S = 15.6 # [m2] Wing surface
 
 taper = 0.9 # [-] Taper ratio
 twist = np.radians(2)
 gamma = 0
 
 w_fuselage = 1.2
-CD0 = 0.0045*3.7
+CD0 = 0.0055*3.7
 
 hwl = 0.4
 kwl = 2.1

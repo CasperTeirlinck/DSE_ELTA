@@ -193,9 +193,7 @@ class WingPlanform:
                     break
 
         if plotProgression:
-            stallAlphaDistrSmooth = lambda y: (self.deltaAlphaStall_t - self.deltaAlphaStall_r)/(self.b/2) * abs(y) + self.deltaAlphaStall_r
             stallProgression = []
-            stallProgressionSmooth = []
 
             for alpha in np.arange(alphaMax, alphaRange[-1], np.radians(alphaStep)):
                 Cl_distr, yPnts = self.calcLiftDistribution(alpha, 100)
@@ -206,21 +204,15 @@ class WingPlanform:
 
                 for idx in idxs:
                     stallProgression.append([yPnts[idx], alpha])
-                    stallProgressionSmooth.append([yPnts[idx], alpha + stallAlphaDistrSmooth(yPnts[idx])])
 
             stallProgression = sorted(stallProgression, key=lambda dataPnt: dataPnt[0])
             stallProgression = np.array(stallProgression)
-            stallProgressionSmooth = sorted(stallProgressionSmooth, key=lambda dataPnt: dataPnt[0])
-            stallProgressionSmooth = np.array(stallProgressionSmooth)
 
             fig = plt.figure(figsize=(10, 4.5))
             ax1 = fig.add_subplot(111)
 
             ax1.plot(stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='', fillstyle='none', markevery=4, label='stall onset')
             ax1.plot(-1*stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='', fillstyle='none', markevery=4)
-
-            ax1.plot(stallProgressionSmooth[:,0], np.degrees(stallProgressionSmooth[:,1]), linewidth=2, color='blue', linestyle='-.', label='full stall')
-            ax1.plot(-1*stallProgressionSmooth[:,0], np.degrees(stallProgressionSmooth[:,1]), linewidth=2, color='blue', linestyle='-.')
 
             ax1.axvline(x=0, linewidth=2, color='black')
             ax1.axhline(y=0, linewidth=2, color='black')

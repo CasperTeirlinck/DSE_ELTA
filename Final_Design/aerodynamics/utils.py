@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from collections import OrderedDict
+import variables as v
 import os
 
 def plotLiftDistribution(y, Cl_range, ClmaxDistr=None, legend=False):
@@ -43,7 +44,6 @@ def readWinglist():
                 espan_lst.append(float(columns[5]))
 
     idx = np.argmax(espan_lst)
-    bestWing = [taper_lst[idx], twist_lst[idx], CLmax_lst[idx], espan_lst[idx]]
 
     taper = []
     for i, twist in enumerate(twist_lst):
@@ -60,7 +60,7 @@ def readWinglist():
         if not twist in espan.keys(): espan[twist] = []
         espan[twist].append(espan_lst[i])
 
-    return bestWing, taper, OrderedDict(CLmax), OrderedDict(espan)
+    return taper, OrderedDict(CLmax), OrderedDict(espan)
 
 def plotDesignParams(x, y1, y2, xlabel='', y1label='', y2label=''):
     fig = plt.figure(figsize=(10, 4.5))
@@ -93,3 +93,20 @@ def plotDesignParams(x, y1, y2, xlabel='', y1label='', y2label=''):
     fig.suptitle('', fontsize=16, y=0.97)
     plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()
+
+def readAeroLoads():
+    cl_list = []
+    cdi_list = []
+    y_list = []
+    with open('Final_Design/aerodynamics/liftdistrCLmax.dat', 'r') as f:
+        for line in f.readlines()[21:60]:
+            columns = line.strip().split()
+            if len(columns) > 0:
+                y = float(columns[0])
+                if y >= 0:
+                    y_list.append(y)
+                    cl_list.append(float(columns[3]))
+                    cdi_list.append(float(columns[5]))
+    cd_list = np.array(cdi_list) + v.CD0
+
+    return y_list, cl_list, cd_list
