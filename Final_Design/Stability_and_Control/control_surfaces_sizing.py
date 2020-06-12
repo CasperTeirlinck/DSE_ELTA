@@ -178,7 +178,7 @@ def flap_sizing(variables,fix_position='fuselage end'):
     CLmax_wing = 1.4            # [-]       Wing maximum lift coefficient
     CLa = 2*pi                  # [/rad]    Wing lift curve slope
 
-    dClmax = 1.3                # [-]
+    dClmax = 1.13               # [-]
     da0l_airfoil = -15*pi/180   # [rad]
 
     cfc = 0.8                   # [-]       Start of the flap as percentage of the chord
