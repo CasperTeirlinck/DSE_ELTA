@@ -4,6 +4,8 @@ from scipy.interpolate import interp1d
 from functools import partial
 from typing import Union
 from matplotlib import pyplot as plt
+from time import *
+import cProfile
 
 try:
     from tqdm import tqdm
@@ -28,10 +30,23 @@ def step_function_moment_twoarg(scalar, target):
 
 
 def step_function(scalar):
-    return partial(step_function_twoarg, scalar)
+    return np.vectorize(partial(step_function_twoarg, scalar))
 
 def step_function_moment(scalar):
-    return partial(step_function_moment_twoarg, scalar)
+    return np.vectorize(partial(step_function_moment_twoarg, scalar))
+
+
+def interpolator(EIfunc, scalar, moment, target):
+    if target < scalar:
+        return 0.0
+    else:
+        if moment:
+            return 1.0/EIfunc(target)
+        else:
+            return (target-scalar)/EIfunc(target)
+
+def interpolant(EIfunc, scalar, moment):
+    return partial(interpolator, EIfunc, scalar, moment)
 
 
 class Force:
@@ -56,9 +71,6 @@ class LoadCase:
         self.reactionforces = []
         self.reactionmoments = []
 
-        self.totalforces = [self.forces, self.reactionforces]
-        self.totalmoments = [self.moments, self.reactionmoments]
-
         self.C1 = None
         self.C2 = None
 
@@ -67,11 +79,15 @@ class LoadCase:
         self.y_samples = y_coordinates
         self.EIx = EIx
         self.EIz = EIz
+        self.EIxfunc = interp1d(self.y_samples, EIx)
+        self.EIzfunc = interp1d(self.y_samples, EIz)
 
     def change_geometry(self, y_coordinates, EIx, EIz):
         self.y_samples = y_coordinates
         self.EIx = EIx
         self.EIz = EIz
+        self.EIxfunc = interp1d(self.y_samples, EIx)
+        self.EIzfunc = interp1d(self.y_samples, EIz)
 
     def add_boundary_condition(self, y=0., defl_x=None, defl_z=None, angle_x=None, angle_z=None):
         constraints = (defl_x != None) + (defl_z != None) + (angle_x != None) + (angle_z != None)
@@ -87,6 +103,10 @@ class LoadCase:
     def remove_all_boundary_conditions(self):
         self.boundary_conditions = []
 
+    def remove_all_loads(self):
+        self.forces, self.moments = [], []
+        self.reactionforces, self.reactionmoments = [], []
+
     def add_loads(self, *loads: Union[Force, Moment]):
         for load in loads:
             if type(load) == Force:
@@ -94,24 +114,73 @@ class LoadCase:
             else:
                 self.moments.append(load)
 
-    def calc_reactions(self):
+    def calc_resultant_force(self):
         reactionforcex, reactionforcez = 0.0, 0.0
         for force in self.forces:
-            reactionforcex -= force.vector[0]
-            reactionforcez -= force.vector[2]
+            reactionforcex += force.vector[0]
+            reactionforcez += force.vector[2]
+        return reactionforcex, reactionforcez
+
+    def calc_resultant_moment(self, y_x, y_z, x=0, z=0):
         reactionmomentx, reactionmomentz = 0.0, 0.0
         for moment in self.moments:
-            reactionmomentx -= moment.vector[0]
-            reactionmomentz -= moment.vector[2]
-        for bc in self.boundary_conditions:
-            if bc["angle_x"] != None:
-                self.reactionmoments.append(Moment(xpos=0.0, ypos=bc["y"], zpos=0.0, zmag=reactionmomentz))
-            if bc["defl_x"] != None:
-                self.reactionforces.append(Force(xpos=0.0, ypos=bc["y"], zpos=0.0, xmag=reactionforcex))
-            if bc["angle_z"] != None:
-                self.reactionmoments.append(Moment(xpos=0.0, ypos=bc["y"], zpos=0.0, xmag=reactionmomentx))
-            if bc["defl_z"] != None:
-                self.reactionforces.append(Force(xpos=0.0, ypos=bc["y"], zpos=0.0, zmag=reactionforcez))
+            reactionmomentx += moment.vector[0]
+            reactionmomentz += moment.vector[2]
+        for force in self.forces:
+            reactionmomentx += (force.position[1]-y_x)*force.vector[2] - (force.position[2]-z)*force.vector[1]
+            reactionmomentz += -(force.position[1]-y_z)*force.vector[0]+ (force.position[0]-x)*force.vector[1]
+        return reactionmomentx, reactionmomentz
+
+    def get_shearforce(self, yout):
+        shearx, shearz = list(), list()
+        shearxfunc, shearzfunc = [], []
+        for force in self.forces:
+            shearx.append(force.vector[0])
+            shearxfunc.append(step_function_moment(force.position[1]))
+            shearz.append(force.vector[2])
+            shearzfunc.append(step_function_moment(force.position[1]))
+        for force in self.reactionforces:
+            shearx.append(force.vector[0])
+            shearxfunc.append(step_function_moment(force.position[1]))
+            shearz.append(force.vector[2])
+            shearzfunc.append(step_function_moment(force.position[1]))
+        for i in range(len(shearx)):
+            shearx[i] = shearx[i]*shearxfunc[i](yout)
+            shearz[i] = shearz[i]*shearzfunc[i](yout)
+        sx = np.sum(shearx, axis=0)
+        sz = np.sum(shearz, axis=0)
+        return sx, sz
+
+    def get_moment(self, yout):
+        momentx, momentz = [], []
+        momentxfunc, momentzfunc = [], []
+        for force in self.forces:
+            momentx.append(-1*force.vector[2])
+            momentxfunc.append(step_function(force.position[1]))
+            momentz.append(force.vector[0])
+            momentzfunc.append(step_function(force.position[1]))
+        for force in self.reactionforces:
+            momentx.append(-1*force.vector[2])
+            momentxfunc.append(step_function(force.position[1]))
+            momentz.append(force.vector[0])
+            momentzfunc.append(step_function(force.position[1]))
+        for moment in self.moments:
+            momentx.append(moment.vector[0])
+            momentxfunc.append(step_function_moment(moment.position[1]))
+            momentz.append(moment.vector[2])
+            momentzfunc.append(step_function_moment(moment.position[1]))
+        for moment in self.reactionmoments:
+            momentx.append(moment.vector[0])
+            momentxfunc.append(step_function_moment(moment.position[1]))
+            momentz.append(moment.vector[2])
+            momentzfunc.append(step_function_moment(moment.position[1]))
+        for i in range(len(momentx)):
+            momentx[i] = momentx[i]*momentxfunc[i](yout)
+            momentz[i] = momentz[i]*momentzfunc[i](yout)
+        mx = np.sum(momentx, axis=0)
+        mz = np.sum(momentz, axis=0)
+        return mx, mz
+
 
     def do_bc_checks(self):
         if len(self.boundary_conditions) != 4:
@@ -132,191 +201,199 @@ class LoadCase:
             print("No geometry specified, use the 'change_geometry()' method or add during initialization!")
             return
 
-
     def solve_bcs(self, printing=False):
-        self.calc_reactions()
         self.do_bc_checks()
 
-        matrix = np.zeros((4,4))
-        bvect = np.zeros(4)
-        for idx, bc in enumerate(self.boundary_conditions):
-            angles = self.angle_bare(y=bc["y"])
-            deflections = self.deflection_bare(y=bc["y"])
+        self.matrix = np.zeros((8,8))
+        self.bvect = np.zeros(8)
+        for bc in self.boundary_conditions:
+            angles = self.angle_bare(y=bc["y"], forces=self.forces, moments=self.moments)
+            deflections = self.deflection_bare(y=bc["y"], forces=self.forces, moments=self.moments)
             if bc["angle_x"] != None:
-                matrix[0,:] = np.array([1, 0, 0, 0])
-                bvect[0] = bc["angle_x"] - angles[0]
+                angle_x_bc = bc
+                self.matrix[0,:4] = np.array([1, 0, 0, 0])
+                self.bvect[0] = bc["angle_x"] - angles[0]
             if bc["defl_x"] != None:
-                matrix[1,:] = np.array([bc["y"], 1, 0, 0])
-                bvect[1] = bc["defl_x"] - deflections[0]
+                defl_x_bc = bc
+                self.matrix[1,:4] = np.array([bc["y"], 1, 0, 0])
+                self.bvect[1] = bc["defl_x"] - deflections[0]
             if bc["angle_z"] != None:
-                matrix[2,:] = np.array([0, 0, 1, 0])
-                bvect[2] = bc["angle_z"] - angles[1]
+                angle_z_bc = bc
+                self.matrix[2,:4] = np.array([0, 0, 1, 0])
+                self.bvect[2] = bc["angle_z"] - angles[1]
             if bc["defl_z"] != None:
-                matrix[3,:] = np.array([0, 0, bc["y"], 1])
-                bvect[3] = bc["defl_z"] - deflections[1]
-        c1c2 = np.linalg.solve(matrix, bvect)
-        self.C1 = np.array([c1c2[0],c1c2[2]])
-        self.C2 = np.array([c1c2[1],c1c2[3]])
+                defl_z_bc = bc
+                self.matrix[3,:4] = np.array([0, 0, bc["y"], 1])
+                self.bvect[3] = bc["defl_z"] - deflections[1]
+
+        self.matrix[0, 5] = self.calc_coefficient(interpolant(self.EIzfunc, defl_x_bc["y"], False), angle_x_bc["y"], defl_x_bc["y"])
+        self.matrix[1, 4] = self.calc_coefficient(interpolant(self.EIzfunc, angle_x_bc["y"], True), defl_x_bc["y"], angle_x_bc["y"])
+        self.matrix[2, 7] = self.calc_coefficient(interpolant(self.EIxfunc, defl_z_bc["y"], False), angle_z_bc["y"], defl_z_bc["y"])
+        self.matrix[3, 6] = self.calc_coefficient(interpolant(self.EIxfunc, angle_z_bc["y"], True), defl_z_bc["y"], angle_z_bc["y"])
+
+        res_f_x, res_f_z = self.calc_resultant_force()
+        res_m_x, res_m_z = self.calc_resultant_moment(angle_z_bc["y"], angle_x_bc["y"])
+        self.bvect[4:] = np.array([-res_f_x, -res_m_x, -res_f_z, -res_m_z])
+        self.matrix[4, 5], self.matrix[6,7] = 1.0, 1.0 # Force equilibrium lines
+        self.matrix[5, 4:] = np.array([0., 0., 1., defl_z_bc["y"]-angle_z_bc["y"]])
+        self.matrix[7, 4:] = np.array([1., defl_x_bc["y"]+angle_x_bc["y"], 0., 0.])
+
+        self.solution = np.linalg.solve(self.matrix, self.bvect)
+        self.C1 = np.array([self.solution[0],self.solution[2]])
+        self.C2 = np.array([self.solution[1],self.solution[3]])
+        self.reactionmoments.append(Moment(0.0, angle_x_bc["y"], 0.0, zmag=self.solution[4]))
+        self.reactionforces.append(Force(0.0, defl_x_bc["y"], 0.0, xmag=self.solution[5]))
+        self.reactionmoments.append(Moment(0.0, angle_z_bc["y"], 0.0, xmag=self.solution[6]))
+        self.reactionforces.append(Force(0.0, defl_z_bc["y"], 0.0, zmag=self.solution[7]))
         return
 
-    def calc_coefficient(self, EI, y, y_application, numerator, degree_of_integration=1):
-        if np.all(EI==EI[0]):
-            interpolant = lambda val: numerator(val)
-            multiplier = 1/(EI[0]**degree_of_integration)
-        else:
-            interpolant = lambda val: numerator(val)/(interp1d(self.y_samples, EI)(val))
-            multiplier = 1.0
+    def calc_coefficient(self, interpolant, y, y_application, degree_of_integration=1):
         if degree_of_integration == 2:
-            return multiplier * quad(lambda t: quad(func=interpolant, a=y_application, b=t)[0], a=y_application, b=y)[0]
+            return quad(lambda t: quad(func=interpolant, a=y_application, b=t, epsabs=1.49e-05, epsrel=1.49e-05)[0], a=y_application, b=y, epsabs=1.49e-06, epsrel=1.49e-06)[0]
         else:
-            return multiplier * quad(func=interpolant, a=y_application, b=y)[0]
+            return quad(func=interpolant, a=y_application, b=y, epsabs=1.49e-05, epsrel=1.49e-05)[0]
 
-    def angle_bare(self, y):
-        # point = self.origin_y - y
+    def angle_bare(self, y, forces, moments):
         angle = np.array([0., 0.])
-        tempforces = [item for sublist in self.totalforces for item in sublist]
-        tempmoments = [item for sublist in self.totalmoments for item in sublist]
-        for force in tempforces:
-            coefficient = step_function(force.position[1])
-            angle[0] += force.vector[0] * self.calc_coefficient(self.EIz, y, force.position[1], coefficient)
-            angle[1] += force.vector[2] * self.calc_coefficient(self.EIx, y, force.position[1], coefficient)
-        for moment in tempmoments:
-            coefficient = step_function_moment(moment.position[1])
-            angle[0] += moment.vector[2] * self.calc_coefficient(self.EIz, y, moment.position[1], coefficient)
-            angle[1] += moment.vector[0] * self.calc_coefficient(self.EIx, y, moment.position[1], coefficient)
-        del tempforces, tempmoments, coefficient
+        for force in forces:
+            angle[0] += force.vector[0] * self.calc_coefficient(interpolant(self.EIzfunc, force.position[1], False), y, force.position[1])
+            angle[1] += force.vector[2] * self.calc_coefficient(interpolant(self.EIxfunc, force.position[1], False), y, force.position[1])
+        for moment in moments:
+            angle[0] += moment.vector[2] * self.calc_coefficient(interpolant(self.EIzfunc, moment.position[1], True), y, moment.position[1])
+            angle[1] -= moment.vector[0] * self.calc_coefficient(interpolant(self.EIxfunc, moment.position[1], True), y, moment.position[1])
         return angle
+        # return np.multiply(angle,np.array([1,-1]))
 
     def calc_angle(self, y_in):
+        forces = list(np.append(self.forces, self.reactionforces))
+        moments = list(np.append(self.moments, self.reactionmoments))
         try:
             angles = np.zeros((len(y_in),2))
             for idx, y in loadbar(enumerate(y_in)):
-                angles[idx,:] = self.angle_bare(y=y) + self.C1
+                angles[idx,:] = self.angle_bare(y=y, forces=forces, moments=moments) + self.C1
         except TypeError:
-            angles = self.angle_bare(y=y_in) + self.C1
+            angles = self.angle_bare(y=y_in, forces=forces, moments=moments) + self.C1
         return angles
 
-    def deflection_bare(self, y):
-        # point = self.origin_y - y
+    def deflection_bare(self, y, forces, moments):
         deflection = np.array([0., 0.])
-        tempforces = [item for sublist in self.totalforces for item in sublist]
-        tempmoments = [item for sublist in self.totalmoments for item in sublist]
-        for force in tempforces:
-            coefficient = step_function(force.position[1])
-            deflection[0] += force.vector[0] * self.calc_coefficient(self.EIz, y, force.position[1], coefficient, 2)
-            deflection[1] += force.vector[2] * self.calc_coefficient(self.EIx, y, force.position[1], coefficient, 2)
-        for moment in tempmoments:
-            coefficient = step_function_moment(moment.position[1])
-            deflection[0] += moment.vector[2] * self.calc_coefficient(self.EIz, y, moment.position[1], coefficient, 2)
-            deflection[1] += moment.vector[0] * self.calc_coefficient(self.EIx, y, moment.position[1], coefficient, 2)
-        del tempforces, tempmoments, coefficient
+        for force in forces:
+            deflection[0] += force.vector[0] * self.calc_coefficient(interpolant(self.EIzfunc, force.position[1], False), y, force.position[1], 2)
+            deflection[1] += force.vector[2] * self.calc_coefficient(interpolant(self.EIxfunc, force.position[1], False), y, force.position[1], 2)
+        for moment in moments:
+            deflection[0] += moment.vector[2] * self.calc_coefficient(interpolant(self.EIzfunc, moment.position[1], True), y, moment.position[1], 2)
+            deflection[1] -= moment.vector[0] * self.calc_coefficient(interpolant(self.EIxfunc, moment.position[1], True), y, moment.position[1], 2)
         return deflection
 
     def calc_deflection(self, y_in):
+        forces = list(np.append(self.forces, self.reactionforces))
+        moments = list(np.append(self.moments, self.reactionmoments))
         try:
             deflections = np.zeros((len(y_in),2))
             for idx, y in loadbar(enumerate(y_in)):
-                deflections[idx,:] = self.deflection_bare(y=y) + self.C2 + self.C1*y
+                deflections[idx,:] = self.deflection_bare(y=y, forces=forces, moments=moments) + self.C2 + self.C1*y
         except TypeError:
-            deflections = self.deflection_bare(y=y_in) + self.C2 + self.C1*y_in
+            deflections = self.deflection_bare(y=y_in, forces=forces, moments=moments) + self.C2 + self.C1*y_in
         return deflections
+        # return np.multiply(deflections,np.array([1,-1]))
 
 
-def run_tests():#
-    EIz = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])*2
+def run_tests():
+    global loadbar
+    loadbar = lambda x: x
+    EIfactor = 7.34
+    EIz = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])*EIfactor
     ys = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     system = LoadCase(y_coordinates=ys, EIx=EIz, EIz=EIz)
 
     loads = {}
-    loads['f1'] = Force(xpos=0.0, ypos=1.0, zpos=0.0, xmag=1, ymag=0.0, zmag=0.0)
-    # loads['f2'] = Force(xpos=0.0, ypos=0.5, zpos=0.0, xmag=-1000.0, ymag=0.0, zmag=0.0)
-    loads['m1'] = Moment(xpos=0.0, ypos=1.0, zpos=0.0, xmag=0.0, ymag=0.0, zmag=-1.0)
+    testload = 3
+    if testload == 1 or testload == 3:
+        loads['end_f'] = Force(xpos=0.0, ypos=1.0, zpos=0.0, xmag=1.0, ymag=0.0, zmag=1.0)
+    if testload == 2 or testload == 3:
+        loads['end_m'] = Moment(xpos=0.0, ypos=1.0, zpos=0.0, xmag=3.0, ymag=0.0, zmag=3.0)
     system.add_loads(*loads.values())
 
-    system.add_boundary_condition(y=0.0, defl_x=0)
-    system.add_boundary_condition(y=0.0, defl_z=0)
-    system.add_boundary_condition(y=0.0, angle_x=0)
-    system.add_boundary_condition(y=0.0, angle_z=0)
+    offset = 0.0
+    system.add_boundary_condition(y=0.0+offset, defl_x=0)
+    system.add_boundary_condition(y=0.0+offset, defl_z=0)
+    system.add_boundary_condition(y=0.0+offset, angle_x=0)
+    system.add_boundary_condition(y=0.0+offset, angle_z=0)
     system.solve_bcs()
 
-    totalforce, totalmoment = np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0])
-    tempforces = [item for sublist in system.totalforces for item in sublist]
-    tempmoments = [item for sublist in system.totalmoments for item in sublist]
-    for force in tempforces:
+    totalforce, totalmoment, totalforce_res, totalmoment_res = \
+        np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0])
+    for force in system.forces:
         totalforce += force.vector
-    for moment in tempmoments:
+        totalmoment += np.cross(force.position, force.vector)
+    for force in system.reactionforces:
+        totalforce_res += force.vector
+        totalmoment_res += np.cross(force.position, force.vector)
+    for moment in system.moments:
         totalmoment += moment.vector
-    assert(np.all(totalforce==0.0))
-    assert(np.all(totalmoment==0.0))
+    for moment in system.reactionmoments:
+        totalmoment_res += moment.vector
 
-    def exact_deflection(yout):
-        return yout*yout*(3.-yout)/(6.*2.) + yout*yout/(2.*2.)
+    assert(np.all(totalforce+totalforce_res<0.0000000001))
+    assert(np.all(totalmoment+totalmoment_res<0.0000000001))
 
-    def exact_angle(length):
-        return length*length/(2.*2.) - length / 2.
+    def exact_deflection(yout, length=1.0):
+        factor = direction*2 - 1
+        if testload == 1:
+            return loads['end_f'].vector[0]*yout*yout*(3.-yout)/(6.*EIfactor)*length*length*length
+        elif testload == 2:
+            return factor * loads['end_m'].vector[2]*yout*yout/(2.*EIfactor)*length*length
+        elif testload == 3:
+            return loads['end_f'].vector[0]*yout*yout*(3.-yout)/(6.*EIfactor)*length*length*length + \
+                   factor * loads['end_m'].vector[2] * yout*yout/(2.*EIfactor)*length*length
 
-    yout = np.linspace(0,1.0,51)
-    defl_exact = exact_deflection(yout)
-    defl_out = system.calc_deflection(yout)
-    angle_out = system.calc_angle(yout)
-    angle_exact = exact_angle(np.max(yout))
-    difference = defl_exact - defl_out[:, 0]
-    print(defl_exact[-1])
-    print(defl_out[-1, 0])
-    print(difference[-1])
-    plt.plot(yout, difference)
-    plt.plot(yout, defl_exact)
-    plt.plot(yout, defl_out[:, 0])
-    plt.legend(['difference', 'exact', 'calculated'])
-    plt.show()
+    def exact_angle(length=1.0):
+        factor = direction*2 - 1
+        if testload == 1:
+            return loads['end_f'].vector[0]*length * length / (2. * EIfactor)
+        elif testload == 2:
+            return factor * loads['end_m'].vector[2]*length / EIfactor
+        elif testload == 3:
+            return loads['end_f'].vector[0]*length*length/(2.*EIfactor) + \
+                   factor * loads['end_m'].vector[2]* length / EIfactor
 
-    print("All tests passed.")
-
+    for direction in [0,1]:
+        yout_amount = 6
+        yout = np.linspace(0.0001,1.0,yout_amount)
+        defl_exact = exact_deflection(yout)
+        defl_out = system.calc_deflection(yout)
+        angle_out = system.calc_angle(yout)
+        angle_exact = exact_angle(1.0)
+        assert(np.all(defl_out[:, direction]-defl_exact)<0.00000000001)
+        assert((angle_out[-1, direction]-angle_exact)<0.00000000001)
+    assert(np.all(system.calc_deflection([-0.05])<0.00000000001))
+    system.remove_all_boundary_conditions()
+    system.remove_all_loads()
+    loads = {}
+    loads['f1'] = Force(xpos=0.0, ypos=0.5, zpos=0.0, xmag=1., ymag=0.0, zmag=0.0)
+    loads['f2'] = Force(xpos=0.0, ypos=0.75, zpos=0.0, xmag=-50.0, ymag=0.0, zmag=10.0)
+    loads['f3'] = Force(xpos=0.0, ypos=1.0, zpos=0.0, xmag=2.0, ymag=0.0, zmag=0.0)
+    loads['m1'] = Moment(xpos=0.0, ypos=0.8, zpos=0.0, xmag=0.0, ymag=0.0, zmag=50.)
+    loads['m1'] = Moment(xpos=0.0, ypos=1.0, zpos=0.0, xmag=0.0, ymag=0.0, zmag=-25.)
+    system.add_loads(*loads.values())
+    offset = 0.0
+    system.add_boundary_condition(y=0.0+offset, defl_x=0)
+    system.add_boundary_condition(y=0.0+offset, defl_z=0)
+    system.add_boundary_condition(y=0.0+offset, angle_x=0)
+    system.add_boundary_condition(y=0.0+offset, angle_z=0)
+    system.solve_bcs()
+    yout = np.array([0.525, 0.785])
+    sx, sz = system.get_shearforce(yout)
+    mx, mz = system.get_moment(yout)
+    assert(np.all((sx-np.array([48, -2]))<0.00000000001))
+    assert(np.all((mz-np.array([14.7, 25.43]))<0.00000000001))
+    assert(np.all((sz-np.array([-10, 0]))<0.00000000001))
+    assert(np.all((mx-np.array([-2.25, 0]))<0.00000000001))
+    print("Tests passed succesfully")
 
 
 if __name__ == "__main__":
     run_tests()
-    direction=0  # 0 for x, 1 for z
-
-    # EIx = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 2.0])
-    EIz = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])*2
-    ys = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-
-    # f1 = Force(xpos=0.0, ypos=0.1, zpos=0.0, xmag=2.0, ymag=0., zmag=1.0)
-    # m1 = Moment(xpos=0.0, ypos=0.3, zpos=0.0, xmag=-1.0, ymag=0., zmag=10.0)
-
-    loads = {}
-    # f1 = Force(xpos=0.0, ypos=1.0, zpos=0.0, xmag=1000, ymag=0.0, zmag=0.0)
-    # m1 = Moment(xpos=0.0, ypos=1.0, zpos=0.0, xmag=0.0, ymag=0.0, zmag=1.0)
-    loads['f1'] = Force(xpos=0.0, ypos=1.0, zpos=0.0, xmag=1, ymag=0.0, zmag=0.0)
-    loads['f2'] = Force(xpos=0.0, ypos=0.5, zpos=0.0, xmag=-1000.0, ymag=0.0, zmag=0.0)
-    loads['m1'] = Moment(xpos=0.0, ypos=1.0, zpos=0.0, xmag=0.0, ymag=0.0, zmag=-1.0)
-
-    system = LoadCase(y_coordinates=ys, EIx=EIz, EIz=EIz)
-
-    system.add_loads(*loads.values())
-
-    system.add_boundary_condition(y=0.05, defl_x=0)
-    system.add_boundary_condition(y=0.05, defl_z=0)
-    system.add_boundary_condition(y=0.05, angle_x=0)
-    system.add_boundary_condition(y=0.05, angle_z=0)
-    system.solve_bcs(printing=True)
-
-    print(system.C1[direction])
-    print(system.C2[direction])
-
-    yout = np.linspace(0,1.0,51)
-    # yout = 0.05
-    defl_out = system.calc_deflection(yout)
-    angle_out = system.calc_angle(yout)
-
-    # print(angle_out)
-
-    # plt.plot(yout, defl_out[:,direction])
-    # plt.plot(yout, angle_out[:,direction])
-    # plt.legend(['Deflection', 'Slope'], loc='best')
-    # plt.show()
-
 
 
 
