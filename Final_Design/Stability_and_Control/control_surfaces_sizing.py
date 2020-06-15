@@ -161,17 +161,17 @@ def flap_sizing(variables,fix_position='fuselage end'):
     else: pass
 
     # Inputs
-    S = 21.09                   # [m2]      Wing surface area
+    S = 15.6                    # [m2]      Wing surface area
     b = sqrt(S*10.1)            # [m]       Wing span
     sweepc4 = 0                 # [rad]     Wing quarter chord sweep angle
-    taper = 0.4                 # [rad]     Wing taper ratio
+    taper = 0.55                # [rad]     Wing taper ratio
     cr = 2*S/((1+taper)*b)      # [m]       Wing root chord
 
-    CLmax_req = 1.8             # [-]       Required maximum lift coefficient
+    CLmax_req = 2               # [-]       Required maximum lift coefficient
     CLmax_wing = 1.4            # [-]       Wing maximum lift coefficient
     CLa = 2*pi                  # [/rad]    Wing lift curve slope
 
-    dClmax = 1.13               # [-]
+    dClmax = 1.25*0.96          # [-]
     da0l_airfoil = -15*pi/180   # [rad]
 
     cfc = 0.8                   # [-]       Start of the flap as percentage of the chord
@@ -201,10 +201,10 @@ def flap_sizing(variables,fix_position='fuselage end'):
     sweepTE = sweep(1,b,sweepc4,taper,cr)
 
     # Increase in lift coefficient
-    dCLmax = CLmax_req - CLmax_wing
+    dCLmax = (CLmax_req - CLmax_wing) * (1+sm)
 
     # Required flapped surface
-    SwfS = dCLmax/(0.9*dClmax*cos(sweep_hinge)) * (1+sm)
+    SwfS = dCLmax/(0.9*dClmax*cos(sweep_hinge))
     Swf = SwfS*S
 
     # Shift in zero lift angle of attack
@@ -291,7 +291,11 @@ if __name__ ==  "__main__":
 
     test_v = aileron_sizing(test_v)
     test_v = flap_sizing(test_v,fix_position='fuselage end')
-    print(test_v.b1)
-    print(test_v.b2)
-    print(test_v.f1)
-    print(test_v.f2)
+    print('Aileron:')
+    print('b1 =',round(test_v.b1,2),'m')
+    print('b2 =',round(test_v.b2,2),'m')
+    print('ba =',round(test_v.b2-test_v.b1,2),'m')
+    print('\nFlap:')
+    print('f1 =',round(test_v.f1,2),'m')
+    print('f2 =',round(test_v.f2,2),'m')
+    print('bfl =',round(test_v.f2-test_v.f1,2),'m')
