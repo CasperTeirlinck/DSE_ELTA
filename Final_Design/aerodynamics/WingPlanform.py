@@ -11,7 +11,14 @@ class WingPlanform:
         self.taper = taper
         self.twist = twist
         self.gamma = gamma
+
         self.b = np.sqrt(A*S)
+        self.c_r = (2*S)/(self.b*(1 + taper))
+        self.c_t = taper*self.c_r
+        self.MAC = (2/3)*self.c_r*((1 + taper + taper**2)/(1 + taper))
+        self.sweepLE = np.arctan(-self.c_r/(2*self.b)*(taper - 1))
+        self.YMAC = self.b/6 * (1 + 2*taper)/(1 + taper)
+        self.XMAC = self.YMAC*np.tan(self.sweepLE)
 
         self.Clmax_r = None
         self.Clmax_t = None
@@ -42,7 +49,6 @@ class WingPlanform:
         self.hwl = hwl
         self.kwl = kwl
 
-
     def transformTheta(self, theta, b): # Verified
         return -.5*b*np.cos(theta)
 
@@ -51,9 +57,7 @@ class WingPlanform:
     
     def calculateChord(self, theta, taper, S, b): # Verified
         y = self.transformTheta(theta, b)
-        cr = (2*S)/(b*(1+taper))
-        ct = taper*cr
-        return 2*(ct-cr)/b * abs(y) + cr
+        return 2*(self.c_t - self.c_r)/b * abs(y) + self.c_r
 
     def calcCoefficients(self, N, tipCutoff=0.9, FuselageIncluded=False): # Verified without lift slope & twist implementation
         

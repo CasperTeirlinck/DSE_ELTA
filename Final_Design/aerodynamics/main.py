@@ -67,13 +67,13 @@ if __name__ == "__main__":
     print(f'\n=== WINGPLANFORM ===\n')
     print(f'A = {wing.A}')
     print(f'S = {wing.S} m')
-    print(f'b = {round(wing.b, 2)}')
+    print(f'b = {round(wing.b, 2)} m')
     print(f'taper = {wing.taper}')
     print(f'twist = {round(np.degrees(wing.twist), 1)} deg')
-    cr = wing.calculateChord(np.pi/2, wing.taper, wing.S, wing.b)
-    ct = wing.calculateChord(0, wing.taper, wing.S, wing.b)
-    print(f'cr = {round(cr, 2)} m')
-    print(f'ct = {round(ct, 2)} m')
+    print(f'cr = {round(wing.c_r, 2)} m')
+    print(f'ct = {round(wing.c_t, 2)} m')
+    print(f'mac = {round(wing.MAC, 2)} m')
+    print(f'sweepLE = {round(np.degrees(wing.sweepLE), 2)} deg')
     CLa = wing.calcCLa()
     print(f'CLa = {round(CLa, 2)} 1/rad or {round(CLa*np.pi/180, 2)} /deg')
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     print(f'\n=== ============ ===\n')
 
-    plotPlanform(cr, ct, wing.b)
+    plotPlanform(wing.c_r, wing.c_t, wing.b, wing.MAC, wing.XMAC, wing.YMAC)
 
     if False:
         alpha = np.radians(10.2)
