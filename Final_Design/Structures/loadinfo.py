@@ -394,6 +394,8 @@ def run_tests():
 
 if __name__ == "__main__":
     run_tests()
+    # system = LoadCase([0.0, 0.5, 1.0], [2, 2, 2], [2, 2, 2])
+
 
 
 
