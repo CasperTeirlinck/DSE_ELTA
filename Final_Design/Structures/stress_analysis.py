@@ -3,6 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from math import pi, sqrt
 import copy
+from typing import Union
 
 #################################################################
 ### SOME LINES NEED TO BE REVIEWED IF QC SWEEP IS IMPLEMENTED ###
@@ -66,7 +67,6 @@ class Spar:
         self.zpos = zpos
         self.h    = h
 
-    
 
 
 class Stringer:
@@ -82,11 +82,11 @@ class Stringer:
 
 
 class StiffenedWing(WingPlanform):
-    def __init__(self, n, stringers_u, stringers_l, n_string_u, n_string_l, 
+    def __init__(self, n, z_stiff, j_stiff, n_string_u, n_string_l,
                  spar_le_loc, spar_te_loc, spar):
         super().__init__()
-
-        self.stringers_u_lst = [[0] * n_string_u] * n                   #stringer type on upper sheet (class)
+        self.stringers_u_lst = [list(zeros) for zeros in np.zeros((n, n_string_u))]
+        # self.stringers_u_lst = [[0] * n_string_u] * n                   #stringer type on upper sheet (class)
         self.stringers_l_lst = [[0] * n_string_l] * n                   #stringer type on lower sheet (class)
         self.spar_lst        = [[0] * 2] * n
         
@@ -116,7 +116,7 @@ class StiffenedWing(WingPlanform):
         
         
         
-        
+
         for i in range(len(self.cross_sections)):
             stringers_u_cs   = self.stringers_u_lst[i]
             stringers_l_cs   = self.stringers_l_lst[i]
@@ -137,14 +137,11 @@ class StiffenedWing(WingPlanform):
             spars_cs         = self.spar_lst[i]
             spars_cs[0]      = Spar(spar_x_loc_le_cs, spar_z_loc_le_cs, spar_h_le_cs)
             spars_cs[1]      = Spar(spar_x_loc_te_cs, spar_z_loc_te_cs, spar_h_te_cs)
-            
-            
-            
+
             for j in range(len(stringers_u_cs)):
-                stringers_u_cs[j] = Stringer(stringers_u_x_cs[j], stringers_u_z_cs[j], J_Stringer)
-            
+                stringers_u_cs[j] = Stringer(stringers_u_x_cs[j], stringers_u_z_cs[j], j_stiff)
             for k in range(len(stringers_l_cs)):
-                stringers_l_cs[k] = Stringer(stringers_l_x_cs[k], stringers_l_z_cs[k], Z_Stringer)
+                stringers_l_cs[k] = Stringer(stringers_l_x_cs[k], stringers_l_z_cs[k], z_stiff)
         
         
 
@@ -429,9 +426,9 @@ class StiffenedWing(WingPlanform):
         
         
 
-class J_Stringer():
+class J_Stringer:
     name = "J_Stringer"
-    def __init__(self, Le=1, material=MatProps(1,1,1,1), stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
+    def __init__(self, Le, material, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b3=0.005, b4=0.005):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png, gray area included in 2_alt
         # Reference coordinate system is x positive to the left, y positive upwards, origin bottom right.
@@ -510,7 +507,7 @@ class J_Stringer():
 
 class Z_Stringer(J_Stringer):
     name = "Z_Stringer"
-    def __init__(self, Le=1, material=MatProps, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
+    def __init__(self, Le, material, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b4=0.005, t3=None, b3=None):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png without the t3 and b3 elements
         super().__init__(Le=Le, material=material, stiff_ratio=stiff_ratio,
@@ -551,8 +548,10 @@ class Z_Stringer(J_Stringer):
 
 
 
-    
-wing = StiffenedWing(5, Z_Stringer, J_Stringer,10,7, 0.25, 0.75, SparProp)
+aluminium=MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, name="AA2024", alpha=0.8, n=0.6)
+z_stiff = Z_Stringer(1, aluminium)
+j_stiff = J_Stringer(1, aluminium)
+wing = StiffenedWing(5, z_stiff, j_stiff, 10, 7, 0.25, 0.75, SparProp)
 
 
 
