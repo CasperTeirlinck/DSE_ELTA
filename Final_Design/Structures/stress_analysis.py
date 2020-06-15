@@ -8,6 +8,7 @@ import copy
 ### SOME LINES NEED TO BE REVIEWED IF QC SWEEP IS IMPLEMENTED ###
 ############## NEEDS REVIEW FOR SYMMETRIC AIRFOIL ###############
 ##### ENSURE DATA FOR AIRFOIL IS GIVEN FROM TE -> TOP -> BOT ####
+######### SPAR Iyy IGNORED DUE TO THIN WALL ASSUMPTION ##########
 #################################################################
 
 
@@ -23,14 +24,72 @@ class WingPlanform:
 
 
 
+class MatProps():
+    def __init__(self, sigma_y, E, poisson, rho, sigma_comp=None, name=None, alpha=0.8, n=0.6):
+        # Density (rho) in g/cc, NOT kg/m3!
+        self.sigma_y = sigma_y
+        if sigma_comp == None:
+            self.sigma_comp = sigma_y
+        else:
+            self.sigma_comp = sigma_comp
+        self.E = E
+        self.poisson = poisson
+        self.rho = rho*1000
+        self.alpha = alpha
+        self.n = n
+        if name != None:
+            self.name = name
+
+
+
+class SparProp:
+    def __init__(self, t=0.01, material=MatProps(1,1,1,1)):
+        self.t        = t
+        self.material = material
+        self.h        = 0
+        self.Ixx      = self.calc_Ixx(t)
+        self.Iyy      = self.calc_Iyy(t)
+    
+    def calc_Ixx(self, t):
+        return (t*self.h**3)/12
+    
+    def calc_Iyy(self, t):
+        return (self.h*t**3)/12
+    
+    def calc_A(self, t):
+        return t*self.h
+    
+class Spar:
+    def __init__(self, xpos, zpos, h, spar_prop=SparProp):
+        self.properties = copy.deepcopy(spar_prop)
+        self.xpos = xpos
+        self.zpos = zpos
+        self.h    = h
+
+    
+
+
+class Stringer:
+    def __init__(self, xpos, zpos, stringer_instance):
+        self.properties = copy.deepcopy(stringer_instance)
+        self.xpos = xpos
+        self.zpos = zpos
+        
+    
+
+
+
 
 
 class StiffenedWing(WingPlanform):
-    def __init__(self, n, stringer_u, stringer_l, n_string_u, n_string_l, spar_le_loc, spar_te_loc):
+    def __init__(self, n, stringers_u, stringers_l, n_string_u, n_string_l, 
+                 spar_le_loc, spar_te_loc, spar):
         super().__init__()
 
-        self.stringer_u      = stringer_u                               #stringer type on upper sheet (class)
-        self.stringer_l      = stringer_l                               #stringer type on lower sheet (class)
+        self.stringers_u_lst = [[0] * n_string_u] * n                   #stringer type on upper sheet (class)
+        self.stringers_l_lst = [[0] * n_string_l] * n                   #stringer type on lower sheet (class)
+        self.spar_lst        = [[0] * 2] * n
+        
         self.n_string_u      = n_string_u                               #number of stringers on upper sheet
         self.n_string_l      = n_string_l                               #number of stringers on lower sheet
         self.spar_le_loc     = spar_le_loc                              #x/c location of leading edge spar
@@ -38,7 +97,7 @@ class StiffenedWing(WingPlanform):
         self.cross_sections  = self.create_cross_sections(n)[0]         #list of cross sections x,z coordinates (output: [[[x1,x2],[z1,z2]],...])
         self.ylst            = self.create_cross_sections(n)[1]         #list of all y coordinates of the cross sections
         self.clst            = self.create_cross_sections(n)[2]         #list of all chord lengths of cross sections
-
+        
         self.string_z_u      = self.position_stringers(n_string_u, n_string_l)[0]
         self.string_x_u      = self.position_stringers(n_string_u, n_string_l)[1]
         self.string_z_l      = self.position_stringers(n_string_u, n_string_l)[2]
@@ -48,8 +107,48 @@ class StiffenedWing(WingPlanform):
         self.x_box_l         = self.position_stringers(n_string_u, n_string_l)[6]
         self.z_box_l         = self.position_stringers(n_string_u, n_string_l)[7]
         
+        self.spar_x_loc_le   = self.calc_spar_centroid_loc()[0]
+        self.spar_z_loc_le   = self.calc_spar_centroid_loc()[1]
+        self.spar_x_loc_te   = self.calc_spar_centroid_loc()[2]
+        self.spar_z_loc_te   = self.calc_spar_centroid_loc()[3]
+        self.spar_h_le       = self.calc_spar_centroid_loc()[4]
+        self.spar_h_te       = self.calc_spar_centroid_loc()[5]
         
         
+        
+        
+        for i in range(len(self.cross_sections)):
+            stringers_u_cs   = self.stringers_u_lst[i]
+            stringers_l_cs   = self.stringers_l_lst[i]
+            
+            stringers_u_x_cs = self.string_x_u[i]
+            stringers_u_z_cs = self.string_z_u[i]
+            stringers_l_x_cs = self.string_x_l[i]
+            stringers_l_z_cs = self.string_z_l[i]
+            
+            spar_x_loc_le_cs = self.spar_x_loc_le[i]
+            spar_z_loc_le_cs = self.spar_z_loc_le[i]
+            spar_x_loc_te_cs = self.spar_x_loc_te[i]
+            spar_z_loc_te_cs = self.spar_z_loc_te[i]
+            spar_h_le_cs     = self.spar_h_le[i]
+            spar_h_te_cs     = self.spar_h_te[i]
+            
+            
+            spars_cs         = self.spar_lst[i]
+            spars_cs[0]      = Spar(spar_x_loc_le_cs, spar_z_loc_le_cs, spar_h_le_cs)
+            spars_cs[1]      = Spar(spar_x_loc_te_cs, spar_z_loc_te_cs, spar_h_te_cs)
+            
+            
+            
+            for j in range(len(stringers_u_cs)):
+                stringers_u_cs[j] = Stringer(stringers_u_x_cs[j], stringers_u_z_cs[j], J_Stringer)
+            
+            for k in range(len(stringers_l_cs)):
+                stringers_l_cs[k] = Stringer(stringers_l_x_cs[k], stringers_l_z_cs[k], Z_Stringer)
+        
+        
+
+
     
     def create_cross_sections(self, n):
         theta = np.arctan((self.cr-self.ct)/2/self.b)
@@ -262,44 +361,77 @@ class StiffenedWing(WingPlanform):
             
         return string_z_u, string_x_u, string_z_l, string_x_l, x_box_u, z_box_u, x_box_l, z_box_l
     
-    def calc_cross_section_centroid(self, cross_sections):
+    
+    def calc_spar_centroid_loc(self):
+        
+        spar_x_loc_le = []
+        spar_z_loc_le = []
+        
+        spar_x_loc_te = []
+        spar_z_loc_te = []
+        
+        h_spar_le     = []
+        h_spar_te     = []
+        
+        for i in range(len(self.cross_sections)):
+            x_box_ui   = self.x_box_u[i]
+            z_box_ui   = self.z_box_u[i]
+            
+            x_box_li   = self.x_box_l[i]
+            z_box_li   = self.z_box_l[i]
+            
+            spar_x_loci = min(min(x_box_ui), min(x_box_li))
+            
+            if spar_x_loci == min(x_box_ui):
+                ind_le = x_box_ui.index(spar_x_loci)
+                spar_x_loc_le.append(spar_x_loci)
+                
+            else:
+                ind_le = x_box_li.index(spar_x_loci)
+                spar_x_loc_le.append(spar_x_loci)
+                
+            spar_x_loci_te = max(max(x_box_ui), max(x_box_li))
+            
+            if spar_x_loci_te == max(x_box_ui):
+                ind_te = x_box_ui.index(spar_x_loci_te)
+                spar_x_loc_te.append(spar_x_loci_te)
+                
+            else:
+                ind_te = x_box_li.index(spar_x_loci_te)
+                spar_x_loc_te.append(spar_x_loci_te)
+            
+            spar_z_loc_lei = z_box_ui[ind_le]+z_box_li[x_box_li.index(min(x_box_li))]
+            h_spar_lei     = abs(z_box_ui[ind_le])+abs(z_box_li[x_box_li.index(min(x_box_li))])
+            
+            spar_z_loc_tei = z_box_ui[ind_te]+z_box_li[x_box_li.index(max(x_box_li))]
+            h_spar_tei     = abs(z_box_ui[ind_te])+abs(z_box_li[x_box_li.index(max(x_box_li))])
+            
+            
+            
+            spar_z_loc_le.append(spar_z_loc_lei)
+            h_spar_le.append(h_spar_lei)
+            
+            spar_z_loc_te.append(spar_z_loc_tei)
+            h_spar_te.append(h_spar_tei)
+            
+            
+            
+        return spar_x_loc_le, spar_z_loc_le, spar_x_loc_te, spar_z_loc_te, h_spar_le, h_spar_te
+    
+            
+            
+            
+            
         
         
         
         
         
         
-class Spar:
-    def __init__(self, t, material: MatProps, x_co, z_co, h):
-        self.t        = t
-        self.material = material
-        self.x_co     = x_co
-        self.z_co     = 
-        
-        
-        
-        
-
-
-class MatProps():
-    def __init__(self, sigma_y, E, poisson, rho, sigma_comp=None, name=None, alpha=0.8, n=0.6):
-        # Density (rho) in g/cc, NOT kg/m3!
-        self.sigma_y = sigma_y
-        if sigma_comp == None:
-            self.sigma_comp = sigma_y
-        else:
-            self.sigma_comp = sigma_comp
-        self.E = E
-        self.poisson = poisson
-        self.rho = rho*1000
-        self.alpha = alpha
-        self.n = n
-        if name != None:
-            self.name = name
 
 class J_Stringer():
     name = "J_Stringer"
-    def __init__(self, Le, material: MatProps, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
+    def __init__(self, Le=1, material=MatProps(1,1,1,1), stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b3=0.005, b4=0.005):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png, gray area included in 2_alt
         # Reference coordinate system is x positive to the left, y positive upwards, origin bottom right.
@@ -378,7 +510,7 @@ class J_Stringer():
 
 class Z_Stringer(J_Stringer):
     name = "Z_Stringer"
-    def __init__(self, Le, material, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
+    def __init__(self, Le=1, material=MatProps, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b4=0.005, t3=None, b3=None):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png without the t3 and b3 elements
         super().__init__(Le=Le, material=material, stiff_ratio=stiff_ratio,
@@ -414,17 +546,13 @@ class Z_Stringer(J_Stringer):
         return Ixx, Iyy
     
 
-class Stringer:
-    def __init__(self, xpos, ypos, stringer_instance):
-        self.properties = copy.deepcopy(stringer_instance)
-        self.xpos = xpos
-        self.ypos = ypos 
+
 
 
 
 
     
-wing = StiffenedWing(5,None,None,10,7, 0.25, 0.75)
+wing = StiffenedWing(5, Z_Stringer, J_Stringer,10,7, 0.25, 0.75, SparProp)
 
 
 
