@@ -5,7 +5,7 @@ from scipy.interpolate import interp1d
 import os
 
 class WingPlanform:
-    def __init__(self, S, A, taper, twist, gamma):
+    def __init__(self, S, A, taper, twist, gamma, CD0):
         self.S = S
         self.A = A
         self.taper = taper
@@ -20,6 +20,10 @@ class WingPlanform:
         self.a0_r = None
         self.a0_t = None
 
+        self.CD0 = CD0
+        self.hwl = None
+        self.kwl = None
+
         self.coeff = None
 
     def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, Cd0_r, Cd0_t, deltaAlphaStall_r=0, deltaAlphaStall_t=0):
@@ -33,6 +37,11 @@ class WingPlanform:
         self.a0_t = a0_t
         self.deltaAlphaStall_r = deltaAlphaStall_r
         self.deltaAlphaStall_t = deltaAlphaStall_t
+
+    def setWinglets(self, hwl, kwl):
+        self.hwl = hwl
+        self.kwl = kwl
+
 
     def transformTheta(self, theta, b): # Verified
         return -.5*b*np.cos(theta)
@@ -184,9 +193,7 @@ class WingPlanform:
                     break
 
         if plotProgression:
-            stallAlphaDistrSmooth = lambda y: (self.deltaAlphaStall_t - self.deltaAlphaStall_r)/(self.b/2) * abs(y) + self.deltaAlphaStall_r
             stallProgression = []
-            stallProgressionSmooth = []
 
             for alpha in np.arange(alphaMax, alphaRange[-1], np.radians(alphaStep)):
                 Cl_distr, yPnts = self.calcLiftDistribution(alpha, 100)
@@ -197,21 +204,15 @@ class WingPlanform:
 
                 for idx in idxs:
                     stallProgression.append([yPnts[idx], alpha])
-                    stallProgressionSmooth.append([yPnts[idx], alpha + stallAlphaDistrSmooth(yPnts[idx])])
 
             stallProgression = sorted(stallProgression, key=lambda dataPnt: dataPnt[0])
             stallProgression = np.array(stallProgression)
-            stallProgressionSmooth = sorted(stallProgressionSmooth, key=lambda dataPnt: dataPnt[0])
-            stallProgressionSmooth = np.array(stallProgressionSmooth)
 
             fig = plt.figure(figsize=(10, 4.5))
             ax1 = fig.add_subplot(111)
 
             ax1.plot(stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='', fillstyle='none', markevery=4, label='stall onset')
             ax1.plot(-1*stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='', fillstyle='none', markevery=4)
-
-            ax1.plot(stallProgressionSmooth[:,0], np.degrees(stallProgressionSmooth[:,1]), linewidth=2, color='blue', linestyle='-.', label='full stall')
-            ax1.plot(-1*stallProgressionSmooth[:,0], np.degrees(stallProgressionSmooth[:,1]), linewidth=2, color='blue', linestyle='-.')
 
             ax1.axvline(x=0, linewidth=2, color='black')
             ax1.axhline(y=0, linewidth=2, color='black')
@@ -290,13 +291,13 @@ class WingPlanform:
 
         return alphai_distr, yPnts
 
-    def calcOswald(self, fuselagewidth, CD0, h_wl, kwl, has_winglet=False):
+    def calcOswald(self, fuselagewidth, hasWinglets=False):
         k_fuselage = 1-2*(fuselagewidth/self.b)**2
         Q = 1/(self.calcespan()*k_fuselage)
-        P = 0.38*CD0
-        k_winglet = (1+2*h_wl/(kwl*self.b))**2
+        P = 0.38*self.CD0
+        k_winglet = (1+2*self.hwl/(self.kwl*self.b))**2
         
-        if not has_winglet:
+        if not hasWinglets:
             return 1/(Q+P*np.pi*self.A)
 
         else:

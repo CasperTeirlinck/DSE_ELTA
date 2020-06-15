@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from collections import OrderedDict
+import variables as v
 import os
 
 def plotLiftDistribution(y, Cl_range, ClmaxDistr=None, legend=False):
@@ -42,9 +43,6 @@ def readWinglist():
                 CLmax_lst.append(float(columns[2]))
                 espan_lst.append(float(columns[5]))
 
-    idx = np.argmax(espan_lst)
-    bestWing = [taper_lst[idx], twist_lst[idx], CLmax_lst[idx], espan_lst[idx]]
-
     taper = []
     for i, twist in enumerate(twist_lst):
         if twist == twist_lst[0]:
@@ -60,7 +58,7 @@ def readWinglist():
         if not twist in espan.keys(): espan[twist] = []
         espan[twist].append(espan_lst[i])
 
-    return bestWing, taper, OrderedDict(CLmax), OrderedDict(espan)
+    return taper, OrderedDict(CLmax), OrderedDict(espan)
 
 def plotDesignParams(x, y1, y2, xlabel='', y1label='', y2label=''):
     fig = plt.figure(figsize=(10, 4.5))
@@ -90,6 +88,48 @@ def plotDesignParams(x, y1, y2, xlabel='', y1label='', y2label=''):
         f'twist={round(np.degrees(sorted(y1.keys())[int(len(y1)/2)]),0)} deg',
         f'twist={round(np.degrees(sorted(y1.keys())[-1]),0)} deg'
     ], loc='lower center')
-    fig.suptitle('', fontsize=16, y=0.97)
+    fig.suptitle('Wingplanform Design Parameters Iteration', fontsize=16, y=0.97)
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.show()
+
+def readAeroLoads():
+    cl_list = []
+    cdi_list = []
+    y_list = []
+    with open('Final_Design/aerodynamics/liftdistrCLmax.dat', 'r') as f:
+        for line in f.readlines()[21:60]:
+            columns = line.strip().split()
+            if len(columns) > 0:
+                y = float(columns[0])
+                if y >= 0:
+                    y_list.append(y)
+                    cl_list.append(float(columns[3]))
+                    cdi_list.append(float(columns[5]))
+    cd_list = np.array(cdi_list) + v.CD0
+
+    return y_list, cl_list, cd_list
+
+def plotPlanform(cr, ct, b):
+    fig = plt.figure(figsize=(10, 4.3))
+    ax1 = fig.add_subplot(111)
+
+    ax1.plot([0, 0], [cr*1/4, -cr*3/4], linewidth=3, color='blue')
+
+    ax1.plot([b/2, b/2], [ct*1/4, -ct*3/4], linewidth=3, color='blue')
+    ax1.plot([-b/2, -b/2], [ct*1/4, -ct*3/4], linewidth=3, color='blue')
+
+    ax1.plot([0, b/2], [cr*1/4, ct*1/4], linewidth=3, color='blue')
+    ax1.plot([0, -b/2], [cr*1/4, ct*1/4], linewidth=3, color='blue')
+
+    ax1.plot([0, b/2], [-cr*3/4, -ct*3/4], linewidth=3, color='blue')
+    ax1.plot([0, -b/2], [-cr*3/4, -ct*3/4], linewidth=3, color='blue')
+
+    ax1.axvline(x=0, linewidth=2, color='black', linestyle='--')
+    ax1.axhline(y=0, linewidth=2, color='black', linestyle='--')
+    ax1.set_xlabel('Wingspan [m]')
+    ax1.xaxis.grid(color='black', linestyle='--')
+    ax1.yaxis.grid(color='black', linestyle='--')
+    fig.suptitle('Wing Planform', fontsize=16, y=0.97)
+    plt.axis('equal')
     plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()

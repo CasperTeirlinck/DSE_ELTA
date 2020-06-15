@@ -1,24 +1,17 @@
 import numpy as np
 
-A = 11 # [-] Aspect ratio
-S = 15 # [m2] Wing surface
+A = 10.1 # [-] Aspect ratio
+S = 15.6 # [m2] Wing surface
 
 taper = 0.9 # [-] Taper ratio
 twist = np.radians(2)
 gamma = 0
 
 w_fuselage = 1.2
-CD0 = 0.0045*3.7
+CD0 = 0.0055*3.7
 
-h_wl = 0.4
-kwl = 2
-
-# NACA 651412
-# Clmax_t = 1.5
-# Cla_t = 6.016
-# Cd0_t = 0.0055
-# a0_t = np.radians(-3)
-# deltaAlphaStall_t = np.radians(2.5)
+hwl = 0.4
+kwl = 2.1
 
 # NACA 4415
 Clmax_r = 1.6
@@ -33,3 +26,10 @@ Cd0_t = Cd0_r
 a0_t = a0_r
 deltaAlphaStall_t = deltaAlphaStall_r
 
+
+# NACA 651412
+# Clmax_t = 1.5
+# Cla_t = 6.016
+# Cd0_t = 0.0055
+# a0_t = np.radians(-3)
+# deltaAlphaStall_t = np.radians(2.5)
