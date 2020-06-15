@@ -109,7 +109,7 @@ def readAeroLoads():
 
     return y_list, cl_list, cd_list
 
-def plotPlanform(cr, ct, b):
+def plotPlanform(cr, ct, b, MAC, XMAC, YMAC):
     fig = plt.figure(figsize=(10, 4.3))
     ax1 = fig.add_subplot(111)
 
@@ -123,6 +123,10 @@ def plotPlanform(cr, ct, b):
 
     ax1.plot([0, b/2], [-cr*3/4, -ct*3/4], linewidth=3, color='blue')
     ax1.plot([0, -b/2], [-cr*3/4, -ct*3/4], linewidth=3, color='blue')
+
+    ax1.plot([YMAC, YMAC], [cr*1/4 - XMAC, cr*1/4 - XMAC - MAC], linewidth=2, linestyle='-.', color='black')
+    ax1.plot([-YMAC, -YMAC], [cr*1/4 - XMAC, cr*1/4 - XMAC - MAC], linewidth=2, linestyle='-.', color='black')
+
 
     ax1.axvline(x=0, linewidth=2, color='black', linestyle='--')
     ax1.axhline(y=0, linewidth=2, color='black', linestyle='--')
