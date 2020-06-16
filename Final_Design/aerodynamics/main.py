@@ -73,14 +73,16 @@ if __name__ == "__main__":
     print(f'cr = {round(wing.c_r, 2)} m')
     print(f'ct = {round(wing.c_t, 2)} m')
     print(f'mac = {round(wing.MAC, 2)} m')
+    print(f'Xmac = {round(wing.XMAC, 3)} m')
+    print(f'Ymac = {round(wing.YMAC, 3)} m')
     print(f'sweepLE = {round(np.degrees(wing.sweepLE), 2)} deg')
     CLa = wing.calcCLa()
     print(f'CLa = {round(CLa, 2)} 1/rad or {round(CLa*np.pi/180, 2)} /deg')
 
-    if False:
+    if True:
         CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, stallpos = wing.calcCLmax(plotProgression=True)
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)} deg')
-        # plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr, legend=True)
+        plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr, legend=True)
 
     print(f'\n=== ============ ===\n')
 
