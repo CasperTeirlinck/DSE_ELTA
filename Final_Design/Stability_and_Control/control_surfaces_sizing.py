@@ -33,7 +33,8 @@ def aileron_sizing(variables):
 
     # Inputs
     dphi = 60*pi/180            # [rad]     Bank angle
-    dt = 5                      # [s]       Bank time
+    dtTO = 5                    # [s]       Bank time take-off
+    dtL = 4                     # [s]       Bank time landing
     VTO = 1.05*25.2             # [m/s]     Take-off speed
     VL = 1.1*25.2               # [m/s]     Landing speed
 
@@ -48,17 +49,16 @@ def aileron_sizing(variables):
     cd0_L = 0.02                # [-]       Landing configuration zero lift drag coefficient
 
     b1 = variables.b1           # [m]       Aileron start
-    b2 = variables.b2           # [m]       Aileron end
     clear_tip = 0.05*(b/2)      # [m]       Distance from the tip that should be clear of control surfaces
     da = 20*pi/180              # [rad]     Aileron deflection angle
-    clda_TO = 0.046825*180/pi   # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
-    clda_L = 0.046825*180/pi    # [/rad]    Landing configuration Change in the airfoil’s lift coefficient with aileron deflection
+    clda = 0.046825*180/pi      # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
 
     sm = 0.1                    # [-]       Safety margin
 
     # Parameter calculations
     # Required roll rate
-    p_req = dphi/dt * (1+sm)
+    p_reqTO = dphi/dtTO * (1+sm)
+    p_reqL = dphi/dtL * (1+sm)
 
     # Aileron end
     b2 = b/2 - clear_tip
@@ -73,7 +73,7 @@ def aileron_sizing(variables):
     b1lst = [b1]
 
     # Roll rate calculation
-    def roll_rate(V,cd0,clda):
+    def roll_rate(V,cd0):
         # Calculate roll damping
         Clp = -(cla + cd0)*cr*b/(24*S) * (1 + 3*taper)
 
@@ -88,15 +88,12 @@ def aileron_sizing(variables):
     # Perform iterations
     while sizing and i<100:
         # Calculate roll rate
-        p_TO = roll_rate(VTO,cd0_TO,clda_TO)
-        p_L = roll_rate(VL,cd0_L,clda_L)
-
-        # Most critical roll rate
-        p_crit = max(p_TO,p_L)
+        p_TO = roll_rate(VTO,cd0_TO)
+        p_L = roll_rate(VL,cd0_L)
 
         # Check whether p is larger than required
         # If p is smaller than required
-        if p_crit<p_req:
+        if p_TO<p_reqTO or p_L<p_reqL:
             b1 -= step
 
         # If p is larger than required
