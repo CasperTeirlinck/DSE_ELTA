@@ -14,8 +14,9 @@ CLTO = 1.5                  # [-]           Take-off lift coefficient
 CDTO = 0.5                  # [-]           Take-off drag coefficient
 Cmacwf = 1                  # [-]           Wing-fuselage pitching moment coefficient around the aerodynamic centre
 TTO = 100                   # [N]           Take-off thrust
-WTO = 750*9.80665           # [N]           Take-off weight
-xcg = 1.5               # [m]           Most forward centre of gravity
+WTO = 750*g                 # [N]           Take-off weight
+xcg = 1.5                   # [m]           Most forward centre of gravity
+zcg = 1                     # [m]           Centre of gravity height
 xmg = 2                     # [m]           Main gear location
 xacwf = 1                   # [m]           Wing/fuselage aerodynamic centre location
 zmg = 0                     # [m]           Main gear height
@@ -24,38 +25,37 @@ zT = 1                      # [m]           Thrust vector height
 zwac = 0.5                  # [m]           Aerodynamic centre height
 mu = 0.3                    # [-]           Friction factor
 la = 9                      # [m]           Aircraft length
-Sh = 10                     # [m2]          Horizontal wing surface area
+Sh = 10                     # [m2]          Horizontal tail surface area
+xach = 6                    # [m]           Horizontal tail aerodynamic centre location
 
 # Wing/fuselage lift, drag and pitching moment
 Lwf = CLTO*0.5*rhoTO*VTO**2*Sw
-D = CDTO*0.5*rhoTO*VTO**2*Sw
+DTO = CDTO*0.5*rhoTO*VTO**2*Sw
 Macwf = Cmacwf*0.5*rhoTO*VTO**2*Sw*MAC
-
-# Contributing pitching moments during take-off rotation
-Mw = WTO*(xmg-xcg)
-MD = D*(zD-zmg)
-MT = TTO*(zT-zmg)
-MLwf = Lwf*(xmg-xacwf)
 
 # Aircraft linear acceleration
 LTO = Lwf
 N = WTO-LTO
-ma = (TTO-D-mu*N)
+ma = (TTO-DTO-mu*N)
+
+# Contributing pitching moments during take-off rotation
+Mw = WTO*(xmg-xcg)
+MD = DTO*(zD-zmg)
+MT = TTO*(zT-zmg)
+MLwf = Lwf*(xmg-xacwf)
+Ma = ma*(zcg-zmg)
 
 # Aircraft pitch moment of inertia
-def Iyy(la,WTO,g=9.80665):
-    C = 0.176
-    ky = C*la
-    return WTO/g*ky**2
+C = 0.176
+ky = C*la
+Iyy = (WTO/g)*ky**2
+Iyymg = Iyy + (zcg-zmg)**2*(WTO/g)
 
 # Desired horizontal tail lift
-def Lh():
-    num = Lwf*(xmg-xacwf) + Macwf + ma*(zcg-zmg) - WTO*(xmg-xcg) + D*(zD-zmg) - TTO*(zT-zmg) - Iyy*a_pitch
-    den = xach - xmg
-    return num/den
+Lh = (MLwf+Macwf+Ma-Mw+MD-MT-Iyymg*a_pitch)/(xach-xmg)
 
 # Desired horizontal tail lift coefficient
-def CLh():
-    return (2*Lh)/(rhoTO*VTO**2*Sh)
+CLh = 2*Lh/(rhoTO*VTO**2*Sh)
 
-#def tau_e():
+# Elevator angle of attack effectiveness
+tau_e = (CLh/CLah-ah)/de_max

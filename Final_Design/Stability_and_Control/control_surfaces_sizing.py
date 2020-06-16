@@ -33,7 +33,8 @@ def aileron_sizing(variables):
 
     # Inputs
     dphi = 60*pi/180            # [rad]     Bank angle
-    dt = 5                      # [s]       Bank time
+    dtTO = 5                    # [s]       Bank time take-off
+    dtL = 4                     # [s]       Bank time landing
     VTO = 1.05*25.2             # [m/s]     Take-off speed
     VL = 1.1*25.2               # [m/s]     Landing speed
 
@@ -48,17 +49,16 @@ def aileron_sizing(variables):
     cd0_L = 0.02                # [-]       Landing configuration zero lift drag coefficient
 
     b1 = variables.b1           # [m]       Aileron start
-    b2 = variables.b2           # [m]       Aileron end
     clear_tip = 0.05*(b/2)      # [m]       Distance from the tip that should be clear of control surfaces
     da = 20*pi/180              # [rad]     Aileron deflection angle
-    clda_TO = 0.046825*180/pi   # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
-    clda_L = 0.046825*180/pi    # [/rad]    Landing configuration Change in the airfoil’s lift coefficient with aileron deflection
+    clda = 0.046825*180/pi      # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
 
     sm = 0.1                    # [-]       Safety margin
 
     # Parameter calculations
     # Required roll rate
-    p_req = dphi/dt * (1+sm)
+    p_reqTO = dphi/dtTO * (1+sm)
+    p_reqL = dphi/dtL * (1+sm)
 
     # Aileron end
     b2 = b/2 - clear_tip
@@ -73,7 +73,7 @@ def aileron_sizing(variables):
     b1lst = [b1]
 
     # Roll rate calculation
-    def roll_rate(V,cd0,clda):
+    def roll_rate(V,cd0):
         # Calculate roll damping
         Clp = -(cla + cd0)*cr*b/(24*S) * (1 + 3*taper)
 
@@ -88,15 +88,12 @@ def aileron_sizing(variables):
     # Perform iterations
     while sizing and i<100:
         # Calculate roll rate
-        p_TO = roll_rate(VTO,cd0_TO,clda_TO)
-        p_L = roll_rate(VL,cd0_L,clda_L)
-
-        # Most critical roll rate
-        p_crit = max(p_TO,p_L)
+        p_TO = roll_rate(VTO,cd0_TO)
+        p_L = roll_rate(VL,cd0_L)
 
         # Check whether p is larger than required
         # If p is smaller than required
-        if p_crit<p_req:
+        if p_TO<p_reqTO or p_L<p_reqL:
             b1 -= step
 
         # If p is larger than required
@@ -161,17 +158,17 @@ def flap_sizing(variables,fix_position='fuselage end'):
     else: pass
 
     # Inputs
-    S = 21.09                   # [m2]      Wing surface area
+    S = 15.6                    # [m2]      Wing surface area
     b = sqrt(S*10.1)            # [m]       Wing span
     sweepc4 = 0                 # [rad]     Wing quarter chord sweep angle
-    taper = 0.4                 # [rad]     Wing taper ratio
+    taper = 0.55                # [rad]     Wing taper ratio
     cr = 2*S/((1+taper)*b)      # [m]       Wing root chord
 
-    CLmax_req = 1.8             # [-]       Required maximum lift coefficient
+    CLmax_req = 2               # [-]       Required maximum lift coefficient
     CLmax_wing = 1.4            # [-]       Wing maximum lift coefficient
     CLa = 2*pi                  # [/rad]    Wing lift curve slope
 
-    dClmax = 1.13               # [-]
+    dClmax = 1.25*0.96          # [-]
     da0l_airfoil = -15*pi/180   # [rad]
 
     cfc = 0.8                   # [-]       Start of the flap as percentage of the chord
@@ -201,10 +198,10 @@ def flap_sizing(variables,fix_position='fuselage end'):
     sweepTE = sweep(1,b,sweepc4,taper,cr)
 
     # Increase in lift coefficient
-    dCLmax = CLmax_req - CLmax_wing
+    dCLmax = (CLmax_req - CLmax_wing) * (1+sm)
 
     # Required flapped surface
-    SwfS = dCLmax/(0.9*dClmax*cos(sweep_hinge)) * (1+sm)
+    SwfS = dCLmax/(0.9*dClmax*cos(sweep_hinge))
     Swf = SwfS*S
 
     # Shift in zero lift angle of attack
@@ -291,7 +288,11 @@ if __name__ ==  "__main__":
 
     test_v = aileron_sizing(test_v)
     test_v = flap_sizing(test_v,fix_position='fuselage end')
-    print(test_v.b1)
-    print(test_v.b2)
-    print(test_v.f1)
-    print(test_v.f2)
+    print('Aileron:')
+    print('b1 =',round(test_v.b1,2),'m')
+    print('b2 =',round(test_v.b2,2),'m')
+    print('ba =',round(test_v.b2-test_v.b1,2),'m')
+    print('\nFlap:')
+    print('f1 =',round(test_v.f1,2),'m')
+    print('f2 =',round(test_v.f2,2),'m')
+    print('bfl =',round(test_v.f2-test_v.f1,2),'m')

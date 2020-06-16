@@ -355,7 +355,7 @@ V&V:    Verified
 def sizing_htail_wingpos(variables,plot=False):
     # Inputs
     lf = 6                          # [m]   Fuselage length
-    lfn = 1.5                       # [m]   Distance nose - wing
+    lfn = variables.lfn             # [m]   Distance nose - wing
     Sw = 23                         # [m2]  Wing surface area
     sweepw = 0                      # [rad] Wing quarter chord sweep angle
     taperw = 0.4                    # [-]   Wing taper ratio
@@ -407,7 +407,7 @@ def sizing_htail_wingpos(variables,plot=False):
     xcg_wing = lfn + LEcr_xcgw
 
     # Update values in variables class
-    #variables.lfn = lfn
+    variables.lfn = lfn
     #variables.xcg_wing = xcg_wing
     #variables.xlemacw = xlemacw
     variables.xcg_min = xcg_min
@@ -449,6 +449,7 @@ class Test_variables_sc:
         self.xcg_min = None     # [%MAC]    Minimum center of gravity location
         self.xcg_max = None     # [%MAC]    Maximum center of gravity location
         self.Sh_min = None      # [m2]      Minimum required horizontal tail surface
+        self.lfn = 1.5          # [m]       Distance nose - wing
 
 if __name__ ==  "__main__":
     test_v = Test_variables_sc()
@@ -456,4 +457,5 @@ if __name__ ==  "__main__":
     test_v = sizing_htail_wingpos(test_v,plot=True)
     print('xcg_min =',round(test_v.xcg_min,2),'%MAC')
     print('xcg_max =',round(test_v.xcg_max,2),'%MAC')
-    print('Sh =',round(test_v.Sh_min,2),'m2')
+    print('\nSh =',round(test_v.Sh_min,2),'m2')
+    print('lfn =',round(test_v.lfn,2),'m')
