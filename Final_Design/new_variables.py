@@ -14,8 +14,9 @@ class NewVariables:
     def init_general(self):
         self.WTO = None
         self.Woew_classII = None
-        self.Wbat = None
         self.WPL = None
+        self.rho0 = 1.225
+        self.g0 = 9.80665
 
     def init_aerodynamics(self, S, A, taper, twist, gamma, CD0):
         self._S = S
