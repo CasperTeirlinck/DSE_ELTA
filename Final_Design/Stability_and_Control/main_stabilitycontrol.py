@@ -94,19 +94,17 @@ class stabilitycontrol_variables:
         self.de_min = -25*pi/180    # [rad]     Minimum elevator deflection (maximum negative)
 
         # Propeller geometry parameters
-        self.Bp = 2.5               # [-]       Number of blades per porpeller
+        self.Bp = 2.5               # [-]       Number of blades per propeller
         self.lp1 = 2                # [m]       Distance 1st propeller plane - aircraft centre of gravity
         self.lp2 = 2                # [m]       Distance 1st propeller plane - aircraft centre of gravity
-        self.Dp1 = 3.14             # [m2]      1st propeller disk diameter
-        self.Dp2 = 3.14             # [m2]      1st propeller disk diameter
+        self.Dp1 = 2                # [m2]      1st propeller disk diameter
+        self.Dp2 = 2                # [m2]      1st propeller disk diameter
 
         # Wing aerodynamic parameters
         self.eta = 0.95             # [-]       Airfoil efficiency coefficient
         self.CLaw = 5.4             # [/rad]    Wing lift rate coefficient
         self.Cm0af = 0.05           # [-]       Airfoil zero lift pitching moment coefficient TODO Check this value
-        self.mu1 = 1                # [-]       Flap coefficient 1 TODO Check this value
-        self.mu2 = 0.25             # [-]       Flap coefficient 2
-        self.mu3 = 1                # [-]       Flap coefficient 3 TODO Check this value
+        self.mu1 = 0.3              # [-]       Flap coefficient 1
         self.dClmax = 1             # [-]       Airfoil lift coefficient increase at landing TODO Check this value
         self.cc = 1                 # [-]       Chord ratio (extended flap/clean)
         self.CL_landing = 2         # [-]       Wing lift coefficient at landing (all flaps deployed)

@@ -1,5 +1,5 @@
 import numpy as np
-
+from math import sqrt
 
 
 
@@ -17,6 +17,9 @@ class NewVariables:
         self.WPL = None
         self.rho0 = 1.225
         self.g0 = 9.80665
+        self.R = 287.05
+        self.gamma = 1.4
+        self.lmbda = -0.0065
 
     def init_aerodynamics(self, S, A, taper, twist, gamma, CD0):
         self._S = S
@@ -90,7 +93,98 @@ class NewVariables:
         self.batt_cell_P          = self.batt_cell_I_max * self.batt_cell_V_nom                     # Maximum power [W]
 
     def init_sc(self):
-        pass
+        # Flight performance parameters
+        self.Vcruise = 50           # [m/s]         Cruise speed
+        self.hcruise = 914.4        # [m]           Cruise altitude
+        self.a_pitch = 12*pi/180    # [rad/s]       Take-off pitch angular velocity
+        self.VTO = 1.05 * 25.2      # [m/s]         Take-off velocity
+        self.rhoTO = 1.225          # [kg/m3]       Take-off density
+        self.mu = 0.05              # [-]           Take-off friction factor
+
+        # Masses
+        self.m_fgroup = 100         # [kg]      Fuselage group mass
+        self.m_wing = 150           # [kg]      Wing mass
+        self.m_bat = 300            # [kg]      Battery mass
+        self.m_repbat = 100         # [kg]      Replaceable battery mass
+        self.m_pax = 100            # [kg]      Single Pilot/Passenger mass
+
+        # Centre of gravity
+        self.xcg_min = None         # [m]       Minimum center of gravity location
+        self.xcg_max = None         # [m]       Maximum center of gravity location
+        self.xcg_fgroup = 3         # [m]       Fuselage group center of gravity
+        self.xcg_f = 2.3            # [m]       Fuselage centre of gravity location
+        self.xcg_wing = 1.7         # [m]       Wing center of gravity
+        self.xcg_bat = 3            # [m]       Battery center of gravity
+        self.xcg_repbat = 3         # [m]       Replaceable battery center of gravity
+        self.xcg_pax = 1            # [m]       Pilot/Passenger center of gravity
+
+        # Component locations
+        self.xmg = 2                # [m]       Main gear location
+        self.xacw = 1               # [m]       Wing/fuselage aerodynamic centre location
+        self.xach = 6               # [m]       Horizontal tail aerodynamic centre location
+
+        self.zcg = 1                # [m]       Centre of gravity height
+        self.zmg = 0                # [m]       Main gear height
+        self.zT = 1                 # [m]       Thrust vector height
+        self.zD = 0.5               # [m]       Drag vector heigh
+
+        # Fuselage geometry parameters
+        self.la = 9                 # [m]       Aircraft length
+        self.lf = 9.420             # [m]       Fuselage length
+        self.bf = 1.6               # [m]       Fuselage width
+        self.hf = 1.213             # [m]       Fuselage height
+        self.hfmax = 1.213          # [m]       Maximum fuselage height
+        self.Sfs = 5.258            # [m2]      Fuselage lateral surface area
+        self.hf1 = 1.146            # [m]       Fuselage nose height
+        self.hf2 = 0.306            # [m]       Fuselage tail height
+        self.bf1 = 0.960            # [m]       Fuselage nose width
+        self.bf2 = 0.243            # [m]       Fuselage tail width
+
+        # Wing geometry parameters
+        self.lfn = 1.5              # [m]       Distance nose - wing
+        self.hw = 0.5               # [m]       Height of the wing, from ground
+        self.Snet = 10              # [m2]      Net wing surface area
+
+        # Horizontal tail geometry parameters
+        self.lh = 6.2               # [m]       Horizontal tail arm
+        self.Sh = None              # [m2]      Minimum required horizontal tail surface
+        self.bh = 5                 # [m]       Horizontal tail span
+        self.hh = 1.5               # [m]       Height horizontal tail from ground
+        self.Ah = 3                 # [-]       Horizontal tail aspect ratio
+        self.sweeph = 0             # [rad]     Horizontal tail half chord sweep
+        self.chr = 1                # [m]       Horizontal tail root chord
+        self.ih = 0                 # [rad]     Horizontal tail incidence angle
+
+        # Vertical tail geometry parameters
+        self.lv = 6.2               # [m]       Vertical tail arm
+        self.Sv = None              # [m2]      Vertical tail surface
+
+        # Elevator geometry parameters
+        self.bebh = 1               # [-]       Elevator span
+        self.de_max = 20*pi/180     # [rad]     Maximum elevator deflection
+        self.de_min = -25*pi/180    # [rad]     Minimum elevator deflection (maximum negative)
+
+        # Propeller geometry parameters
+        self.Bp = 2.5               # [-]       Number of blades per propeller
+        self.lp1 = 2                # [m]       Distance 1st propeller plane - aircraft centre of gravity
+        self.lp2 = 2                # [m]       Distance 1st propeller plane - aircraft centre of gravity
+        self.Dp1 = 2                # [m2]      1st propeller disk diameter
+        self.Dp2 = 2                # [m2]      1st propeller disk diameter
+
+        # Wing aerodynamic parameters
+        self.eta = 0.95             # [-]       Airfoil efficiency coefficient
+        self.mu1 = 0.3              # [-]       Flap coefficient 1
+        self.VhV = sqrt(0.85)       # [-]       Tail/wing speed ratio
+        self.CnBi = 0.024           # [-]       Wing configuration stability component
+        self.deda = None            # [-]       Downwash gradient
+
+        # Horizontal tail aerodynamic parameters
+        self.CLh_L = -0.8           # [-]       Horizontal tail landing lift coefficient
+        self.CLh_TO = None          # [-]       Horizontal tail take-off lift coefficient
+        self.CLah = 4               # [/rad]    Horizontal lift curve slope
+
+        # Vertical tail aerodynamic parameters
+        self.CnB = None             # [-]       Directional stability coefficient
 
     @property
     def S(self):
