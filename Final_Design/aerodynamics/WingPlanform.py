@@ -3,7 +3,7 @@ from numpy import linalg as la
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import os
-from math import pi,tan,atan,cos,sqrt
+import variables as v
 
 class WingPlanform:
     def __init__(self, S, A, taper, twist, gamma, CD0):
@@ -50,7 +50,7 @@ class WingPlanform:
         self.hwl = hwl
         self.kwl = kwl
 
-    def transformTheta(self, theta, b): # Verified
+    def transformTheta(self, theta,b): # Verified
         return -.5*b*np.cos(theta)
 
     def transformSpan(self, y, b): # Verified
@@ -235,12 +235,6 @@ class WingPlanform:
             return None
         return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, alphaMaxLoc
 
-    def calcCD0wing(self, S, b, taper):
-        # DO NOT USE WITH LOW TAPER RATIOS
-        croot = self.calculateChord(np.pi/2, taper, S, b)
-        ctip = self.calculateChord(0, taper, S, b)
-        cmean = np.mean([croot, ctip])
-        return croot*self.Cd0_r/(2*cmean) + ctip*self.Cd0_t/(2*cmean)
 
     def calcDelta(self, alpha):
         A = np.array([ A[0]*alpha + A[1] for A in self.coeff ])
@@ -296,10 +290,69 @@ class WingPlanform:
 
         return alphai_distr, yPnts
 
-    def calcOswald(self, fuselagewidth, hasWinglets=False):
-        k_fuselage = 1-2*(fuselagewidth/self.b)**2
+    def calcCD0wing(self,w_fuselage,BLturbratio_wing,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,MAC=1.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5):
+        def _CfLaminar(rho,V,L,visc):
+            Re = rho*V*L/visc
+            return 1.328/np.sqrt(Re)
+
+        def _CfTurbulent(rho,V,L,visc):
+            Re = rho*V*L/visc
+            return 0.445/(np.log10(Re)**2.58)
+
+        S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.5*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage)*2.06
+        Cf_wing = (1-BLturbratio_wing)*_CfLaminar(rho_cruise,V_stall,MAC,visc) + BLturbratio_wing*_CfTurbulent(rho_cruise,V_stall,MAC,visc)
+        FF_wing = 1. + 0.6*tc_airfoil/xc_airfoil + 100*tc_airfoil**4
+        IF_wing = 1.25
+
+        dCD_flap = 0.0144*0.2*flap_area_ratio*(40-10)
+
+        if clean_config:
+            return (Cf_wing* FF_wing* IF_wing* S_wet_wing)/self.S
+        if not clean_config:
+            return (Cf_wing* FF_wing* IF_wing* S_wet_wing)/self.S + dCD_flap
+
+    def calcCD0(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,MAC=1.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5):
+        
+        def _CfLaminar(rho,V,L,visc):
+            Re = rho*V*L/visc
+            return 1.328/np.sqrt(Re)
+
+        def _CfTurbulent(rho,V,L,visc):
+            Re = rho*V*L/visc
+            return 0.445/(np.log10(Re)**2.58)
+        
+        Cf_fus = (1-BLturbratio_fus)*_CfLaminar(rho_cruise,V_stall,l_fus,visc) + BLturbratio_fus*_CfTurbulent(rho_cruise,V_stall,l_fus,visc)
+        ld_fus = l_fus/np.sqrt(4*fus_A_max/np.pi)
+        FF_fus = 1 + 60./ld_fus**3 + ld_fus/400.
+        IF_fus = 1.
+        
+        S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.5*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage)*2.06
+        Cf_wing = (1-BLturbratio_wing)*_CfLaminar(rho_cruise,V_stall,MAC,visc) + BLturbratio_wing*_CfTurbulent(rho_cruise,V_stall,MAC,visc)
+        FF_wing = 1. + 0.6*tc_airfoil/xc_airfoil + 100*tc_airfoil**4
+        IF_wing = 1.25
+
+        S_wet_emp = (S_h + S_v)*2.04
+        Cf_emp = (1-BLturbratio_emp)*_CfLaminar(rho_cruise,V_stall,MAC_emp,visc) + BLturbratio_emp*_CfTurbulent(rho_cruise,V_stall,MAC_emp,visc)
+        FF_emp = 1. + 0.6*tc_emp/xc_emp + 100*tc_emp**4
+        IF_emp = 1.05
+
+        CDS_wet_fus =  Cf_fus*  FF_fus*  IF_fus*  S_wet_fus
+        CDS_wet_wing = Cf_wing* FF_wing* IF_wing* S_wet_wing
+        CDS_wet_emp =  Cf_emp*  FF_emp*  IF_emp*  S_wet_emp
+        CDS_ref_gear = 0.
+        
+        dCD_flap = 0.0144*0.2*flap_area_ratio*(40-10)
+
+        if clean_config:
+            return 1.05*(CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear)/v.S
+
+        if not clean_config:
+            return 1.05*(CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear)/v.S + dCD_flap
+
+    def calcOswald(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,MAC=1.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5,hasWinglets=False):
+        k_fuselage = 1-2*(w_fuselage/self.b)**2
         Q = 1/(self.calcespan()*k_fuselage)
-        P = 0.38*self.CD0
+        P = 0.38*self.calcCD0(S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,flap_area_ratio,tc_airfoil,xc_airfoil,MAC,tc_emp,xc_emp,V_stall,rho_cruise,clean_config,visc)
         k_winglet = (1+2*self.hwl/(self.kwl*self.b))**2
         
         if not hasWinglets:
@@ -308,113 +361,6 @@ class WingPlanform:
         else:
             return k_winglet/(Q+P*np.pi*self.A)
 
-    def calcsweep(self,pc, b, sweepc4, taper, cr):
-        sweepLE = atan(tan(sweepc4) - cr / (2 * b) * (taper - 1))
-        return atan(tan(sweepLE) + 2 * pc * cr * (taper - 1) / b)
-
-    def calcchord(self,y, b, sweepc4, taper, cr):
-        sweepLE = self.calcsweep(0, b, sweepc4, taper, cr)
-        sweepTE = self.calcsweep(1, b, sweepc4, taper, cr)
-        return cr - y * tan(sweepLE) + y * tan(sweepTE)
-
-    def aileron_sizing(self,VTO,VL,fuselagewidth,clear_tip):
-        # Iteration parameters
-        sizing = True
-        i = 0                       # [-]       Number of iterations
-        max_i = 1000                # [-]       Maximum number of iterations
-        step = 0.01                 # [m]       Increase/Decrease of aileron length at every iteration
-
-        # Inputs
-        dphi = 60*pi/180            # [rad]     Bank angle
-        dtTO = 5                    # [s]       Bank time take-off
-        dtL = 4                     # [s]       Bank time landing
-        #VTO = 1.05*25.2             # [m/s]     Take-off speed
-        #VL = 1.1*25.2               # [m/s]     Landing speed
-
-        bf = fuselagewidth          # [m]       Fuselage width
-
-        S = self.S                  # [m2]      Wing surface area
-        b = self.b                  # [m]       Wing span
-        taper = self.taper          # [-]       Wing taper ratio
-        cr = self.c_r               # [m]       Wing root chord
-        cla = self.calcCLa()        # [/rad]    Lift curve slope
-        cd0_TO = 0.02               # [-]       Take-off configuration zero lift drag coefficient
-        cd0_L = 0.02                # [-]       Landing configuration zero lift drag coefficient
-
-        b1 = 6.36                   # [m]       Aileron start
-        #clear_tip = 0.05*(b/2)      # [m]       Distance from the tip that should be clear of control surfaces
-        da = 20*pi/180              # [rad]     Aileron deflection angle
-        clda = 0.046825*180/pi      # [/rad]    Change in the airfoil’s lift coefficient with aileron deflection
-
-        sm = 0.1  # [-]       Safety margin
-
-        # Parameter calculations
-        # Required roll rate
-        p_reqTO = dphi/dtTO * (1+sm)
-        p_reqL = dphi/dtL * (1+sm)
-
-        # Aileron end
-        b2 = b/2 - clear_tip
-
-        # Check initial b1
-        if b1 < bf / 2:
-            print('Initial value for b1 is too small! Change b1.')
-        else:
-            pass
-
-        # Create history list
-        b1lst = [b1]
-
-        # Roll rate calculation
-        def roll_rate(V, cd0):
-            # Calculate roll damping
-            Clp = -(cla + cd0) * cr * b / (24 * S) * (1 + 3 * taper)
-
-            # Calculate roll authority
-            Clda = clda * cr / (S * b) * ((b2 ** 2 - b1 ** 2) + 4 * (taper - 1) / (3 * b) * (b2 ** 3 - b1 ** 3))
-
-            # Calculate roll rate for take-off and landing
-            p = -Clda / Clp * da * 2 * V / b
-
-            return p
-
-        # Perform iterations
-        while sizing and i < 100:
-            # Calculate roll rate
-            p_TO = roll_rate(VTO, cd0_TO)
-            p_L = roll_rate(VL, cd0_L)
-
-            # Check whether p is larger than required
-            # If p is smaller than required
-            if p_TO < p_reqTO or p_L < p_reqL:
-                b1 -= step
-
-            # If p is larger than required
-            else:
-                # Check for convergence
-                if abs(b1 - b1lst[-1]) < (step / 2):
-                    sizing = False
-                else:
-                    b1 += step
-
-            # Add values to history lists
-            b1lst.append(b1)
-
-            # Add iteration
-            i += 1
-
-            # Check aileron size
-            if b1 < bf / 2:
-                print('Aileron became too large.')
-                sizing = False
-            # Check for maximum number of iterations
-            elif i >= max_i:
-                sizing = False
-                print('Aileron sizing did not converge within', i, 'iterations.')
-            else:
-                pass
-
-        return b1,b2
 
     def flap_sizing(self, fix_position='fuselage end'):
         # Check input
@@ -492,7 +438,7 @@ class WingPlanform:
             D = B ** 2 - 4 * A * C
 
             if not D >= 0:
-                print('There is a problem with the flap sizing! (control_surfaces_sizing.py)')
+                print('There is a problem with the flap sizing!')
                 return
             else:
                 bfllst = [0, 0]
@@ -514,7 +460,7 @@ class WingPlanform:
         #    D = B ** 2 - 4 * A * C
 
         #    if not D >= 0:
-        #        print('There is a problem with the flap sizing! (control_surfaces_sizing.py)')
+        #        print('There is a problem with the flap sizing!')
         #        return
         #    else:
         #        bfllst = [0, 0]
@@ -529,12 +475,9 @@ class WingPlanform:
         else:
             pass
 
-        # Flap start/end location
-        if fix_position == 'fuselage end':
-            f2 = f1 + bfl
-        #else:
-        #    f1 = f2 - bfl
-        else:
-            pass
 
-        return f1,f2,Swf
+    
+    
+    
+    
+    

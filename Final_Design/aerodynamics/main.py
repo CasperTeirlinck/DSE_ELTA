@@ -54,9 +54,6 @@ if __name__ == "__main__":
 
     y_list, cl_list, cd_list = readAeroLoads()
 
-    # taper = 0.55
-    # twist = np.radians(5)
-
     taper = 0.45
     twist = np.radians(5)
 
@@ -104,3 +101,12 @@ if __name__ == "__main__":
         alpha = np.radians(10.2)
         Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
         plotLiftDistribution(yPnts, [Cl_distr])
+
+
+    CD0 = wing.calcCD0(17.507,9.420,1.218,1.05,0.3*wing.S,0.15*wing.S,1.,1,0.65,0.65,0.)
+    CD0wing = wing.calcCD0wing(1.,0,0)
+    e = wing.calcOswald(17.507,9.420,1.218,1.05,0.3*wing.S,0.15*wing.S,1.,1,0.65,0.65,0.,hasWinglets=True)
+
+    print(CD0)
+    print(CD0wing)
+    print(e)

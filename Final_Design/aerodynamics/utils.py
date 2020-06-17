@@ -105,7 +105,7 @@ def readAeroLoads():
                     y_list.append(y)
                     cl_list.append(float(columns[3]))
                     cdi_list.append(float(columns[5]))
-    cd_list = np.array(cdi_list) + v.CD0
+    cd_list = np.array(cdi_list) #+ v.CD0
 
     return y_list, cl_list, cd_list
 
