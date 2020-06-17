@@ -96,7 +96,8 @@ def readAeroLoads():
     cl_list = []
     cdi_list = []
     y_list = []
-    with open('Final_Design/aerodynamics/liftdistrAlpha5.dat', 'r') as f:
+    # with open('Final_Design/aerodynamics/liftdistrAlpha5.dat', 'r') as f:
+    with open(os.path.join( os.path.dirname(__file__), 'liftdistrAlpha5.dat' ), 'r') as f:
         for line in f.readlines()[21:60]:
             columns = line.strip().split()
             if len(columns) > 0:

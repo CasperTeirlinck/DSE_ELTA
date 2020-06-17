@@ -242,7 +242,7 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     Swf = variables.Swf         # [m2]      Reference wing flapped surface area TODO Check this value
     CL0 = variables.CL0         # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
     CLA_h = variables.CLA_h     # [-]       Aircraft less tail lift coefficient TODO Check this value
-    CLh = variables.CLh         # [-]       Horizontal tail lift coefficient TODO Check this value
+    CLh = variables.CLh_L       # [-]       Horizontal tail lift coefficient TODO Check this value
 
     sm_free = 0.05              # [-]       Fraction neutral point shift for stick-free stability
     sm = 0.05                   # [-]       Stability margin
@@ -278,6 +278,7 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     deda = KeLambda/KeLambda0 * (r/(r**2 + mtv**2)*0.4876/sqrt(r**2+0.6319+mtv**2)+
                                  (1+(r**2/(r**2+0.7915+5.0734*mtv**2))**0.3113)
                                  *(1-sqrt(mtv**2/(1+mtv**2)))) * CLaw/(pi*Aw)
+    print(deda)
 
     # Pitching moment coefficient
     Cmacw = Cm0af*(Aw*cos(sweepw)**2/(Aw + 2*cos(sweepw)))
@@ -305,6 +306,9 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
 
     # Minimum required horizontal tail surface
     ShS_min = max(ShS_stability,ShS_Control)
+
+    # Add to variables class
+    variables.deda = deda
 
     # Create Scissor Plot
     if plot:

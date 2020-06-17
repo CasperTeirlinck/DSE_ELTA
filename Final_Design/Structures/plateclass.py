@@ -64,6 +64,8 @@ class Sheet:
 
         self.mass = self.get_mass()
 
+        self.recalculate_stringer_effects()
+
     @property
     def a(self):
         return self._a
