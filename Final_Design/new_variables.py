@@ -39,7 +39,7 @@ class NewVariables:
         self.batt_N       = None           # Number of battery cells
         self.eff_batt     = 0.95           # Battery efficiency
         self.eff_prop     = 0.85           # Propeller efficiency
-        self.eff_tot_prop = 0.95 * 0.85    # Total propulsive efficiency
+        self.eff_tot_prop = 0.95 * 0.88    # Total propulsive efficiency
         self.V_req_batt   = 400            # Required voltage in Volts
         self.I_req_batt   = 189.75         # Required current in Amps
         self.DoD          = 90             # Depth of discharge of the battery
@@ -51,7 +51,7 @@ class NewVariables:
         # Battery cell data of the Samsung 21700 50E
         self.batt_cell_diameter   = 0.0211                                                          # Cell diameter [m]
         self.batt_cell_length     = 0.0707                                                          # Cell length [m]
-        self.batt_cell_volume     = pi * (self.batt_cell_diameter / 2) ** 2 * self.batt_cell_length # [m^3]
+        self.batt_cell_volume     = np.pi * (self.batt_cell_diameter / 2) ** 2 * self.batt_cell_length # [m^3]
         self.batt_cell_mass       = 0.0687                                                          # Cell mass [kg]
         self.batt_cell_V_nom      = 3.6                                                             # Nominal voltage [V]
         self.batt_cell_V_max      = 4.2                                                             # Maximum voltage [V]
