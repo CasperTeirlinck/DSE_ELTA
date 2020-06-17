@@ -451,90 +451,55 @@ class NewVariables:
 
         return alphai_distr, yPnts
 
-    def calcCD0wing(self, w_fuselage, BLturbratio_wing, flap_area_ratio, tc_airfoil=0.15, xc_airfoil=0.3, MAC=1.3,
-                    tc_emp=0.12, xc_emp=0.3, V_stall=23.15, rho_cruise=1.04, clean_config=True, visc=1.8e-5):
-        def _CfLaminar(rho, V, L, visc):
-            Re = rho * V * L / visc
-            return 1.328 / np.sqrt(Re)
+    def calcCD0(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,l_gear,w_gear,dCD_gear,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,MAC=1.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5):
+        
+        def _CfLaminar(rho,V,L,visc):
+            Re = rho*V*L/visc
+            return 1.328/np.sqrt(Re)
 
-        def _CfTurbulent(rho, V, L, visc):
-            Re = rho * V * L / visc
-            return 0.445 / (np.log10(Re) ** 2.58)
-
-        S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.5 * w_fuselage, self.b), self.taper, self.S,
-                                                   self.b) * w_fuselage) * 2.06
-        Cf_wing = (1 - BLturbratio_wing) * _CfLaminar(rho_cruise, V_stall, MAC, visc) + BLturbratio_wing * _CfTurbulent(
-            rho_cruise, V_stall, MAC, visc)
-        FF_wing = 1. + 0.6 * tc_airfoil / xc_airfoil + 100 * tc_airfoil ** 4
-        IF_wing = 1.25
-
-        dCD_flap = 0.0144 * 0.2 * flap_area_ratio * (40 - 10)
-
-        if clean_config:
-            return (Cf_wing * FF_wing * IF_wing * S_wet_wing) / self.S
-        if not clean_config:
-            return (Cf_wing * FF_wing * IF_wing * S_wet_wing) / self.S + dCD_flap
-
-    def calcCD0(self, S_wet_fus, l_fus, fus_A_max, w_fuselage, S_h, S_v, MAC_emp, BLturbratio_fus, BLturbratio_wing,
-                BLturbratio_emp, flap_area_ratio, tc_airfoil=0.15, xc_airfoil=0.3, MAC=1.3, tc_emp=0.12, xc_emp=0.3,
-                V_stall=23.15, rho_cruise=1.04, clean_config=True, visc=1.8e-5):
-
-        def _CfLaminar(rho, V, L, visc):
-            Re = rho * V * L / visc
-            return 1.328 / np.sqrt(Re)
-
-        def _CfTurbulent(rho, V, L, visc):
-            Re = rho * V * L / visc
-            return 0.445 / (np.log10(Re) ** 2.58)
-
-        Cf_fus = (1 - BLturbratio_fus) * _CfLaminar(rho_cruise, V_stall, l_fus, visc) + BLturbratio_fus * _CfTurbulent(
-            rho_cruise, V_stall, l_fus, visc)
-        ld_fus = l_fus / np.sqrt(4 * fus_A_max / np.pi)
-        FF_fus = 1 + 60. / ld_fus ** 3 + ld_fus / 400.
+        def _CfTurbulent(rho,V,L,visc):
+            Re = rho*V*L/visc
+            return 0.445/(np.log10(Re)**2.58)
+        
+        Cf_fus = (1-BLturbratio_fus)*_CfLaminar(rho_cruise,V_stall,l_fus,visc) + BLturbratio_fus*_CfTurbulent(rho_cruise,V_stall,l_fus,visc)
+        ld_fus = l_fus/np.sqrt(4*fus_A_max/np.pi)
+        FF_fus = 1 + 60./ld_fus**3 + ld_fus/400.
         IF_fus = 1.
-
-        S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.5 * w_fuselage, self.b), self.taper, self.S,
-                                                   self.b) * w_fuselage) * 2.06
-        Cf_wing = (1 - BLturbratio_wing) * _CfLaminar(rho_cruise, V_stall, MAC, visc) + BLturbratio_wing * _CfTurbulent(
-            rho_cruise, V_stall, MAC, visc)
-        FF_wing = 1. + 0.6 * tc_airfoil / xc_airfoil + 100 * tc_airfoil ** 4
+        
+        S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.5*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage)*2.06
+        Cf_wing = (1-BLturbratio_wing)*_CfLaminar(rho_cruise,V_stall,MAC,visc) + BLturbratio_wing*_CfTurbulent(rho_cruise,V_stall,MAC,visc)
+        FF_wing = 1. + 0.6*tc_airfoil/xc_airfoil + 100*tc_airfoil**4
         IF_wing = 1.25
 
-        S_wet_emp = (S_h + S_v) * 2.04
-        Cf_emp = (1 - BLturbratio_emp) * _CfLaminar(rho_cruise, V_stall, MAC_emp,
-                                                    visc) + BLturbratio_emp * _CfTurbulent(rho_cruise, V_stall, MAC_emp,
-                                                                                           visc)
-        FF_emp = 1. + 0.6 * tc_emp / xc_emp + 100 * tc_emp ** 4
+        S_wet_emp = (S_h + S_v)*2.04
+        Cf_emp = (1-BLturbratio_emp)*_CfLaminar(rho_cruise,V_stall,MAC_emp,visc) + BLturbratio_emp*_CfTurbulent(rho_cruise,V_stall,MAC_emp,visc)
+        FF_emp = 1. + 0.6*tc_emp/xc_emp + 100*tc_emp**4
         IF_emp = 1.05
 
-        CDS_wet_fus = Cf_fus * FF_fus * IF_fus * S_wet_fus
-        CDS_wet_wing = Cf_wing * FF_wing * IF_wing * S_wet_wing
-        CDS_wet_emp = Cf_emp * FF_emp * IF_emp * S_wet_emp
-        CDS_ref_gear = 0.
-
-        dCD_flap = 0.0144 * 0.2 * flap_area_ratio * (40 - 10)
+        CDS_wet_fus =  Cf_fus*  FF_fus*  IF_fus*  S_wet_fus
+        CDS_wet_wing = Cf_wing* FF_wing* IF_wing* S_wet_wing
+        CDS_wet_emp =  Cf_emp*  FF_emp*  IF_emp*  S_wet_emp
+        CDS_ref_gear = dCD_gear*l_gear*w_gear
+        
+        dCD_flap = 0.0144*0.2*flap_area_ratio*(40-10)
 
         if clean_config:
-            return 1.05 * (CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear) / self.S
+            return 1.05*(CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear)/self.S
 
         if not clean_config:
-            return 1.05 * (CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear) / self.S + dCD_flap
+            return 1.05*(CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear)/self.S + dCD_flap
 
-    def calcOswald(self, S_wet_fus, l_fus, fus_A_max, w_fuselage, S_h, S_v, MAC_emp, BLturbratio_fus, BLturbratio_wing,
-                   BLturbratio_emp, flap_area_ratio, tc_airfoil=0.15, xc_airfoil=0.3, MAC=1.3, tc_emp=0.12, xc_emp=0.3,
-                   V_stall=23.15, rho_cruise=1.04, clean_config=True, visc=1.8e-5, hasWinglets=False):
-        k_fuselage = 1 - 2 * (w_fuselage / self.b) ** 2
-        Q = 1 / (self.calcespan() * k_fuselage)
-        P = 0.38 * self.calcCD0(S_wet_fus, l_fus, fus_A_max, w_fuselage, S_h, S_v, MAC_emp, BLturbratio_fus,
-                                BLturbratio_wing, BLturbratio_emp, flap_area_ratio, tc_airfoil, xc_airfoil, MAC, tc_emp,
-                                xc_emp, V_stall, rho_cruise, clean_config, visc)
-        k_winglet = (1 + 2 * self.hwl / (self.kwl * self.b)) ** 2
-
+    def calcOswald(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp, l_gear,w_gear,dCD_gear,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,MAC=1.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5,hasWinglets=False):
+        k_fuselage = 1-2*(w_fuselage/self.b)**2
+        Q = 1/(self.calcespan()*k_fuselage)
+        P = 0.38*self.calcCD0(S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,l_gear,w_gear,dCD_gear,flap_area_ratio,tc_airfoil,xc_airfoil,MAC,tc_emp,xc_emp,V_stall,rho_cruise,clean_config,visc)
+        k_winglet = (1+2*self.hwl/(self.kwl*self.b))**2
+        
         if not hasWinglets:
-            return 1 / (Q + P * np.pi * self.A)
+            return 1/(Q+P*np.pi*self.A)
 
         else:
-            return k_winglet / (Q + P * np.pi * self.A)
+            return k_winglet/(Q+P*np.pi*self.A)
 
     def flap_sizing(self, fix_position='fuselage end'):
         # Check input
