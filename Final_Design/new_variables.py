@@ -9,7 +9,7 @@ class NewVariables:
         self.init_aerodynamics()
         self.init_weight()
         self.init_propulsion()
-        self.init_cs()
+        self.init_sc()
 
     def init_general(self):
         self.WTO = None
@@ -63,7 +63,7 @@ class NewVariables:
         self.batt_cell_E_vol_spec = self.batt_cell_C_Wh / self.batt_cell_volume                     # Capacity per unit volume [Wh/m^3]
         self.batt_cell_P          = self.batt_cell_I_max * self.batt_cell_V_nom                     # Maximum power [W]
 
-    def init_cs(self):
+    def init_sc(self):
         pass
 
     ###################################
