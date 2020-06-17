@@ -117,7 +117,7 @@ class stabilitycontrol_variables:
         self.CDTO = 0.0414          # [-]       Take-off drag coefficient
         self.Cmacwf = -0.565        # [-]       Wing-fuselage pitching moment coefficient around the aerodynamic centre
         self.deda = None            # [-]       Downwash gradient
-        self.a0 = -7.255 * pi / 180 # [rad]     Zero lift angle of attack
+        self.a0 = -7.255*pi/180     # [rad]     Zero lift angle of attack
 
         # Horizontal tail aerodynamic parameters
         self.CLh_L = -0.8           # [-]       Horizontal tail landing lift coefficient
@@ -135,5 +135,10 @@ def stability_control(variables):
     variables = sizing_htail_wingpos(variables)
     variables = verticaltail_sizing(variables)
     variables = elevator_sizing(variables)
-
     return variables
+
+# Test
+if __name__ ==  "__main__":
+    sc_v = stabilitycontrol_variables()
+
+    sc_v = stability_control(sc_v)
