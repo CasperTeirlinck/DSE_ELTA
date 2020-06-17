@@ -344,10 +344,10 @@ class WingPlanform:
         dCD_flap = 0.0144*0.2*flap_area_ratio*(40-10)
 
         if clean_config:
-            return 1.05*(CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear)/v.S
+            return 1.05*(CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear)/self.S
 
         if not clean_config:
-            return 1.05*(CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear)/v.S + dCD_flap
+            return 1.05*(CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear)/self.S + dCD_flap
 
     def calcOswald(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,MAC=1.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5,hasWinglets=False):
         k_fuselage = 1-2*(w_fuselage/self.b)**2

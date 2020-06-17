@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     """ === SHOW === """
 
-    if True:
+    if False:
         S_h = 20
         A_h = 3
         taper_h = 0.7
@@ -84,11 +84,11 @@ if __name__ == "__main__":
     print(f'mac = {round(wing.MAC, 2)} m')
     print(f'Xmac = {round(wing.XMAC, 3)} m')
     print(f'Ymac = {round(wing.YMAC, 3)} m')
-    print(f'e = {round(wing.calcOswald(v.w_fuselage, hasWinglets=True), 2)}')
+    # print(f'e = {round(wing.calcOswald(v.w_fuselage, hasWinglets=True), 2)}')
     CLa = wing.calcCLa()
     print(f'CLa = {round(CLa, 2)} 1/rad or {round(CLa*np.pi/180, 2)} /deg')
 
-    if False:
+    if True:
         CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, stallpos = wing.calcCLmax(plotProgression=True)
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)} deg')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr, legend=True)
