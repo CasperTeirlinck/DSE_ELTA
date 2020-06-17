@@ -5,7 +5,7 @@ from scipy.interpolate import interp1d
 from matplotlib.lines import Line2D
 from collections import OrderedDict
 import os
-from utils import plotLiftDistribution, readWinglist, plotDesignParams, readAeroLoads, plotPlanform
+from utils import plotLiftDistribution, readWinglist, plotDesignParams, readAeroLoads, plotPlanform, plotHtail
 
 from WingPlanform import WingPlanform
 
@@ -54,10 +54,22 @@ if __name__ == "__main__":
 
     y_list, cl_list, cd_list = readAeroLoads()
 
-    taper = 0.55
+    # taper = 0.55
+    # twist = np.radians(5)
+
+    taper = 0.45
     twist = np.radians(5)
 
     """ === SHOW === """
+
+    if True:
+        S_h = 20
+        A_h = 3
+        taper_h = 0.7
+        b_h = np.sqrt(A_h*S_h)
+        c_r_h = (2*S_h)/(b_h*(1 + taper_h))
+        c_t_h = taper_h*c_r_h
+        plotHtail(c_r_h, c_t_h, b_h)
 
     wing = WingPlanform(v.S, v.A, taper, twist, v.gamma, v.CD0)
     wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t, v.deltaAlphaStall_r, v.deltaAlphaStall_t)
@@ -75,11 +87,11 @@ if __name__ == "__main__":
     print(f'mac = {round(wing.MAC, 2)} m')
     print(f'Xmac = {round(wing.XMAC, 3)} m')
     print(f'Ymac = {round(wing.YMAC, 3)} m')
-    print(f'sweepLE = {round(np.degrees(wing.sweepLE), 2)} deg')
+    print(f'e = {round(wing.calcOswald(v.w_fuselage, hasWinglets=True), 2)}')
     CLa = wing.calcCLa()
     print(f'CLa = {round(CLa, 2)} 1/rad or {round(CLa*np.pi/180, 2)} /deg')
 
-    if True:
+    if False:
         CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, stallpos = wing.calcCLmax(plotProgression=True)
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)} deg')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr, legend=True)

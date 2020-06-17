@@ -7,10 +7,11 @@ taper = 0.9 # [-] Taper ratio
 twist = np.radians(2)
 gamma = 0
 
-w_fuselage = 1.2
-CD0 = 0.0055*3.7
+w_fuselage = 1.06
+# CD0 = 0.0055*3.7
+CD0 = 0.0050*3.7
 
-hwl = 0.4
+hwl = 0.9
 kwl = 2.1
 
 # NACA 4415
