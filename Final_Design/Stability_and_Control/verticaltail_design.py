@@ -38,7 +38,7 @@ def verticaltail_sizing(variables):
     lv = variables.lv           # [m]       Vertical tail arm
 
     CnB = directional_stability(lcg,lf,hfmax,Sfs,Sw,bw,hf1,hf2,bf1,bf2,lp1,lp2,Dp1,Dp2,Bp,CnBi)
-
+    print('---- Vertical tail sizing -----')
     print('Directional stability coefficient =',round(CnB,4))
 
     SvlvSb = float(input('Vertical tail size = '))

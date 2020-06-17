@@ -278,30 +278,29 @@ def analyze_fuselage(sparlocs, fus, bcs, *loads):
         system.change_geometry(sparlocs, EIx, EIz)
 
     system.solve_bcs()
+
+    sparlocs = np.concatenate
     sx, sz = system.get_shearforce(sparlocs)
     mx, mz = system.get_moment(sparlocs)
+    ny = system.get_normalforce(sparlocs)
     totalforce, totalmoment, totalforce_res, totalmoment_res = \
         np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0])
     for force in system.forces:
         totalforce += force.vector
         totalmoment += np.cross(force.position, force.vector)
-        print("force", force.vector, force.position)
     for force in system.reactionforces:
         totalforce_res += force.vector
         totalmoment_res += np.cross(force.position, force.vector)
-        print("res_force", force.vector, force.position)
     for moment in system.moments:
         totalmoment += moment.vector
-        print("moment", moment.vector, moment.position)
     for moment in system.reactionmoments:
         totalmoment_res += moment.vector
-        print("res_moment", moment.vector, moment.position)
-    print("sol", system.solution[7])
-    print(system.matrix)
-    print(totalforce, totalforce_res)
-    print(totalmoment, totalmoment_res)
-    print(mz)
-    # print(sparlocs)
+    plt.subplot(131)
+    plt.plot(sparlocs, ny)
+    plt.subplot(132)
+    plt.plot(sparlocs, sx)
+    plt.plot(sparlocs, sz)
+    plt.subplot(133)
     plt.plot(sparlocs, mx)
     plt.plot(sparlocs, mz)
     plt.show()
@@ -313,9 +312,9 @@ if __name__ == "__main__":
     bc2 = {'y' : 0.0+y_origin, 'defl_z' : 0.0}
     bc3 = {'y' : 0.0+y_origin, 'angle_x' : 0.0}
     bc4 = {'y' : 0.0+y_origin, 'angle_z' : 0.0}
-    bc4 = {'y' : 0.0+y_origin, 'defl_y' : 0.0}
-    bc4 = {'y' : 0.0+y_origin, 'angle_y' : 0.0}
-    bcs = [bc1, bc2, bc3, bc4]
+    bc5 = {'y' : 0.0+y_origin, 'defl_y' : 0.0}
+    bc6 = {'y' : 0.0+y_origin, 'angle_y' : 0.0}
+    bcs = [bc1, bc2, bc3, bc4, bc5, bc6]
     loads = {}
     # loads['f1'] = Force(xpos=0.0, ypos=0.5, zpos=0.0, xmag=1., ymag=0.0, zmag=0.0)
     # loads['f2'] = Force(xpos=0.0, ypos=0.75, zpos=0.0, xmag=-50.0, ymag=0.0, zmag=10.0)

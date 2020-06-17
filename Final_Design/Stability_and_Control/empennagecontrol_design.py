@@ -75,10 +75,11 @@ def elevator_sizing(variables):
 
     # Elevator angle of attack effectiveness
     tau_e = (CLh/CLah-ah)/de_min
+    print('\n----- Elevator design -----')
     print('Elevator angle of attack effectiveness =',round(tau_e,2))
 
     # Elevator-to-tail chord ratio
-    cech = float(input('\nCE/Ch = '))
+    cech = float(input('CE/Ch = '))
 
     # Elevator size
     be = bebh*bh

@@ -99,15 +99,15 @@ class stabilitycontrol_variables:
         self.Dp2 = 3.14             # [m2]      1st propeller disk diameter
 
         # Wing aerodynamic parameters
-        self.eta = 0.95             # [-]       Airfoil efficiency coefficient TODO Check if aerodynamics guys determine this value
-        self.CLaw = 5.4             # [/rad]    Wing lift rate coefficient TODO Check if aerodynamics guys determine this value
+        self.eta = 0.95             # [-]       Airfoil efficiency coefficient
+        self.CLaw = 5.4             # [/rad]    Wing lift rate coefficient
         self.Cm0af = 0.05           # [-]       Airfoil zero lift pitching moment coefficient TODO Check this value
         self.mu1 = 1                # [-]       Flap coefficient 1 TODO Check this value
-        self.mu2 = 1                # [-]       Flap coefficient 2 TODO Check this value
+        self.mu2 = 0.25             # [-]       Flap coefficient 2
         self.mu3 = 1                # [-]       Flap coefficient 3 TODO Check this value
         self.dClmax = 1             # [-]       Airfoil lift coefficient increase at landing TODO Check this value
-        self.cc = 1                 # [-]       Chord ratio (extended flap/clean) TODO Check this value
-        self.CL_landing = 2         # [-]       Wing lift coefficient at landing (all flaps deployed) TODO Check this value
+        self.cc = 1                 # [-]       Chord ratio (extended flap/clean)
+        self.CL_landing = 2         # [-]       Wing lift coefficient at landing (all flaps deployed)
         self.Swf = 10               # [m2]      Reference wing flapped surface area TODO Check this value
         self.CL0 = 1                # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
         self.CLA_h = 3              # [-]       Aircraft less tail lift coefficient TODO Check this value
@@ -117,7 +117,7 @@ class stabilitycontrol_variables:
         self.CDTO = 0.0414          # [-]       Take-off drag coefficient
         self.Cmacwf = -0.565        # [-]       Wing-fuselage pitching moment coefficient around the aerodynamic centre
         self.deda = None            # [-]       Downwash gradient
-        self.a0 = -7.255 * pi / 180 # [rad]     Zero lift angle of attack
+        self.a0 = -7.255*pi/180     # [rad]     Zero lift angle of attack
 
         # Horizontal tail aerodynamic parameters
         self.CLh_L = -0.8           # [-]       Horizontal tail landing lift coefficient
@@ -135,5 +135,10 @@ def stability_control(variables):
     variables = sizing_htail_wingpos(variables)
     variables = verticaltail_sizing(variables)
     variables = elevator_sizing(variables)
-
     return variables
+
+# Test
+if __name__ ==  "__main__":
+    sc_v = stabilitycontrol_variables()
+
+    sc_v = stability_control(sc_v)
