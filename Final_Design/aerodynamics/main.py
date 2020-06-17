@@ -52,7 +52,7 @@ if __name__ == "__main__":
     taper, CLmax, espan = readWinglist()
     # plotDesignParams(taper, espan, CLmax, 'Taper', 'e span', 'CLmax')
 
-    y_list, cl_list, cd_list = readAeroLoads()
+    y_list, cl_list, cd_list, xcp_list = readAeroLoads()
 
     taper = 0.45
     twist = np.radians(5)
