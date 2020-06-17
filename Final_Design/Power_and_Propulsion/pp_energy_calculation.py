@@ -13,6 +13,11 @@ def E_cruise_range(variables, range_m):
     """
     CL, CD = sqrt(pi * variables.A * variables.e * variables.CD0), 2 * variables.CD0
     E = (range_m * variables.WTO)/(CL / CD)
+
+    # Removing the 100 kg of battery (range is flying solo)
+    E_100kg_batt = (100/1.15) * (variables.batt_cell_E_spec*3600)
+    E = E - E_100kg_batt
+    #print((E + E_100kg_batt), "-", E_100kg_batt, "=", E)
     return E
 
 
