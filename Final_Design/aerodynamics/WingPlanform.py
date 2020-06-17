@@ -28,13 +28,13 @@ class WingPlanform:
         self.a0_r = None
         self.a0_t = None
 
-        self.CD0 = CD0
+        self.CD0 = None
         self.hwl = None
         self.kwl = None
 
         self.coeff = None
 
-    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, Cd0_r, Cd0_t, deltaAlphaStall_r=0, deltaAlphaStall_t=0):
+    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, deltaAlphaStall_r=0, deltaAlphaStall_t=0, Cd0_r=0, Cd0_t=0):
         self.Clmax_r = Clmax_r
         self.Clmax_t = Clmax_t
         self.Cd0_r = Cd0_r
