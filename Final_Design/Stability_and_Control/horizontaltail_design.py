@@ -192,6 +192,8 @@ Inputs:
     plot [bool]:        Create a plot (True or False), default is False
 
 Outputs:
+    variables [class]:  The class contains updated values of:
+                         - deda [float]:    Wing downwash gradient [-]
     ShS_min [float]:    Minimum required horizontal tail surface [-]
 
 V&V:    Verified
@@ -306,6 +308,9 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     # Minimum required horizontal tail surface
     ShS_min = max(ShS_stability,ShS_Control)
 
+    # Add to variables class
+    variables.deda = deda
+
     # Create Scissor Plot
     if plot:
         def stability_curve(ShS):
@@ -333,7 +338,7 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     else:
         pass
 
-    return ShS_min
+    return variables,ShS_min
 
 
 '''
@@ -350,6 +355,7 @@ Outputs:
                          - xcg_wing [float]:    Wing centre of gravity location [m]
                          - lfn [float]:         Distance nose - wing [m]
                          - Sh_min [float]:      Minimum required horizontal tail surface [m2]
+                         - deda [float]:        Wing downwash gradient [-]
 
 V&V:    Verified
 '''
@@ -387,7 +393,7 @@ def sizing_htail_wingpos(variables,plot=False):
         xcg_wing_i = lfn_i + LEcr_xcgw
 
         xcg_min_i,xcg_max_i = loading_diagram(variables,xcg_wing_i)
-        ShS_min_i = scissor_plot(variables,lfn_i,xcg_min_i,xcg_max_i)
+        variables,ShS_min_i = scissor_plot(variables,lfn_i,xcg_min_i,xcg_max_i)
 
         xcgmin_lst.append(xcg_min_i)
         xcgmax_lst.append(xcg_max_i)
@@ -444,22 +450,3 @@ def sizing_htail_wingpos(variables,plot=False):
         pass
 
     return variables
-
-'''
-# Test
-class Test_variables_sc:
-    def __init__(self):
-        self.xcg_min = None     # [%MAC]    Minimum center of gravity location
-        self.xcg_max = None     # [%MAC]    Maximum center of gravity location
-        self.Sh_min = None      # [m2]      Minimum required horizontal tail surface
-        self.lfn = 1.5          # [m]       Distance nose - wing
-
-if __name__ ==  "__main__":
-    test_v = Test_variables_sc()
-
-    test_v = sizing_htail_wingpos(test_v,plot=True)
-    print('xcg_min =',round(test_v.xcg_min,2),'%MAC')
-    print('xcg_max =',round(test_v.xcg_max,2),'%MAC')
-    print('\nSh =',round(test_v.Sh_min,2),'m2')
-    print('lfn =',round(test_v.lfn,2),'m')
-'''
