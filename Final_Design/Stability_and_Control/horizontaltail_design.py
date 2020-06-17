@@ -258,7 +258,6 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     Mh = Vh/a
     betah = sqrt(1 - Mh**2)
     CLah = 2*pi*Ah/(2 + sqrt(4 + (Ah*betah/eta)**2 * (1 + tan(sweeph)**2/(betah**2))))
-
     # Lift rate coefficient of the aircraft less tail
     CLaA_h = CLaw * (1 + 2.15*bf/bw) * Snet/Sw + pi/2*bf**2/Sw
 
@@ -413,10 +412,10 @@ def sizing_htail_wingpos(variables,plot=False):
     # Update values in variables class
     variables.lfn = lfn
     variables.xcg_wing = xcg_wing
-    #variables.xlemacw = xlemacw
+    variables.xlemacw = xlemacw
     variables.xcg_min = xcg_min*MAC
     variables.xcg_max = xcg_max*MAC
-    variables.Sh_min = Sh_min
+    variables.Sh = Sh_min
 
     # Create plots
     if plot:
