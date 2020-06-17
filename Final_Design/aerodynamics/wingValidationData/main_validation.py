@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import os
 
-from WingPlanform import WingPlanform
+from ..WingPlanform import WingPlanform
 
 def plotLiftDistribution(y, Cl_range, y2=None, Cl_range2=None, ClmaxDistr=None, legend=False):
     fig = plt.figure(figsize=(10, 4.5))

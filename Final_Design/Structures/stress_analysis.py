@@ -4,6 +4,7 @@ import numpy as np
 from math import pi, sqrt
 import copy
 from typing import Union
+from Final_Design.aerodynamics.utils import readAeroLoads
 
 #################################################################
 ### SOME LINES NEED TO BE REVIEWED IF QC SWEEP IS IMPLEMENTED ###
