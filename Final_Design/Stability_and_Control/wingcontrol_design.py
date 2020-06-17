@@ -161,7 +161,7 @@ def flap_sizing(variables,fix_position='fuselage end'):
     S = 15.6                    # [m2]      Wing surface area
     b = sqrt(S*10.1)            # [m]       Wing span
     sweepc4 = 0                 # [rad]     Wing quarter chord sweep angle
-    taper = 0.55                # [rad]     Wing taper ratio
+    taper = 0.45                # [rad]     Wing taper ratio
     cr = 2*S/((1+taper)*b)      # [m]       Wing root chord
 
     CLmax_req = 2               # [-]       Required maximum lift coefficient
