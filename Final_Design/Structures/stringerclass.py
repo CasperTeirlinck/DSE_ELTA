@@ -194,8 +194,11 @@ if __name__ == "__main__":
     j = J_Stringer(Le=0.4, material=aluminium, ts=0.001, **kwargs)
     z = Z_Stringer(Le=0.4, material=aluminium, ts=0.001, **kwargs)
 
+    stringer = Stringer(0.0, 1.0, j)
+
     print(j.total_area)
-    print(z.total_area)
+    print(stringer.properties.total_area)
+    print(stringer.properties.material.sigma_y)
 
     factor = sqrt(1.8/2.3)
     for key in kwargs:
