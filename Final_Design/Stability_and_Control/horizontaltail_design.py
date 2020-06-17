@@ -242,7 +242,7 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     Swf = variables.Swf         # [m2]      Reference wing flapped surface area TODO Check this value
     CL0 = variables.CL0         # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
     CLA_h = variables.CLA_h     # [-]       Aircraft less tail lift coefficient TODO Check this value
-    CLh = variables.CLh         # [-]       Horizontal tail lift coefficient TODO Check this value
+    CLh = variables.CLh_L       # [-]       Horizontal tail lift coefficient TODO Check this value
 
     sm_free = 0.05              # [-]       Fraction neutral point shift for stick-free stability
     sm = 0.05                   # [-]       Stability margin
