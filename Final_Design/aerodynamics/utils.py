@@ -96,7 +96,7 @@ def readAeroLoads():
     cl_list = []
     cdi_list = []
     y_list = []
-    with open('Final_Design/aerodynamics/liftdistrCLmax.dat', 'r') as f:
+    with open('Final_Design/aerodynamics/liftdistrAlpha5.dat', 'r') as f:
         for line in f.readlines()[21:60]:
             columns = line.strip().split()
             if len(columns) > 0:
@@ -134,6 +134,32 @@ def plotPlanform(cr, ct, b, MAC, XMAC, YMAC):
     ax1.xaxis.grid(color='black', linestyle='--')
     ax1.yaxis.grid(color='black', linestyle='--')
     fig.suptitle('Wing Planform', fontsize=16, y=0.97)
+    plt.axis('equal')
+    plt.tight_layout(rect=[0, 0, 1, 0.93])
+    plt.show()
+
+def plotHtail(cr, ct, b):
+    fig = plt.figure(figsize=(6, 4.3))
+    ax1 = fig.add_subplot(111)
+
+    ax1.plot([0, 0], [0, cr], linewidth=3, color='blue')
+
+    ax1.plot([b/2, b/2], [0, ct], linewidth=3, color='blue')
+    ax1.plot([-b/2, -b/2], [0, ct], linewidth=3, color='blue')
+
+    ax1.plot([b/2, 0], [ct, cr], linewidth=3, color='blue')
+    ax1.plot([-b/2, 0], [ct, cr], linewidth=3, color='blue')
+
+    ax1.plot([b/2, 0], [0, 0], linewidth=3, color='blue')
+    ax1.plot([-b/2, 0], [0, 0], linewidth=3, color='blue')
+
+
+    ax1.axvline(x=0, linewidth=2, color='black', linestyle='--')
+    ax1.axhline(y=0, linewidth=2, color='black', linestyle='--')
+    ax1.set_xlabel('Span [m]')
+    ax1.xaxis.grid(color='black', linestyle='--')
+    ax1.yaxis.grid(color='black', linestyle='--')
+    fig.suptitle('Horizintal tail Planform', fontsize=16, y=0.97)
     plt.axis('equal')
     plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()
