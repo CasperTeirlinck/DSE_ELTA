@@ -4,9 +4,9 @@ import numpy as np
 
 
 class NewVariables:
-    def __init__(self, S=25, A=15, taper=0.1, twist=10, gamma=10, CD0=1):
+    def __init__(self, S=25, A=15, taper=0.1, twist=10, gamma=10):
         self.init_general()
-        self.init_aerodynamics(S=S, A=A, taper=taper, twist=twist, gamma=gamma, CD0=CD0)
+        self.init_aerodynamics(S=S, A=A, taper=taper, twist=twist, gamma=gamma)
         self.init_weight()
         self.init_propulsion()
         self.init_sc()
@@ -18,7 +18,8 @@ class NewVariables:
         self.rho0 = 1.225
         self.g0 = 9.80665
 
-    def init_aerodynamics(self, S, A, taper, twist, gamma, CD0):
+    def init_aerodynamics(self, S, A, taper, twist, gamma, fuselagewidth, fuselagelength, fuselagearea_frontal,fuselagearea_wetted,turbBLratio_wing,turbBLratio_fuselage,turbBLratio_emp,landinggear_height,landinggear_width,Swf,wingletheight):
+        
         self._S = S
         self._A = A
         self._taper = taper
@@ -40,8 +41,8 @@ class NewVariables:
         self.a0_r = None
         self.a0_t = None
 
-        self.CD0 = CD0
-        self.hwl = None
+
+        self.hwl = winglet  height
         self.kwl = None
 
         self.coeff = None
