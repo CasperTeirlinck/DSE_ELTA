@@ -58,35 +58,31 @@ class cell_type:
             self.P          = self.I_max * self.V_nom # Maximum power [W]
 
 
-def num_of_cells(cell_data, E_req, V_req, I_req, DoD, eta_batt_load = 1.0):
+def num_of_cells(variables, E_req, eta_batt_load = 1.0):
     """
     This functions calculates the number of cells required in ceries as well as in parallel
-    :param cell_data: data about cell --> see cell_type class
     :param E_req: Required energy from battery [Wh]
-    :param V_req: Required voltage from battery [V]
-    :param I_req: Required current from battery [A]
-    :param DoD: Dept of discharge for the battery [%] (e.g. 80%)
     :param eta_batt_load: the total efficiency of the connection between battery and load
     :return: list; number of cells in series, parallel and total
     """
     # total number of cells required for the required energy
-    Num_cells_energy = E_req/cell_data.C_Wh
+    Num_cells_energy = E_req/variables.batt_cell_C_Wh
 
     # Required capacity
-    C_req = E_req/(V_req * eta_batt_load * (DoD/100))
+    C_req = E_req/(variables.V_req * eta_batt_load * (variables.DoD/100))
     #C_req = 233
 
     # Number of cells is series for voltage
-    Ns = V_req/cell_data.V_nom
+    Ns = variables.V_req/variables.batt_cell_V_nom
     # Rounding to the smallest integer larger than Ns
     Ns = ceil(Ns)
 
     # Number of cells in parallel for capacity
-    Np = C_req/cell_data.C_Ah
+    Np = C_req/variables.batt_cell_.C_Ah
     Np = ceil(Np)
 
     # Check if enough current is generated
-    if Np*cell_data.I_max < I_req:
+    if Np*variables.batt_cell_I_max < variables.I_req:
         print("ERROR: battery cannont provide enough current, I_req should be lowered, ask Matthijs")
         return None
 
@@ -105,6 +101,7 @@ if __name__ == "__main__":
 
     cell = cell_type(name = cell1)
     # Test run
+    # To make this work please make a class !!!!!!
     lol = num_of_cells(cell, E_req = 52*1000, V_req = 400, I_req = 189.75, DoD = 90)
     print("Ns :", lol[0])
     print("Np :", lol[1])
