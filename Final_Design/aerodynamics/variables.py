@@ -7,10 +7,20 @@ taper = 0.9 # [-] Taper ratio
 twist = np.radians(2)
 gamma = 0
 
+# w_fuselage = 1.06
+# # CD0 = 0.0055*3.7
+# CD0 = 0.0050*3.7
 w_fuselage = 1.2
-CD0 = 0.0055*3.7
+S_wetted_fus = 19.182
+BLturb_ratio_fus = 1
+r_tail = 0.05
 
-hwl = 0.4
+CD0 = 0.
+
+MAC = 1
+CD_misc = 0.
+
+hwl = 0.9
 kwl = 2.1
 
 # NACA 4415
