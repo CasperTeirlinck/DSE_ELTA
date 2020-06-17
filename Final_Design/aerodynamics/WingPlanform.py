@@ -492,7 +492,7 @@ class WingPlanform:
             D = B ** 2 - 4 * A * C
 
             if not D >= 0:
-                print('There is a problem with the flap sizing! (control_surfaces_sizing.py)')
+                print('There is a problem with the flap sizing!')
                 return
             else:
                 bfllst = [0, 0]
@@ -514,7 +514,7 @@ class WingPlanform:
         #    D = B ** 2 - 4 * A * C
 
         #    if not D >= 0:
-        #        print('There is a problem with the flap sizing! (control_surfaces_sizing.py)')
+        #        print('There is a problem with the flap sizing!')
         #        return
         #    else:
         #        bfllst = [0, 0]
