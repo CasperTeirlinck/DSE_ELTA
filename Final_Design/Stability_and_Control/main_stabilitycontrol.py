@@ -71,6 +71,8 @@ class stabilitycontrol_variables:
         self.twistwr = 5*pi/180     # [rad]     Wing twist at the root
         self.MAC = 1.30             # [m]       Mean Aerodynamic Chord
         self.crw = 1.98             # [m]       Wing root chord
+        self.f1 = 0.8               # [m]       Flap start
+        self.f2 = 4.42              # [m]       Flap end
 
         # Horizontal tail geometry parameters
         self.lh = 6.2               # [m]       Horizontal tail arm

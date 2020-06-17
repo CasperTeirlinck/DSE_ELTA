@@ -201,53 +201,53 @@ V&V:    Verified
 
 def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     # Input parameters TODO Get values out of variables class
-    R = variables.R             # [J/kg K]  Gas constant
-    gamma = variables.gamma     # [-]       Heat capacity ratio
-    T0 = variables.T0           # [K]       Base temperature
-    lmbda = variables.lmbda     # [degC/m]  Lapse rate
+    R = variables.R                     # [J/kg K]  Gas constant
+    gamma = variables.gamma             # [-]       Heat capacity ratio
+    T0 = variables.T0                   # [K]       Base temperature
+    lmbda = variables.lmbda             # [degC/m]  Lapse rate
 
-    bf = variables.bf           # [m]       Fuselage width
-    hf = variables.hf           # [m]       Fuselage height
-    lf = variables.lf           # [m]       Fuselage length
+    bf = variables.bf                   # [m]       Fuselage width
+    hf = variables.hf                   # [m]       Fuselage height
+    lf = variables.lf                   # [m]       Fuselage length
 
-    hw = variables.hw           # [m]       Height of the wing, from ground
-    MAC = variables.MAC         # [m]       Mean Aerodynamic Chord
-    Sw = variables.Sw           # [m2]      Horizontal tail surface area
-    Snet = variables.Snet       # [m2]      Net wing surface area
-    bw = variables.bw           # [m]       Wing span
-    Aw = variables.Aw           # [-]       Wing aspect ratio
-    sweepw = variables.sweepw   # [rad]     Wing quarter chord sweep angle
-    taperw = variables.taperw   # [-]       Wing taper ratio
-    twistwr = variables.twistwr # [deg]     Wing twist at the root
-    crw = variables.crw         # [m]       Wing root chord
+    hw = variables.hw                   # [m]       Height of the wing, from ground
+    MAC = variables.MAC                 # [m]       Mean Aerodynamic Chord
+    Sw = variables.Sw                   # [m2]      Horizontal tail surface area
+    Snet = variables.Snet               # [m2]      Net wing surface area
+    bw = variables.bw                   # [m]       Wing span
+    Aw = variables.Aw                   # [-]       Wing aspect ratio
+    sweepw = variables.sweepw           # [rad]     Wing quarter chord sweep angle
+    taperw = variables.taperw           # [-]       Wing taper ratio
+    twistwr = variables.twistwr         # [deg]     Wing twist at the root
+    crw = variables.crw                 # [m]       Wing root chord
+    bfl = variables.f2-variables.f1     # [m]       Flap span
 
-    lh = variables.lh           # [m]       Tail arm
-    hh = variables.hh           # [m]       Height horizontal tail from ground
-    Ah = variables.Ah           # [-]       Horizontal tail aspect ratio
-    sweeph = variables.sweeph   # [rad]     Horizontal tail half chord sweep
+    lh = variables.lh                   # [m]       Tail arm
+    hh = variables.hh                   # [m]       Height horizontal tail from ground
+    Ah = variables.Ah                   # [-]       Horizontal tail aspect ratio
+    sweeph = variables.sweeph           # [rad]     Horizontal tail half chord sweep
 
-    VhV = variables.VhV         # [-]       Tail/wing speed ratio
+    VhV = variables.VhV                 # [-]       Tail/wing speed ratio
 
-    Vcruise = variables.Vcruise # [m/s]     Cruise speed
-    hcruise = variables.hcruise # [m]       Cruise altitude
+    Vcruise = variables.Vcruise         # [m/s]     Cruise speed
+    hcruise = variables.hcruise         # [m]       Cruise altitude
 
-    eta = variables.eta         # [-]       Airfoil efficiency coefficient TODO Check if aerodynamics guys determine this value
-    CLaw = variables.CLaw       # [/rad]    Wing lift rate coefficient TODO Check if aerodynamics guys determine this value
-    Cm0af = variables.Cm0af     # [-]       Airfoil zero lift pitching moment coefficient TODO Check this value
-    mu1 = variables.mu1         # [-]       Flap coefficient 1 TODO Check this value
-    mu2 = variables.mu2         # [-]       Flap coefficient 2 TODO Check this value
-    mu3 = variables.mu3         # [-]       Flap coefficient 3 TODO Check this value
-    dClmax = variables.dClmax   # [-]       Airfoil lift coefficient increase at landing TODO Check this value
-    cc = variables.cc           # [-]       Chord ratio (extended flap/clean) TODO Check this value
-    CL_landing = variables.CL_landing
-                                # [-]       Wing lift coefficient at landing (all flaps deployed) TODO Check this value
-    Swf = variables.Swf         # [m2]      Reference wing flapped surface area TODO Check this value
-    CL0 = variables.CL0         # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
-    CLA_h = variables.CLA_h     # [-]       Aircraft less tail lift coefficient TODO Check this value
-    CLh = variables.CLh_L       # [-]       Horizontal tail lift coefficient TODO Check this value
+    eta = variables.eta                 # [-]       Airfoil efficiency coefficient
+    CLaw = variables.CLaw               # [/rad]    Wing lift rate coefficient
+    Cm0af = variables.Cm0af             # [-]       Airfoil zero lift pitching moment coefficient
+    mu1 = variables.mu1                 # [-]       Flap coefficient 1
+    mu2 = 1.2*(bfl/bw)+0.13             # [-]       Flap coefficient 2
+    mu3 = 0.06*(bfl/bw)+0.0335          # [-]       Flap coefficient 3
+    dClmax = variables.dClmax           # [-]       Airfoil lift coefficient increase at landing
+    cc = variables.cc                   # [-]       Chord ratio (extended flap/clean)
+    CL_landing = variables.CL_landing   # [-]       Wing lift coefficient at landing (all flaps deployed)
+    Swf = variables.Swf                 # [m2]      Reference wing flapped surface area
+    CL0 = variables.CL0                 # [-]       Flapped wing lift coefficient at zero angle of attack
+    CLA_h = variables.CLA_h             # [-]       Aircraft less tail lift coefficient
+    CLh = variables.CLh_L               # [-]       Horizontal tail lift coefficient
 
-    sm_free = 0.05              # [-]       Fraction neutral point shift for stick-free stability
-    sm = 0.05                   # [-]       Stability margin
+    sm_free = 0.05                      # [-]       Fraction neutral point shift for stick-free stability
+    sm = 0.05                           # [-]       Stability margin
 
     # Parameter calculations
     # xlemac
