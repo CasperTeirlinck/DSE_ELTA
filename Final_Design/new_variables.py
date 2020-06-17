@@ -28,7 +28,7 @@ class NewVariables:
         self._c_r = (2 * S) / (self.b * (1 + taper))
         self.c_t = taper * self.c_r
         self.MAC = (2 / 3) * self.c_r * ((1 + taper + taper ** 2) / (1 + taper))
-        self.sweepLE = np.arctan(-self.c_r / (2 * self.b) * (taper - 1))
+        self._sweepLE = np.arctan(-self.c_r / (2 * self.b) * (taper - 1))
         self._YMAC = self.b / 6 * (1 + 2 * taper) / (1 + taper)
         self.XMAC = self.YMAC * np.tan(self.sweepLE)
 
@@ -99,6 +99,7 @@ class NewVariables:
     def S(self, val):
         self._S = val
         self.b = np.sqrt(self.A * self.S)
+        # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
     def A(self):
@@ -117,6 +118,8 @@ class NewVariables:
     def b(self, val):
         self._b = val
         self.c_r = (2 * self.S) / (self.b * (1 + self.taper))
+        self.YMAC = self.b / 6 * (1 + 2 * self.taper) / (1 + self.taper)
+        # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
     def taper(self):
@@ -129,6 +132,7 @@ class NewVariables:
         self.MAC = (2 / 3) * self.c_r * ((1 + self.taper + self.taper ** 2) / (1 + self.taper))
         self.sweepLE = np.arctan(-self.c_r / (2 * self.b) * (self.taper - 1))
         self.YMAC = self.b / 6 * (1 + 2 * self.taper) / (1 + self.taper)
+        # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
     def twist(self):
@@ -137,7 +141,7 @@ class NewVariables:
     @twist.setter
     def twist(self, val):
         self._twist = val
-        self.calcCoefficients()
+        # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
     def gamma(self):
@@ -146,7 +150,7 @@ class NewVariables:
     @gamma.setter
     def gamma(self, val):
         self._gamma = val
-        self.calcCoefficients()
+        # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
     def c_r(self):
@@ -155,8 +159,28 @@ class NewVariables:
     @c_r.setter
     def c_r(self, val):
         self._c_r = val
+        self.c_t = self.taper * self.c_r
         self.MAC = (2 / 3) * self.c_r * ((1 + self.taper + self.taper ** 2) / (1 + self.taper))
         self.sweepLE = np.arctan(-self.c_r / (2 * self.b) * (self.taper - 1))
+
+    @property
+    def sweepLE(self):
+        return self._sweepLE
+
+    @sweepLE.setter
+    def sweepLE(self, val):
+        self._sweepLE = val
+        self.XMAC = self.YMAC * np.tan(self.sweepLE)
+
+    @property
+    def YMAC(self):
+        return self._YMAC
+
+    @YMAC.setter
+    def YMAC(self, val):
+        self._YMAC = val
+        self.XMAC = self.YMAC * np.tan(self.sweepLE)
+
 
     ###################################
 
