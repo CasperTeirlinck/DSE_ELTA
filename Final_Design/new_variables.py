@@ -103,11 +103,8 @@ class NewVariables:
         self.mu = 0.05              # [-]           Take-off friction factor
 
         # Masses
-        self.m_fgroup = 100         # [kg]      Fuselage group mass
-        self.m_wing = 150           # [kg]      Wing mass
-        self.m_bat = 300            # [kg]      Battery mass
-        self.m_repbat = 100         # [kg]      Replaceable battery mass
-        self.m_pax = 100            # [kg]      Single Pilot/Passenger mass
+        self.W_fgroup = 980.665     # [N]      Fuselage group weight
+        self.W_wing = 1470.9975     # [N]      Wing weight
 
         # Centre of gravity
         self.xcg_min = None         # [m]       Minimum center of gravity location
@@ -116,8 +113,7 @@ class NewVariables:
         self.xcg_f = 2.3            # [m]       Fuselage centre of gravity location
         self.xcg_wing = 1.7         # [m]       Wing center of gravity
         self.xcg_bat = 3            # [m]       Battery center of gravity
-        self.xcg_repbat = 3         # [m]       Replaceable battery center of gravity
-        self.xcg_pax = 1            # [m]       Pilot/Passenger center of gravity
+        self.xcgPL = 1              # [m]       Pilot/Passenger center of gravity
 
         # Component locations
         self.xmg = 2                # [m]       Main gear location
@@ -132,7 +128,7 @@ class NewVariables:
         # Fuselage geometry parameters
         self.la = 9                 # [m]       Aircraft length
         self.lf = 9.420             # [m]       Fuselage length
-        self.bf = 1.6               # [m]       Fuselage width
+        self.bf = 1.05              # [m]       Fuselage width
         self.hf = 1.213             # [m]       Fuselage height
         self.hfmax = 1.213          # [m]       Maximum fuselage height
         self.Sfs = 5.258            # [m2]      Fuselage lateral surface area
