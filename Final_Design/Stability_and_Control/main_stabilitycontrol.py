@@ -3,6 +3,7 @@ from horizontaltail_design import sizing_htail_wingpos
 from verticaltail_design import verticaltail_sizing
 from empennagecontrol_design import elevator_sizing
 
+'''
 class stabilitycontrol_variables:
     def __init__(self):
         # Constants
@@ -129,16 +130,10 @@ class stabilitycontrol_variables:
 
         # Power parameters
         self.TTO = 1500             # [N]       Take-off thrust
-
+'''
 
 def stability_control(variables):
     variables = sizing_htail_wingpos(variables)
     variables = verticaltail_sizing(variables)
     variables = elevator_sizing(variables)
     return variables
-
-# Test
-if __name__ ==  "__main__":
-    sc_v = stabilitycontrol_variables()
-
-    sc_v = stability_control(sc_v)

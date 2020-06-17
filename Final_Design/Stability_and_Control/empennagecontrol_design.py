@@ -1,7 +1,7 @@
 from math import pi
 
 def elevator_sizing(variables):
-    g = variables.g
+    g = variables.g0
 
     a_pitch = variables.a_pitch     # [rad/s]       Take-off pitch angular velocity
     VTO = variables.VTO             # [m/s]         Take-off velocity
