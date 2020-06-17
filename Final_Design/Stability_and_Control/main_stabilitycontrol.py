@@ -1,6 +1,7 @@
 from math import sqrt,pi
 from horizontaltail_design import sizing_htail_wingpos
 from verticaltail_design import verticaltail_sizing
+from empennagecontrol_design import elevator_sizing
 
 class stabilitycontrol_variables:
     def __init__(self):
@@ -20,7 +21,7 @@ class stabilitycontrol_variables:
         self.mu = 0.05              # [-]           Take-off friction factor
 
         # Weight parameters
-        self.WTO = 750*g            # [N]       Take-off weight
+        self.WTO = 7354.9875        # [N]       Take-off weight
         self.m_fgroup = 100         # [kg]      Fuselage group mass
         self.m_wing = 150           # [kg]      Wing mass
         self.m_bat = 300            # [kg]      Battery mass
@@ -74,6 +75,7 @@ class stabilitycontrol_variables:
         # Horizontal tail geometry parameters
         self.lh = 6.2               # [m]       Horizontal tail arm
         self.Sh = None              # [m2]      Minimum required horizontal tail surface
+        self.bh = 5                 # [m]       Horizontal tail span
         self.hh = 1.5               # [m]       Height horizontal tail from ground
         self.Ah = 3                 # [-]       Horizontal tail aspect ratio
         self.sweeph = 0             # [rad]     Horizontal tail half chord sweep
@@ -83,7 +85,6 @@ class stabilitycontrol_variables:
         # Vertical tail geometry parameters
         self.lv = 6.2               # [m]       Vertical tail arm
         self.Sv = None              # [m2]      Vertical tail surface
-        self.bh = 5                 # [m]       Horizontal tail surface area
 
         # Elevator geometry parameters
         self.bebh = 1               # [-]       Elevator span
@@ -119,7 +120,8 @@ class stabilitycontrol_variables:
         self.a0 = -7.255 * pi / 180 # [rad]     Zero lift angle of attack
 
         # Horizontal tail aerodynamic parameters
-        self.CLh_L = -0.8           # [-]       Horizontal tail lift coefficient TODO Check this value
+        self.CLh_L = -0.8           # [-]       Horizontal tail landing lift coefficient
+        self.CLh_TO = None          # [-]       Horizontal tail take-off lift coefficient
         self.CLah = 4               # [/rad]    Horizontal lift curve slope
 
         # Vertical tail aerodynamic parameters
@@ -136,6 +138,9 @@ sc_v = sizing_htail_wingpos(sc_v,plot=False)
 
 # Vertical tail sizing
 sc_v = verticaltail_sizing(sc_v)
+
+# Elevator sizing
+sc_v = elevator_sizing(sc_v)
 
 print('Sh =',round(sc_v.Sh/sc_v.Sw,2),'m2')
 print('Sv =',round(sc_v.Sv,2),'m2')

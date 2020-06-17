@@ -1,45 +1,45 @@
 from math import pi
 
 def elevator_sizing(variables):
-    g = 9.80665
+    g = variables.g
 
-    a_pitch = 12*pi/180         # [rad/s]       Take-off pitch angular velocity
-    VTO = 1.05*25.2             # [m/s]         Take-off velocity
-    rhoTO = 1.225               # [kg/m3]       Take-off density
-    mu = 0.05                   # [-]           Friction factor
+    a_pitch = variables.a_pitch     # [rad/s]       Take-off pitch angular velocity
+    VTO = variables.VTO             # [m/s]         Take-off velocity
+    rhoTO = variables.rhoTO         # [kg/m3]       Take-off density
+    mu = variables.mu               # [-]           Friction factor
 
-    la = 9                      # [m]           Aircraft length
+    la = variables.la               # [m]           Aircraft length
 
-    WTO = 750*g                 # [N]           Take-off weight
-    TTO = 1500                  # [N]           Take-off thrust
+    WTO = variables.WTO             # [N]           Take-off weight
+    TTO = variables.TTO             # [N]           Take-off thrust
 
-    xcg = 1.5                   # [m]           Most forward centre of gravity
-    xmg = 2                     # [m]           Main gear location
-    xacw = 1                    # [m]           Wing/fuselage aerodynamic centre location
-    xach = 6                    # [m]           Horizontal tail aerodynamic centre location
+    xcg = variables.xcg_min         # [m]           Most forward centre of gravity
+    xmg = variables.xmg             # [m]           Main gear location
+    xacw = variables.xacw           # [m]           Wing/fuselage aerodynamic centre location
+    xach = variables.xach           # [m]           Horizontal tail aerodynamic centre location
 
-    zcg = 1                     # [m]           Centre of gravity height
-    zmg = 0                     # [m]           Main gear height
-    zT = 1                      # [m]           Thrust vector height
-    zD = 0.5                    # [m]           Drag vector height
+    zcg = variables.zcg             # [m]           Centre of gravity height
+    zmg = variables.zmg             # [m]           Main gear height
+    zT = variables.zT               # [m]           Thrust vector height
+    zD = variables.zD               # [m]           Drag vector height
 
-    Sw = 21.09                  # [m2]          Wing surface area
-    MAC = 1.47                  # [m]           Mean aerodynamic chord
-    CLTO = 0.628                # [-]           Take-off lift coefficient
-    CDTO = 0.0414               # [-]           Take-off drag coefficient
-    Cmacwf = -0.565             # [-]           Wing-fuselage pitching moment coefficient around the aerodynamic centre
-    deda = 0.0689               # [-]           Downwash gradient
-    a0 = -7.255*pi/180          # [rad]         Zero lift angle of attack
+    Sw = variables.Sw               # [m2]          Wing surface area
+    MAC = variables.MAC             # [m]           Mean aerodynamic chord
+    CLTO = variables.CLTO           # [-]           Take-off lift coefficient
+    CDTO = variables.CDTO           # [-]           Take-off drag coefficient
+    Cmacwf = variables.Cmacwf       # [-]           Wing-fuselage pitching moment coefficient around the aerodynamic centre
+    deda = variables.deda           # [-]           Downwash gradient
+    a0 = variables.a0               # [rad]         Zero lift angle of attack
 
-    Sh = 10                     # [m2]          Horizontal tail surface area
-    ih = 0                      # [rad]         Horizontal tail incidence angle
-    bh = 5                      # [m]           Horizontal tail surface area
-    chr = 1                     # [m]           Horizontal tail root chord
-    CLah = 4                    # [/rad]        Horizontal lift curve slope
+    Sh = variables.Sh               # [m2]          Horizontal tail surface area
+    ih = variables.ih               # [rad]         Horizontal tail incidence angle
+    bh = variables.bh               # [m]           Horizontal tail surface area
+    chr = variables.chr             # [m]           Horizontal tail root chord
+    CLah = variables.CLah           # [/rad]        Horizontal lift curve slope
 
-    bebh = 1                    # [-]           Elevator span
-    de_max = 20*pi/180          # [rad]         Maximum elevator deflection
-    de_min = -25*pi/180         # [rad]         Minimum elevator deflection (maximum negative)
+    bebh = variables.bebh           # [-]           Elevator span
+    de_max = variables.de_max       # [rad]         Maximum elevator deflection
+    de_min = variables.de_min       # [rad]         Minimum elevator deflection (maximum negative)
 
     # Wing/fuselage lift, drag and pitching moment
     Lwf = CLTO*0.5*rhoTO*VTO**2*Sw
@@ -89,9 +89,10 @@ def elevator_sizing(variables):
     variables.be = be
     variables.ce = ce
     variables.Se = Se
+    variables.CLh_TO = CLh
 
     return variables
-
+'''
 # Test
 class Test_variables_sc:
     def __init__(self):
@@ -106,3 +107,5 @@ if __name__ ==  "__main__":
     print('\nSe =',round(test_v.Se,2),'m2')
     print('be =',round(test_v.be,2),'m')
     print('ce =',round(test_v.ce,2),'m')
+
+'''
