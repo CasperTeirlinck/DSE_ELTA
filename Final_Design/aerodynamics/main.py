@@ -88,7 +88,7 @@ if __name__ == "__main__":
     CLa = wing.calcCLa()
     print(f'CLa = {round(CLa, 2)} 1/rad or {round(CLa*np.pi/180, 2)} /deg')
 
-    if True:
+    if False:
         CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, stallpos = wing.calcCLmax(plotProgression=True)
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)} deg')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr, legend=True)
@@ -103,9 +103,9 @@ if __name__ == "__main__":
         plotLiftDistribution(yPnts, [Cl_distr])
 
 
-    CD0 = wing.calcCD0(17.507,9.420,1.218,1.05,0.3*wing.S,0.15*wing.S,1.,1,0.65,0.65,0.)
+    CD0 = wing.calcCD0(17.507,9.420,1.218,1.05,0.3*wing.S,0.15*wing.S,1.,1,0.65,0.65,0.9,0.2,0.15,0.)
     CD0wing = wing.calcCD0wing(1.,0,0)
-    e = wing.calcOswald(17.507,9.420,1.218,1.05,0.3*wing.S,0.15*wing.S,1.,1,0.65,0.65,0.,hasWinglets=True)
+    e = wing.calcOswald(17.507,9.420,1.218,1.05,0.3*wing.S,0.15*wing.S,1.,1,0.65,0.65,0.9,0.2,0.15,0.,hasWinglets=True)
 
     print(CD0)
     print(CD0wing)

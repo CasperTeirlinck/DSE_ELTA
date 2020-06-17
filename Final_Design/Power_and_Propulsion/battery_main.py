@@ -9,46 +9,6 @@ import Power_and_Propulsion.batteries as batc
 # import batteries as batc
 import numpy as np
 
-# This class describes all the variables required for the battery sizing, the values are OLD values from the midterm report.
-class Variables_battery:
-    def __init__(self):
-        # For the energy required
-        self.CD0 = 0.0250
-        self.A = 10.1
-        self.e = 0.85
-        self.rho0 = 1.225
-        self.eff_tot_prop = 0.95*0.88
-        self.eff_batt = 0.95
-        self.g0 = 9.80665
-        self.WTO_endurance = 809.95*9.81
-        self.WTO_range = self.WTO_endurance  # THIS IS OFCOURSE WRONG BUT I DON'T HAVE A BETTER VALUE FOR NOW
-        self.range_m = 250000
-        self.endurance_s = 2.5 * 3600
-        self.P_max = 65*1000 #[W]
-        self.S = 15.6
-
-        # For the battery composition
-        self.V_req_batt = 400    # Voltage required for engine subsytem [V]
-        self.I_req_batt = 189.75 # Current required for engine subsytem [A]
-        self.DoD = 90            # Depth of discharge in %
-
-        self.batt_cell_diameter   = 0.0211                                                          # Cell diameter [m]
-        self.batt_cell_length     = 0.0707                                                          # Cell length [m]
-        self.batt_cell_volume     = np.pi * (self.batt_cell_diameter / 2) ** 2 * self.batt_cell_length # [m^3]
-        self.batt_cell_mass       = 0.0687                                                          # Cell mass [kg]
-        self.batt_cell_V_nom      = 3.6                                                             # Nominal voltage [V]
-        self.batt_cell_V_max      = 4.2                                                             # Maximum voltage [V]
-        self.batt_cell_V_cut      = 2.5                                                             # Cut-off voltage [V]
-        self.batt_cell_I_max      = 9.8                                                             # Maximum discharge current [A]
-        self.batt_cell_C_Ah       = 5.0                                                             # Capacity [Ah]
-        self.batt_cell_C_Wh       = self.batt_cell_C_Ah * self.batt_cell_V_nom                      # Capacity [Wh]
-        self.batt_cell_E_spec     = self.batt_cell_C_Wh / self.batt_cell_mass                       # Capacity per kg of weight [Wh/kg]
-        self.batt_cell_E_vol_spec = self.batt_cell_C_Wh / self.batt_cell_volume                     # Capacity per unit volume [Wh/m^3]
-        self.batt_cell_P          = self.batt_cell_I_max * self.batt_cell_V_nom
-
-
-
-
 def main_bat(variables):
     E_engine_range = ppe.energy_engine(variables, endurance_s = 0.0, range_m = variables.range_m) # Energy for engine in [J] for range req.
     E_engine_endur = ppe.energy_engine(variables, endurance_s = variables.endurance_s, range_m = 0.0) # Energy for engine in [J] for endurance req.
@@ -100,5 +60,42 @@ def main_bat(variables):
 
 # Testing block
 if __name__ == "__main__":
+    # This class describes all the variables required for the battery sizing, the values are OLD values from the midterm report.
+    class Variables_battery:
+        def __init__(self):
+            # For the energy required
+            self.CD0 = 0.0250
+            self.A = 10.1
+            self.e = 0.85
+            self.rho0 = 1.225
+            self.eff_tot_prop = 0.95 * 0.88
+            self.eff_batt = 0.95
+            self.g0 = 9.80665
+            self.WTO = 809.95 * 9.81
+            self.range_m = 250000
+            self.endurance_s = 2.5 * 3600
+            self.P_max = 65 * 1000  # [W]
+            self.S = 15.6
+
+            # For the battery composition
+            self.V_req_batt = 400  # Voltage required for engine subsytem [V]
+            self.I_req_batt = 189.75  # Current required for engine subsytem [A]
+            self.DoD = 90  # Depth of discharge in %
+
+            self.batt_cell_diameter = 0.0211  # Cell diameter [m]
+            self.batt_cell_length = 0.0707  # Cell length [m]
+            self.batt_cell_volume = np.pi * (self.batt_cell_diameter / 2) ** 2 * self.batt_cell_length  # [m^3]
+            self.batt_cell_mass = 0.0687  # Cell mass [kg]
+            self.batt_cell_V_nom = 3.6  # Nominal voltage [V]
+            self.batt_cell_V_max = 4.2  # Maximum voltage [V]
+            self.batt_cell_V_cut = 2.5  # Cut-off voltage [V]
+            self.batt_cell_I_max = 9.8  # Maximum discharge current [A]
+            self.batt_cell_C_Ah = 5.0  # Capacity [Ah]
+            self.batt_cell_C_Wh = self.batt_cell_C_Ah * self.batt_cell_V_nom  # Capacity [Wh]
+            self.batt_cell_E_spec = self.batt_cell_C_Wh / self.batt_cell_mass  # Capacity per kg of weight [Wh/kg]
+            self.batt_cell_E_vol_spec = self.batt_cell_C_Wh / self.batt_cell_volume  # Capacity per unit volume [Wh/m^3]
+            self.batt_cell_P = self.batt_cell_I_max * self.batt_cell_V_nom
+
+
     test_v = Variables_battery()
     main_bat(test_v)

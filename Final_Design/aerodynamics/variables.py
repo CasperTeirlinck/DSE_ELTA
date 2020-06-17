@@ -20,7 +20,7 @@ CD0 = 0.
 MAC = 1
 CD_misc = 0.
 
-hwl = 0.9
+hwl = 0.4
 kwl = 2.1
 
 # NACA 4415
