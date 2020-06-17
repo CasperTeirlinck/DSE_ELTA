@@ -361,18 +361,119 @@ class WingPlanform:
         else:
             return k_winglet/(Q+P*np.pi*self.A)
 
-if __name__ == "__main__":
-    
-    taper = 0.55
-    twist = np.radians(5)
 
-    wing = WingPlanform(v.S, v.A, taper, twist, v.gamma, v.CD0)
+    def flap_sizing(self, fix_position='fuselage end'):
+        # Check input
+        fix_positionlst = ['fuselage end', 'aileron start']
+        if not fix_position in fix_positionlst:
+            print("Wrong fix_position input (" + fix_position + "). Choose 'fuselage end' or 'aileron start'")
+        else:
+            pass
 
-    #CD0 = wing.calcCD0(23.15,1.015,17.507,9.420,1.218,1.05,1.28,0.15,0.3,0.3*wing.S,0.2*wing.S,1.,0.12,0.3,1.,0.65,0.65,0.)
-    
-    
+        # Inputs
+        S = self.S                  # [m2]      Wing surface area
+        b = self.b                  # [m]       Wing span
+        sweepc4 = 0                 # [rad]     Wing quarter chord sweep angle
+        taper = self.taper          # [rad]     Wing taper ratio
+        cr = self.c_r               # [m]       Wing root chord
 
+        CLmax_req = 2               # [-]       Required maximum lift coefficient
+        CLmax_wing = 1.51           # [-]       Wing maximum lift coefficient
+        CLa = 2 * pi                # [/rad]    Wing lift curve slope
 
+        dClmax = 1.25 * 0.96        # [-]
+        da0l_airfoil = -15*pi/180   # [rad]
+
+        cfc = 0.8                   # [-]       Start of the flap as percentage of the chord
+
+        sm = 0.1                    # [-]       Safety margin
+
+        # Parameter calculations
+        # Flap star/end location
+        # Chord at flap start/end location
+        if fix_position == 'fuselage end':
+            bf = 1.5                # [m]       Fuselage width
+            d_ff = 0.05             # [m]       Spacing between fuselage and flap
+            f1 = bf / 2 + d_ff
+            cf1 = self.calcchord(f1, b, sweepc4, taper, cr)
+        #else:
+        #    b1 = variables.b1       # [m]       Aileron start
+        #    d_af = 0.05             # [m]       Spacing between flap and aileron
+        #    f2 = b1 - d_af
+        #    cf2 = chord(f2, b, sweepc4, taper, cr)
+        # Leading edge sweep angle
+        sweepLE = self.calcsweep(0, b, sweepc4, taper, cr)
+
+        # Hinge line sweep angle
+        sweep_hinge = self.calcsweep(cfc, b, sweepc4, taper, cr)
+
+        # Trailing edge sweep angles
+        sweepTE = self.calcsweep(1, b, sweepc4, taper, cr)
+
+        # Increase in lift coefficient
+        dCLmax = (CLmax_req - CLmax_wing) * (1 + sm)
+
+        # Required flapped surface
+        SwfS = dCLmax / (0.9 * dClmax * cos(sweep_hinge))
+        Swf = SwfS * S
+
+        # Shift in zero lift angle of attack
+        da0L = da0l_airfoil * SwfS * cos(sweep_hinge)
+
+        # Change in lift curve slope
+        CLa_flapped = CLa
+
+        # Flap span calculation
+        # Solving the equation:
+        # 'fuselage end': cf1*bfl - 0.5*bf^2*tan(sweepLE) + 0.5*bf^2*tan(sweepTE) = Swf/2
+        # 'aileron start': cf2*bfl + 0.5*bf^2*tan(sweepLE) - 0.5*bf^2*tan(sweepTE) = Swf/2
+        # a*bfl^2 + b*bfl + c = 0
+
+        # Fuselage end
+        if fix_position == 'fuselage end':
+            A = 0.5 * (-tan(sweepLE) + tan(sweepTE))
+            B = cf1
+            C = -Swf / 2
+
+            D = B ** 2 - 4 * A * C
+
+            if not D >= 0:
+                print('There is a problem with the flap sizing!')
+                return
+            else:
+                bfllst = [0, 0]
+                bfllst[0] = (-B + sqrt(D)) / (2 * A)
+                bfllst[1] = (-B - sqrt(D)) / (2 * A)
+                if bfllst[0] > 0 and (f1 + bfllst[0]) < (b / 2):
+                    bfl = bfllst[0]
+                elif bfllst[1] > 0 and (f1 + bfllst[1]) < (b / 2):
+                    bfl = bfllst[1]
+                else:
+                    print("Flap is too large, it doesn't fit on the wing!")
+
+        # Aileron start
+        #else:
+        #    A = 0.5 * (tan(sweepLE) - tan(sweepTE))
+        #    B = cf2
+        #    C = -Swf / 2
+
+        #    D = B ** 2 - 4 * A * C
+
+        #    if not D >= 0:
+        #        print('There is a problem with the flap sizing!')
+        #        return
+        #    else:
+        #        bfllst = [0, 0]
+        #        bfllst[0] = (-B + sqrt(D)) / (2 * A)
+        #        bfllst[1] = (-B - sqrt(D)) / (2 * A)
+        #        if bfllst[0] > 0 and (f2 - bfllst[0]) > 0:
+        #            bfl = bfllst[0]
+        #        elif bfllst[1] > 0 and (f2 - bfllst[1]) > 0:
+        #            bfl = bfllst[1]
+        #        else:
+        #            print("Flap is too large, it doesn't fit on the wing!")
+        else:
+            pass
 
 
     

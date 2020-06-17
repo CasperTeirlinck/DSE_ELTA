@@ -26,22 +26,22 @@ V&V:    Verified
 
 def loading_diagram(variables,xcg_wing,plot=False):
     # Inputs TODO Get values out of variables class
-    MAC = 1.47                          # [m]       Mean Aerodynamic Chord
+    MAC = variables.MAC                 # [m]       Mean Aerodynamic Chord
 
-    m_wing = 150                        # [kg]      Wing mass
-    m_fgroup = 100                      # [kg]      Fuselage group mass
-    xcg_fgroup = 3                      # [m]       Fuselage group center of gravity
+    m_wing = variables.m_wing           # [kg]      Wing mass
+    m_fgroup = variables.m_fgroup       # [kg]      Fuselage group mass
+    xcg_fgroup = variables.xcg_fgroup   # [m]       Fuselage group center of gravity
 
     m_oe = m_wing + m_fgroup            # [kg]      Operational Empty mass
     xcg_oew = (xcg_wing*m_wing + xcg_fgroup*m_fgroup)/m_oe
                                         # [m]       OEW center of gravity
 
-    m_bat = 300                         # [kg]      Battery mass
-    xcg_bat = 3                         # [m]       Battery center of gravity
-    m_repbat = 100                      # [kg]      Replaceable battery mass
-    xcg_repbat = 3                      # [m]       Replaceable battery center of gravity
-    m_pax = 100                         # [kg]      Single Pilot/Passenger mass
-    xcg_pax = 1                         # [m]       Pilot/Passenger center of gravity
+    m_bat = variables.m_bat             # [kg]      Battery mass
+    xcg_bat = variables.xcg_bat         # [m]       Battery center of gravity
+    m_repbat = variables.m_repbat       # [kg]      Replaceable battery mass
+    xcg_repbat = variables.xcg_repbat   # [m]       Replaceable battery center of gravity
+    m_pax = variables.m_pax             # [kg]      Single Pilot/Passenger mass
+    xcg_pax = variables.xcg_pax         # [m]       Pilot/Passenger center of gravity
 
     sm = 0.05                           # [-]       Safety Margin
 
@@ -199,49 +199,50 @@ V&V:    Verified
 
 def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     # Input parameters TODO Get values out of variables class
-    R = 287.05                  # [J/kg K]  Gas constant
-    gamma = 1.4                 # [-]       Heat capacity ratio
-    T0 = 288.15                 # [K]       Base temperature
-    lmbda = -0.0065             # [degC/m]  Lapse rate
+    R = variables.R             # [J/kg K]  Gas constant
+    gamma = variables.gamma     # [-]       Heat capacity ratio
+    T0 = variables.T0           # [K]       Base temperature
+    lmbda = variables.lmbda     # [degC/m]  Lapse rate
 
-    bf = 1.6                    # [m]       Fuselage width
-    hf = 2                      # [m]       Fuselage height
-    lf = 6                      # [m]       Fuselage length
+    bf = variables.bf           # [m]       Fuselage width
+    hf = variables.hf           # [m]       Fuselage height
+    lf = variables.lf           # [m]       Fuselage length
 
-    hw = 0.5                    # [m]       Height of the wing, from ground
-    MAC = 1.47                  # [m]       Mean Aerodynamic Chord
-    Sw = 23                     # [m2]      Horizontal tail surface area
-    Snet = 20                   # [m2]      Net wing surface area
-    bw = 16.6                   # [m]       Wing span
-    Aw = 12                     # [-]       Wing aspect ratio
-    sweepw = 0                  # [rad]     Wing quarter chord sweep angle
-    taperw = 0.4                # [-]       Wing taper ratio
-    twistwr = 0                 # [deg]     Wing twist at the root
-    crw = 1.98                  # [m]       Wing root chord
+    hw = variables.hw           # [m]       Height of the wing, from ground
+    MAC = variables.MAC         # [m]       Mean Aerodynamic Chord
+    Sw = variables.Sw           # [m2]      Horizontal tail surface area
+    Snet = variables.Snet       # [m2]      Net wing surface area
+    bw = variables.bw           # [m]       Wing span
+    Aw = variables.Aw           # [-]       Wing aspect ratio
+    sweepw = variables.sweepw   # [rad]     Wing quarter chord sweep angle
+    taperw = variables.taperw   # [-]       Wing taper ratio
+    twistwr = variables.twistwr # [deg]     Wing twist at the root
+    crw = variables.crw         # [m]       Wing root chord
 
-    lh = 6.2                    # [m]       Tail arm
-    hh = 1.5                    # [m]       Height horizontal tail from ground
-    Ah = 3                      # [-]       Horizontal tail aspect ratio
-    sweeph = 0                  # [rad]     Horizontal tail half chord sweep
+    lh = variables.lh           # [m]       Tail arm
+    hh = variables.hh           # [m]       Height horizontal tail from ground
+    Ah = variables.Ah           # [-]       Horizontal tail aspect ratio
+    sweeph = variables.sweeph   # [rad]     Horizontal tail half chord sweep
 
-    VhV = sqrt(0.85)            # [-]       Tail/wing speed ratio
+    VhV = variables.VhV         # [-]       Tail/wing speed ratio
 
-    Vcruise = 50                # [m/s]     Cruise speed
-    hcruise = 914.4             # [m]       Cruise altitude
+    Vcruise = variables.Vcruise # [m/s]     Cruise speed
+    hcruise = variables.hcruise # [m]       Cruise altitude
 
-    eta = 0.95                  # [-]       Airfoil efficiency coefficient TODO Check if aerodynamics guys determine this value
-    CLaw = 5.4                  # [/rad]    Wing lift rate coefficient TODO Check if aerodynamics guys determine this value
-    Cm0af = 0.05                # [-]       Airfoil zero lift pitching moment coefficient TODO Check this value
-    mu1 = 1                     # [-]       Flap coefficient 1 TODO Check this value
-    mu2 = 1                     # [-]       Flap coefficient 2 TODO Check this value
-    mu3 = 1                     # [-]       Flap coefficient 3 TODO Check this value
-    dClmax = 1                  # [-]       Airfoil lift coefficient increase at landing TODO Check this value
-    cc = 1                      # [-]       Chord ratio (extended flap/clean) TODO Check this value
-    CL_landing = 1              # [-]       Wing lift coefficient at landing (all flaps deployed) TODO Check this value
-    Swf = 10                    # [m2]      Reference wing flapped surface area TODO Check this value
-    CL0 = 1                     # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
-    CLA_h = 3                   # [-]       Aircraft less tail lift coefficient TODO Check this value
-    CLh = -0.5                  # [-]       Horizontal tail lift coefficient TODO Check this value
+    eta = variables.eta         # [-]       Airfoil efficiency coefficient TODO Check if aerodynamics guys determine this value
+    CLaw = variables.CLaw       # [/rad]    Wing lift rate coefficient TODO Check if aerodynamics guys determine this value
+    Cm0af = variables.Cm0af     # [-]       Airfoil zero lift pitching moment coefficient TODO Check this value
+    mu1 = variables.mu1         # [-]       Flap coefficient 1 TODO Check this value
+    mu2 = variables.mu2         # [-]       Flap coefficient 2 TODO Check this value
+    mu3 = variables.mu3         # [-]       Flap coefficient 3 TODO Check this value
+    dClmax = variables.dClmax   # [-]       Airfoil lift coefficient increase at landing TODO Check this value
+    cc = variables.cc           # [-]       Chord ratio (extended flap/clean) TODO Check this value
+    CL_landing = variables.CL_landing
+                                # [-]       Wing lift coefficient at landing (all flaps deployed) TODO Check this value
+    Swf = variables.Swf         # [m2]      Reference wing flapped surface area TODO Check this value
+    CL0 = variables.CL0         # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
+    CLA_h = variables.CLA_h     # [-]       Aircraft less tail lift coefficient TODO Check this value
+    CLh = variables.CLh         # [-]       Horizontal tail lift coefficient TODO Check this value
 
     sm_free = 0.05              # [-]       Fraction neutral point shift for stick-free stability
     sm = 0.05                   # [-]       Stability margin
@@ -345,8 +346,10 @@ Inputs:
 
 Outputs:
     variables [class]:  The class contains updated values of:
-                         - xcg_min [float]:     Minimum center of gravity location [%MAC]
-                         - xcg_max [float]:     Maximum center of gravity location [%MAC]
+                         - xcg_min [float]:     Minimum center of gravity location [m]
+                         - xcg_max [float]:     Maximum center of gravity location [m]
+                         - xcg_wing [float]:    Wing centre of gravity location [m]
+                         - lfn [float]:         Distance nose - wing [m]
                          - Sh_min [float]:      Minimum required horizontal tail surface [m2]
 
 V&V:    Verified
@@ -354,14 +357,15 @@ V&V:    Verified
 
 def sizing_htail_wingpos(variables,plot=False):
     # Inputs
-    lf = 6                          # [m]   Fuselage length
+    lf = variables.lf               # [m]   Fuselage length
     lfn = variables.lfn             # [m]   Distance nose - wing
-    Sw = 23                         # [m2]  Wing surface area
-    sweepw = 0                      # [rad] Wing quarter chord sweep angle
-    taperw = 0.4                    # [-]   Wing taper ratio
-    bw = 16.6                       # [m]   Wing span
-    crw = 1.98                      # [m]   Wing root chord
-    xcg_wing = 1.7                  # [m]   Wing center of gravity
+    Sw = variables.Sw               # [m2]  Wing surface area
+    sweepw = variables.sweepw       # [rad] Wing quarter chord sweep angle
+    taperw = variables.taperw       # [-]   Wing taper ratio
+    bw = variables.bw               # [m]   Wing span
+    MAC = variables.MAC
+    crw = variables.crw             # [m]   Wing root chord
+    xcg_wing = variables.xcg_wing   # [m]   Wing center of gravity
 
     sm = 0.1                        # [-]   Safety margin
 
@@ -408,10 +412,10 @@ def sizing_htail_wingpos(variables,plot=False):
 
     # Update values in variables class
     variables.lfn = lfn
-    #variables.xcg_wing = xcg_wing
+    variables.xcg_wing = xcg_wing
     #variables.xlemacw = xlemacw
-    variables.xcg_min = xcg_min
-    variables.xcg_max = xcg_max
+    variables.xcg_min = xcg_min*MAC
+    variables.xcg_max = xcg_max*MAC
     variables.Sh_min = Sh_min
 
     # Create plots
@@ -442,7 +446,7 @@ def sizing_htail_wingpos(variables,plot=False):
 
     return variables
 
-
+'''
 # Test
 class Test_variables_sc:
     def __init__(self):
@@ -459,3 +463,4 @@ if __name__ ==  "__main__":
     print('xcg_max =',round(test_v.xcg_max,2),'%MAC')
     print('\nSh =',round(test_v.Sh_min,2),'m2')
     print('lfn =',round(test_v.lfn,2),'m')
+'''

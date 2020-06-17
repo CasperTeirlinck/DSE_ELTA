@@ -225,7 +225,7 @@ def flap_sizing(variables,fix_position='fuselage end'):
         D = B**2 - 4*A*C
 
         if not D >= 0:
-            print('There is a problem with the flap sizing! (control_surfaces_sizing.py)')
+            print('There is a problem with the flap sizing! (wingcontrol_design.py)')
             return
         else:
             bfllst = [0,0]
@@ -247,7 +247,7 @@ def flap_sizing(variables,fix_position='fuselage end'):
         D = B**2 - 4*A*C
 
         if not D >= 0:
-            print('There is a problem with the flap sizing! (control_surfaces_sizing.py)')
+            print('There is a problem with the flap sizing! (wingcontrol_design.py)')
             return
         else:
             bfllst = [0,0]
