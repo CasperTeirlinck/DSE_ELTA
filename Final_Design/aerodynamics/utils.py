@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from collections import OrderedDict
-import variables as v
+import Final_Design.aerodynamics.variables as v
 import os
 
 def plotLiftDistribution(y, Cl_range, ClmaxDistr=None, legend=False):
