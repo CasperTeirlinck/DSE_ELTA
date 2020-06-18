@@ -4,9 +4,9 @@ from math import sqrt,cos
 
 
 class NewVariables:
-    def __init__(self):
+    def __init__(self,haswinglets,wingletheight):
         self.init_general()
-        self.init_aerodynamics(S=S, A=A, taper=taper, twist=twist, gammaL=gammaL)
+        self.init_aerodynamics(haswinglets,wingletheight)
         self.init_weight()
         self.init_propulsion()
         self.init_sc()
@@ -29,7 +29,7 @@ class NewVariables:
         self.h_landinggear = None
         self.w_landinggear = None
 
-    def init_aerodynamics(haswinglets,wingletheight):
+    def init_aerodynamics(self,haswinglets,wingletheight):
         # Conditions
         self.clean_config = None
         self.hasWinglets = haswinglets
@@ -49,6 +49,12 @@ class NewVariables:
         self._sweepLE = np.arctan(-self.c_r / (2 * self.b) * (taper - 1))
         self._YMAC = self.b / 6 * (1 + 2 * taper) / (1 + taper)
         self.XMAC = self.YMAC * np.tan(self.sweepLE)
+
+        # Flap geometry
+        self.flapstart = None
+        self.flapend = None
+        self.flapspan = None
+        self.flapaffectedarea = None
 
         # Exterior design inputs
         self.BLturbratio_wing = 0.65
@@ -78,11 +84,11 @@ class NewVariables:
         self.wing_alpha_max = None
         self.CD0clean = None
         self.CD0flap = None
-        self.e = None
+        self.eclean = None
+        self.eflaps = None
 
         # Working variables
         self.coeff = None
-        self.Swf = None
 
     def init_weight(self):
         self.b = 200
@@ -703,25 +709,24 @@ class NewVariables:
             f2 = f1 + bfl
 
             # Update variables
-            self.f1 = f1
-            self.f2 = f2
-            self.bfl = bfl
-            self.Swf = Swf
+            self.flapstart = f1
+            self.flapend = f2
+            self.flapspan = bfl
+            self.flapaffectedarea = Swf
 
 
 def sys_Aerodynamics_wing(v,resolution):
     v.setAirfoils(v.Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t)
-    #v.setwinglets() I think is is obsolete but I'm not sure
     v.calcCoefficients(resolution,0.7)
     v.calcCLa()
     v.calcCLmax()
     return v
 
 def sys_Aerodynamics_total(v)    
-    v.CD0clean = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf)
-    v.CD0flaps = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf,clean_config = False)
-    v.e_clean = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf,hasWinglets=v.haswinglets)
-    v.e_flaps = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf,hasWinglets=v.haswinglets,clean_config=True)
+    v.CD0clean = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea)
+    v.CD0flaps = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,clean_config = False)
+    v.e_clean = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets)
+    v.e_flaps = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets,clean_config=True)
     return v
 
 
