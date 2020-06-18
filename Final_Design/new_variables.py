@@ -1,5 +1,5 @@
 import numpy as np
-from math import sqrt,cos
+from math import sqrt,cos,pi
 
 
 
@@ -77,6 +77,14 @@ class NewVariables:
         # Freely adjustable variables
         self.hwl = wingletheight
 
+        # Aileron variables
+        self.dphi = 60*pi/180            # [rad]     Bank angle
+        self.dtTO = 5                    # [s]       Bank time take-off
+        self.dtL = 4                     # [s]       Bank time landing
+        self.clear_tip = 0.05*(b/2)      # [m]       Distance from the tip that should be clear of control surfaces
+        self.da = 20*pi/180              # [rad]     Aileron deflection angle
+        self.clda = 0.046825*180/pi      # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
+
 
         # Output variables
         self.wing_CL_alpha = None
@@ -140,6 +148,7 @@ class NewVariables:
         self.a_pitch = 12*pi/180    # [rad/s]       Take-off pitch angular velocity
         self.VTO = 1.05 * 25.2      # [m/s]         Take-off velocity
         self.rhoTO = 1.225          # [kg/m3]       Take-off density
+        self.VL = 1.1 * 25.2
         self.mu = 0.05              # [-]           Take-off friction factor
 
         # Masses
@@ -713,6 +722,111 @@ class NewVariables:
             self.flapend = f2
             self.flapspan = bfl
             self.flapaffectedarea = Swf
+
+    def aileron_sizing(self):
+        # Iteration parameters
+        sizing = True
+        i = 0                       # [-]       Number of iterations
+        max_i = 1000                # [-]       Maximum number of iterations
+        step = 0.01                 # [m]       Increase/Decrease of aileron length at every iteration
+
+        # Inputs
+        dphi = self.dphi            # [rad]     Bank angle
+        dtTO = self.dtTO            # [s]       Bank time take-off
+        dtL = self.dtL              # [s]       Bank time landing
+        VTO = self.VTO              # [m/s]     Take-off speed
+        VL = self.VL                # [m/s]     Landing speed
+
+        bf = self.fuselagewidth     # [m]       Fuselage width
+
+        S = self.S                  # [m2]      Wing surface area
+        b = self.b                  # [m]       Wing span
+        taper = self.taper          # [-]       Wing taper ratio
+        cr = self.c_r               # [m]       Wing root chord
+        cla = self.calcCLa()        # [/rad]    Take-off configuration lift curve slope
+        cd0_TO = self.CD0clean      # [-]       Take-off configuration zero lift drag coefficient
+        cd0_L = self.CD0flap        # [-]       Landing configuration zero lift drag coefficient
+
+        b1 = self.b1                # [m]       Aileron start
+        clear_tip = self.clear_tip  # [m]       Distance from the tip that should be clear of control surfaces
+        da = self.da                # [rad]     Aileron deflection angle
+        clda = self.clda            # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
+
+        sm = 0.1                    # [-]       Safety margin
+
+        # Parameter calculations
+        # Required roll rate
+        p_reqTO = dphi / dtTO * (1 + sm)
+        p_reqL = dphi / dtL * (1 + sm)
+
+        # Aileron end
+        b2 = b / 2 - clear_tip
+
+        # Check initial b1
+        if b1 < bf / 2:
+            print('Initial value for b1 is too small! Change b1.')
+        else:
+            pass
+
+        # Create history list
+        b1lst = [b1]
+
+        # Roll rate calculation
+        def roll_rate(V, cd0):
+            # Calculate roll damping
+            Clp = -(cla + cd0) * cr * b / (24 * S) * (1 + 3 * taper)
+
+            # Calculate roll authority
+            Clda = clda * cr / (S * b) * ((b2 ** 2 - b1 ** 2) + 4 * (taper - 1) / (3 * b) * (b2 ** 3 - b1 ** 3))
+
+            # Calculate roll rate for take-off and landing
+            p = -Clda / Clp * da * 2 * V / b
+
+            return p
+
+        # Perform iterations
+        while sizing and i < 100:
+            # Calculate roll rate
+            p_TO = roll_rate(VTO, cd0_TO)
+            p_L = roll_rate(VL, cd0_L)
+
+            # Check whether p is larger than required
+            # If p is smaller than required
+            if p_TO < p_reqTO or p_L < p_reqL:
+                b1 -= step
+
+            # If p is larger than required
+            else:
+                # Check for convergence
+                if abs(b1 - b1lst[-1]) < (step / 2):
+                    sizing = False
+                else:
+                    b1 += step
+
+            # Add values to history lists
+            b1lst.append(b1)
+
+            # Add iteration
+            i += 1
+
+            # Check aileron size
+            if b1 < bf / 2:
+                print('Aileron became too large.')
+                sizing = False
+            # Check for maximum number of iterations
+            elif i >= max_i:
+                sizing = False
+                print('Aileron sizing did not converge within', i, 'iterations.')
+            else:
+                pass
+
+        # Transform to numpy arrays
+        # b1lst = np.array(b1lst)
+        # b2lst = np.array(b2lst)
+
+        # Update values in variables class
+        self.b1 = b1
+        self.b2 = b2
 
 
 def sys_Aerodynamics_wing(v,resolution):
