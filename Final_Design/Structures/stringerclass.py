@@ -47,6 +47,9 @@ class J_Stringer():
         self.area4 = self.t4*self.b4
         self.total_area = self.calc_total_area()
 
+        self.Qx = None
+        self.Qy = None
+
         self.xbar, self.ybar = self.calc_centroid()
         self.Ixx, self.Iyy, self.Ixy = self.momentofinertia()
 
@@ -74,11 +77,11 @@ class J_Stringer():
 
     def calc_centroid(self):
         # Returns xbar, ybar
-        Qx = self.area1 * (self.b2+self.t1*0.5+self.t3) + self.area2_alt * (self.t1+self.b2+self.t4)*0.5 + \
+        self.Qx = self.area1 * (self.b2+self.t1*0.5+self.t3) + self.area2_alt * (self.t1+self.b2+self.t4)*0.5 + \
              self.area4 * self.t4*0.5 + self.area3 * self.t3*0.5
-        Qy = self.area1 * (self.b4 + self.t2 + self.b1*0.5) + self.area2_alt * (self.b4 + self.t2*0.5) + \
+        self.Qy = self.area1 * (self.b4 + self.t2 + self.b1*0.5) + self.area2_alt * (self.b4 + self.t2*0.5) + \
              self.area4 * self.b4*0.5 + self.area3 * (self.b4 + self.t2 + self.b3*0.5)
-        return Qy/self.total_area, Qx/self.total_area
+        return self.Qy/self.total_area, self.Qx/self.total_area
 
     def crippling_partial(self, t, b, C, material: MatProps):
         return material.alpha * (C/material.sigma_comp * pi*pi*material.E*t*t/(b*b*12*(1-material.poisson)))**(1-material.n) * material.sigma_comp
@@ -177,8 +180,8 @@ class Stringer:
         self.rotation = rotation
         # Centroid and mmoi with respect to reference coordinate system (using xpos, ypos, rotation)
         # origin of a panel is bottom right of plate, x positive to the left, y positive upwards
-        self.xbar_global, self.ybar_global = self.properties.xbar*cos(rotation) + self.properties.ybar*sin(rotation), \
-                                             -self.properties.xbar*sin(rotation) + self.properties.ybar*cos(rotation)
+        self.xbar_global, self.ybar_global = self.properties.xbar*cos(rotation) - self.properties.ybar*sin(rotation), \
+                                             self.properties.xbar*sin(rotation) + self.properties.ybar*cos(rotation)
         self.xbar_global += xpos
         self.ybar_global += ypos
 

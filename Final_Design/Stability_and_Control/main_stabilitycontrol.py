@@ -23,11 +23,10 @@ class stabilitycontrol_variables:
 
         # Weight parameters
         self.WTO = 7354.9875        # [N]       Take-off weight
-        self.m_fgroup = 100         # [kg]      Fuselage group mass
-        self.m_wing = 150           # [kg]      Wing mass
-        self.m_bat = 300            # [kg]      Battery mass
-        self.m_repbat = 100         # [kg]      Replaceable battery mass
-        self.m_pax = 100            # [kg]      Single Pilot/Passenger mass
+        self.W_fgroup = 100         # [kg]      Fuselage group weight
+        self.W_wing = 150           # [kg]      Wing weight
+        self.W_bat = 300            # [kg]      Battery weight
+        self.WPL = 100              # [kg]      Payload weight
 
         # Centre of gravity parameters
         self.xcg_min = None         # [m]       Minimum center of gravity location
@@ -60,16 +59,15 @@ class stabilitycontrol_variables:
         self.bf2 = 0.243            # [m]       Fuselage tail width
 
         # Wing geometry parameters
-        self.lfn = 1.5              # [m]       Distance nose - wing
-        self.xlemacw = None         # [m]       Distance nose - leading edge of the MAC
-        self.hw = 0.5               # [m]       Height of the wing, from ground
-        self.Sw = 15.6              # [m2]      Wing surface area
+        self.xlemac = None          # [m]       Distance nose - leading edge of the MAC
+        self.h_landinggear = 0.5    # [m]       Height of the wing, from ground
+        self.S = 15.6              # [m2]      Wing surface area
         self.Snet = 10              # [m2]      Net wing surface area
-        self.bw = 12.6              # [m]       Wing span
-        self.Aw = 10.1              # [-]       Wing aspect ratio
-        self.sweepw = 0             # [rad]     Wing quarter chord sweep angle
-        self.taperw = 0.45          # [-]       Wing taper ratio
-        self.twistwr = 5*pi/180     # [rad]     Wing twist at the root
+        self.b = 12.6              # [m]       Wing span
+        self.A = 10.1              # [-]       Wing aspect ratio
+        self.sweep = 0             # [rad]     Wing quarter chord sweep angle
+        self.taper = 0.45          # [-]       Wing taper ratio
+        self.twist = 5*pi/180     # [rad]     Wing twist at the root
         self.MAC = 1.30             # [m]       Mean Aerodynamic Chord
         self.crw = 1.98             # [m]       Wing root chord
         self.f1 = 0.8               # [m]       Flap start
