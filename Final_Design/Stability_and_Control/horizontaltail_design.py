@@ -202,35 +202,35 @@ V&V:    Verified
 '''
 
 def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
-    # Input parameters TODO Get values out of variables class
+    # Input parameters
     R = variables.R                     # [J/kg K]  Gas constant
     gamma = variables.gamma             # [-]       Heat capacity ratio
     T0 = variables.T0                   # [K]       Base temperature
     lmbda = variables.lmbda             # [degC/m]  Lapse rate
 
-    bf = variables.bf                   # [m]       Fuselage width
-    hf = variables.hf                   # [m]       Fuselage height
-    lf = variables.lf                   # [m]       Fuselage length
+    bf = variables.fuselagewidth        # [m]       Fuselage width
+    hf = variables.fuselageheight       # [m]       Fuselage height
+    lf = variables.fuselagelength       # [m]       Fuselage length
 
-    hw = variables.hw                   # [m]       Height of the wing, from ground
+    zw = variables.h_landinggear        # [m]       Height of the wing, from ground
     MAC = variables.MAC                 # [m]       Mean Aerodynamic Chord
-    Sw = variables.Sw                   # [m2]      Horizontal tail surface area
+    Sw = variables.S                    # [m2]      Horizontal tail surface area
     Snet = variables.Snet               # [m2]      Net wing surface area
-    bw = variables.bw                   # [m]       Wing span
-    Aw = variables.Aw                   # [-]       Wing aspect ratio
-    sweepw = variables.sweepw           # [rad]     Wing quarter chord sweep angle
-    taperw = variables.taperw           # [-]       Wing taper ratio
-    twistwr = variables.twistwr         # [deg]     Wing twist at the root
-    crw = variables.crw                 # [m]       Wing root chord
-    bfl = variables.f2-variables.f1     # [m]       Flap span
+    bw = variables.b                    # [m]       Wing span
+    Aw = variables.A                    # [-]       Wing aspect ratio
+    sweepw = 0                          # [rad]     Wing quarter chord sweep angle
+    taperw = variables.taper            # [-]       Wing taper ratio
+    twistwr = variables.twist           # [rad]     Wing twist at the root
+    crw = variables.c_r                 # [m]       Wing root chord
+    bfl = variables.flapspan            # [m]       Flap span
 
     lh = variables.lh                   # [m]       Tail arm
-    hh = variables.hh                   # [m]       Height horizontal tail from ground
+    zh = variables.h_htail              # [m]       Height horizontal tail from ground
     Ah = variables.Ah                   # [-]       Horizontal tail aspect ratio
     bh = variables.bh                   # [m]       Horizontal tail span
     taperh = variables.taperh           # [-]       Horizontal tail taper ratio
     sweeph = variables.sweeph           # [rad]     Horizontal tail quarter chord sweep angle
-    crh = variables.crh                 # [m]       Horizontal tail root chord
+    crh = variables.cr_h                # [m]       Horizontal tail root chord
 
     VhV = variables.VhV                 # [-]       Tail/wing speed ratio
 
@@ -238,7 +238,7 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     hcruise = variables.hcruise         # [m]       Cruise altitude
 
     eta = variables.eta                 # [-]       Airfoil efficiency coefficient
-    CLaw = variables.CLaw               # [/rad]    Wing lift rate coefficient
+    CLaw = variables.calcCLa            # [/rad]    Wing lift rate coefficient
     Cm0af = variables.Cm0af             # [-]       Airfoil zero lift pitching moment coefficient
     mu1 = variables.mu1                 # [-]       Flap coefficient 1
     mu2 = 1.2*(bfl/bw)+0.13             # [-]       Flap coefficient 2
@@ -280,7 +280,7 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
 
     # Wing downwash gradient
     r = lh*2/bw
-    mtv = 2/bw * ((hh-hw)+lh*tan(twistwr)) * cos(twistwr)
+    mtv = 2/bw * ((zh-zw)+lh*tan(twistwr)) * cos(twistwr)
     KeLambda = (0.1124 + 0.1265*sweepw + sweepw**2)/(r**2) + 0.1025/r + 2
     KeLambda0 = 0.1124/(r**2) + 0.1024/r + 2
     deda = KeLambda/KeLambda0 * (r/(r**2 + mtv**2)*0.4876/sqrt(r**2+0.6319+mtv**2)+

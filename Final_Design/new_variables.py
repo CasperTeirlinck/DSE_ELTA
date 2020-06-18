@@ -21,13 +21,19 @@ class NewVariables:
         self.gamma = 1.4 
         self.lmbda = -0.0065
 
+        self.Vcruise = 50           # [m/s]         Cruise speed
+        self.hcruise = 914.4        # [m]           Cruise altitude
+
         self.fuselagelength = 9.420
         self.fuselagewidth = 1.05
+        self.fuselageheight = 1.211
         self.fuselagefrontalarea = 1.218
         self.fuselagewettedarea = 17.507
 
         self.h_landinggear = None
         self.w_landinggear = None
+
+        self.h_htail = None
 
     def init_aerodynamics(self,haswinglets,wingletheight):
         # Conditions
@@ -77,13 +83,20 @@ class NewVariables:
         # Freely adjustable variables
         self.hwl = wingletheight
 
+        # Flap variables
+        self.CLmax_req = 2                  # [-]       Required maximum lift coefficient
+        self.dClmax = 1.25 * 0.96           # [-]
+        self.da0l_airfoil = -15*pi/180      # [rad]
+        self.cfc = 0.8                      # [-]       Start of the flap as percentage of the chord
+        self.d_ff = 0.05                    # [m]       Spacing between fuselage and flap
+
         # Aileron variables
-        self.dphi = 60*pi/180            # [rad]     Bank angle
-        self.dtTO = 5                    # [s]       Bank time take-off
-        self.dtL = 4                     # [s]       Bank time landing
-        self.clear_tip = 0.05*(b/2)      # [m]       Distance from the tip that should be clear of control surfaces
-        self.da = 20*pi/180              # [rad]     Aileron deflection angle
-        self.clda = 0.046825*180/pi      # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
+        self.dphi = 60*pi/180               # [rad]     Bank angle
+        self.dtTO = 5                       # [s]       Bank time take-off
+        self.dtL = 4                        # [s]       Bank time landing
+        self.clear_tip = 0.05*(b/2)         # [m]       Distance from the tip that should be clear of control surfaces
+        self.da = 20*pi/180                 # [rad]     Aileron deflection angle
+        self.clda = 0.046825*180/pi         # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
 
 
         # Output variables
@@ -142,6 +155,27 @@ class NewVariables:
         self.batt_cell_P          = self.batt_cell_I_max * self.batt_cell_V_nom                     # Maximum power [W]
 
     def init_sc(self):
+        # Wing geometry parameters
+        self.Snet = None            # [m2]          Net wing surface area
+
+        # Horizontal tail geometry parameters
+        self.lh = 6.2               # [m]           Horizontal tail arm
+        self.Sh = None              # [m2]          Minimum required horizontal tail surface
+        self.bh = None              # [m]           Horizontal tail span
+        self.Ah = None              # [-]           Horizontal tail aspect ratio
+        self.sweeph = 0             # [rad]         Horizontal tail half chord sweep
+        self.ch_r = 1               # [m]           Horizontal tail root chord
+        self.ih = 0                 # [rad]         Horizontal tail incidence angle
+
+        # Wing aerodynamic parameters
+        self.VhV = sqrt(0.85)       # [-]           Tail/wing speed ratio
+        self.eta = 0.95             # [-]           Airfoil efficiency coefficient
+        self.Cm0af = -0.1           # [-]           Airfoil zero lift pitching moment coefficient
+        self.mu1 = 0.3              # [-]           Flap coefficient 1
+        self.CnBi = 0.024           # [-]           Wing configuration stability component
+        self.deda = None            # [-]           Downwash gradient
+
+        '''
         # Flight performance parameters
         self.Vcruise = 50           # [m/s]         Cruise speed
         self.hcruise = 914.4        # [m]           Cruise altitude
@@ -176,9 +210,6 @@ class NewVariables:
 
         # Fuselage geometry parameters
         self.la = 9                 # [m]           Aircraft length
-        self.lf = 9.420             # [m]           Fuselage length
-        self.bf = 1.05              # [m]           Fuselage width
-        self.hf = 1.213             # [m]           Fuselage height
         self.hfmax = 1.213          # [m]           Maximum fuselage height
         self.Sfs = 5.258            # [m2]          Fuselage lateral surface area
         self.hf1 = 1.146            # [m]           Fuselage nose height
@@ -231,6 +262,7 @@ class NewVariables:
 
         # Vertical tail aerodynamic parameters
         self.CnB = None             # [-]           Directional stability coefficient
+        '''
 
     @property
     def S(self):
@@ -648,21 +680,21 @@ class NewVariables:
         taper = self.taper              # [rad]     Wing taper ratio
         cr = self.c_r                   # [m]       Wing root chord
 
-        CLmax_req = 2                   # [-]       Required maximum lift coefficient
-        CLmax_wing = 1.51               # [-]       Wing maximum lift coefficient
-        CLa = 2 * pi                    # [/rad]    Wing lift curve slope
+        CLmax_req = self.CLmax_req      # [-]       Required maximum lift coefficient
+        CLmax_wing = self.calcCLmax()   # [-]       Wing maximum lift coefficient
+        CLa = self.calcCLa()            # [/rad]    Wing lift curve slope
 
-        dClmax = 1.25 * 0.96            # [-]
-        da0l_airfoil = -15*pi/180       # [rad]
+        dClmax = self.dClmax            # [-]
+        da0l_airfoil = self.da0l_airfoil# [rad]
 
-        cfc = 0.8                       # [-]       Start of the flap as percentage of the chord
+        cfc = self.cfc                  # [-]       Start of the flap as percentage of the chord
 
         sm = 0.1                        # [-]       Safety margin
 
         # Parameter calculations
         # Chord at flap start/end location
-        bf = 1.5                        # [m]       Fuselage width
-        d_ff = 0.05                     # [m]       Spacing between fuselage and flap
+        bf = self.fuselagewidth         # [m]       Fuselage width
+        d_ff = self.d_ff                # [m]       Spacing between fuselage and flap
 
         # Flap start location
         f1 = bf / 2 + d_ff
