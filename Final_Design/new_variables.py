@@ -49,6 +49,7 @@ class NewVariables:
         self._sweepLE = np.arctan(-self.c_r / (2 * self.b) * (taper - 1))
         self._YMAC = self.b / 6 * (1 + 2 * taper) / (1 + taper)
         self.XMAC = self.YMAC * np.tan(self.sweepLE)
+        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage
 
         # Flap geometry
         self.flapstart = None
@@ -240,6 +241,7 @@ class NewVariables:
     def S(self, val):
         self._S = val
         self.b = np.sqrt(self.A * self.S)
+        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage
         # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
@@ -260,6 +262,7 @@ class NewVariables:
         self._b = val
         self.c_r = (2 * self.S) / (self.b * (1 + self.taper))
         self.YMAC = self.b / 6 * (1 + 2 * self.taper) / (1 + self.taper)
+        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage
         # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
@@ -273,6 +276,7 @@ class NewVariables:
         self.MAC = (2 / 3) * self.c_r * ((1 + self.taper + self.taper ** 2) / (1 + self.taper))
         self.sweepLE = np.arctan(-self.c_r / (2 * self.b) * (self.taper - 1))
         self.YMAC = self.b / 6 * (1 + 2 * self.taper) / (1 + self.taper)
+        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage
         # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
@@ -605,7 +609,7 @@ class NewVariables:
         FF_fus = 1 + 60./ld_fus**3 + ld_fus/400.
         IF_fus = 1.
         
-        S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.5*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage)*2.06
+        S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage)*2.06
         Cf_wing = (1-BLturbratio_wing)*_CfLaminar(rho_cruise,V_stall,MAC,visc) + BLturbratio_wing*_CfTurbulent(rho_cruise,V_stall,MAC,visc)
         FF_wing = 1. + 0.6*tc_airfoil/xc_airfoil + 100*tc_airfoil**4
         IF_wing = 1.25
