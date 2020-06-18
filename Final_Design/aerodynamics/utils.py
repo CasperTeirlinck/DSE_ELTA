@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from collections import OrderedDict
-import Final_Design.aerodynamics.variables as v
+import variables as v
 import os
 
 def plotLiftDistribution(y, Cl_range, ClmaxDistr=None, legend=False):
@@ -92,12 +92,13 @@ def plotDesignParams(x, y1, y2, xlabel='', y1label='', y2label=''):
     plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()
 
-def readAeroLoads():
+def readAeroLoads(alpha):
     cl_list = []
     cdi_list = []
     y_list = []
+    xcp_list = []
     # with open('Final_Design/aerodynamics/liftdistrAlpha5.dat', 'r') as f:
-    with open(os.path.join( os.path.dirname(__file__), 'liftdistrAlpha5.dat' ), 'r') as f:
+    with open(os.path.join( os.path.dirname(__file__), f'liftdistrAlpha{alpha}.dat' ), 'r') as f:
         for line in f.readlines()[21:60]:
             columns = line.strip().split()
             if len(columns) > 0:
@@ -106,9 +107,10 @@ def readAeroLoads():
                     y_list.append(y)
                     cl_list.append(float(columns[3]))
                     cdi_list.append(float(columns[5]))
+                    xcp_list.append(float(columns[10]))
     cd_list = np.array(cdi_list) #+ v.CD0
 
-    return y_list, cl_list, cd_list
+    return y_list, cl_list, cd_list, xcp_list
 
 def plotPlanform(cr, ct, b, MAC, XMAC, YMAC):
     fig = plt.figure(figsize=(10, 4.3))

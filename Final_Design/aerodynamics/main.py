@@ -52,7 +52,7 @@ if __name__ == "__main__":
     taper, CLmax, espan = readWinglist()
     # plotDesignParams(taper, espan, CLmax, 'Taper', 'e span', 'CLmax')
 
-    y_list, cl_list, cd_list = readAeroLoads()
+    # y_list, cl_list, cd_list, xcp_list = readAeroLoads(5)
 
     taper = 0.45
     twist = np.radians(5)
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         c_t_h = taper_h*c_r_h
         plotHtail(c_r_h, c_t_h, b_h)
 
-    wing = WingPlanform(v.S, v.A, taper, twist, v.gamma, v.CD0)
+    wing = WingPlanform(v.S, v.A, taper, twist, v.gamma)
     wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t, v.deltaAlphaStall_r, v.deltaAlphaStall_t)
     wing.setWinglets(v.hwl, v.kwl)
     wing.calcCoefficients(200, tipCutoff=0.6)
@@ -95,7 +95,8 @@ if __name__ == "__main__":
 
     print(f'\n=== ============ ===\n')
 
-    plotPlanform(wing.c_r, wing.c_t, wing.b, wing.MAC, wing.XMAC, wing.YMAC)
+    if False:
+        plotPlanform(wing.c_r, wing.c_t, wing.b, wing.MAC, wing.XMAC, wing.YMAC)
 
     if False:
         alpha = np.radians(10.2)
@@ -103,9 +104,12 @@ if __name__ == "__main__":
         plotLiftDistribution(yPnts, [Cl_distr])
 
 
-    CD0 = wing.calcCD0(17.507,9.420,1.218,1.05,0.3*wing.S,0.15*wing.S,1.,1,0.65,0.65,0.9,0.2,0.15,0.)
+
+    CD0 = wing.calcCD0(v.S_wet_fus, v.l_fus, v.fus_A_max, v.w_fuselage, v.S_h, v.S_v, v.MAC_emp, v.BLturbratio_fus, v.BLturbratio_wing, v.BLturbratio_emp, v.l_gear, v.w_gear, v.dCD_gear, v.flap_area_ratio)
+
     CD0wing = wing.calcCD0wing(1.,0,0)
-    e = wing.calcOswald(17.507,9.420,1.218,1.05,0.3*wing.S,0.15*wing.S,1.,1,0.65,0.65,0.9,0.2,0.15,0.,hasWinglets=True)
+
+    e = wing.calcOswald(CD0, v.w_fuselage, hasWinglets=True)
 
     print(CD0)
     print(CD0wing)

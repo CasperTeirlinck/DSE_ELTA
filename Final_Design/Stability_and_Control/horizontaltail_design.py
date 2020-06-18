@@ -26,24 +26,26 @@ V&V:    Verified
 
 def loading_diagram(variables,xcg_wing,plot=False):
     # Inputs TODO Get values out of variables class
-    MAC = variables.MAC                 # [m]       Mean Aerodynamic Chord
+    g = variables.g0                        # [m/s2]
 
-    m_wing = variables.m_wing           # [kg]      Wing mass
-    m_fgroup = variables.m_fgroup       # [kg]      Fuselage group mass
-    xcg_fgroup = variables.xcg_fgroup   # [m]       Fuselage group center of gravity
+    MAC = variables.MAC                     # [m]       Mean Aerodynamic Chord
 
-    m_oe = m_wing + m_fgroup            # [kg]      Operational Empty mass
+    m_wing = variables.W_wing/g             # [kg]      Wing mass
+    m_fgroup = variables.W_fgroup/g         # [kg]      Fuselage group mass
+    xcg_fgroup = variables.xcg_fgroup       # [m]       Fuselage group center of gravity
+
+    m_oe = m_wing + m_fgroup                # [kg]      Operational Empty mass
     xcg_oew = (xcg_wing*m_wing + xcg_fgroup*m_fgroup)/m_oe
-                                        # [m]       OEW center of gravity
+                                            # [m]       OEW center of gravity
 
-    m_bat = variables.m_bat             # [kg]      Battery mass
-    xcg_bat = variables.xcg_bat         # [m]       Battery center of gravity
-    m_repbat = variables.m_repbat       # [kg]      Replaceable battery mass
-    xcg_repbat = variables.xcg_repbat   # [m]       Replaceable battery center of gravity
-    m_pax = variables.m_pax             # [kg]      Single Pilot/Passenger mass
-    xcg_pax = variables.xcg_pax         # [m]       Pilot/Passenger center of gravity
+    m_bat = variables.W_batt/g              # [kg]      Battery mass
+    xcg_bat = variables.xcg_bat             # [m]       Battery center of gravity
+    m_pax = variables.WPL/g                 # [kg]      Single Pilot/Passenger mass
+    xcg_pax = variables.xcgPL               # [m]       Pilot/Passenger center of gravity
+    m_repbat = variables.WPL/g              # [kg]      Replaceable battery mass
+    xcg_repbat = xcg_pax                    # [m]       Replaceable battery center of gravity
 
-    sm = 0.05                           # [-]       Safety Margin
+    sm = 0.05                               # [-]       Safety Margin
 
     # Create mass and center of gravity lists
     m_lst = [m_oe+m_bat]
