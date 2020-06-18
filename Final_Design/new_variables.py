@@ -41,6 +41,7 @@ class NewVariables:
         self.cg_wing = None         # [m]           Distance LE root chord - wing cg
 
         self.xcg_fgroup = None
+        self.xcg_fuselage
         self.xcgPL = None
         self.xcgbat = None
         self.xcg_min = None
@@ -167,6 +168,22 @@ class NewVariables:
         self.batt_cell_P          = self.batt_cell_I_max * self.batt_cell_V_nom                     # Maximum power [W]
 
     def init_sc(self):
+        # Fuselage variables
+        self.Sfs = 5.258            # [m2]          Fuselage lateral surface area
+        self.hf1 = 1.146            # [m]           Fuselage nose height
+        self.hf2 = 0.306            # [m]           Fuselage tail height
+        self.bf1 = 0.960            # [m]           Fuselage nose width
+        self.bf2 = 0.243            # [m]           Fuselage tail width
+
+
+        # Propeller geometry parameters
+        self.Bp = 2.5               # [-]           Number of blades per propeller
+        self.xp1 = 2                # [m]           1st propeller location
+        self.xp2 = 2                # [m]           2nd propeller location
+        self.Dp1 = 2                # [m2]          1st propeller disk diameter
+        self.Dp2 = 2                # [m2]          2nd propeller disk diameter
+
+
         # Wing variables
         self.xlemac = None          # [m]           Distance nose - leading edge mean aerodynamic chord
         self.Snet = None            # [m2]          Net wing surface area
@@ -175,9 +192,9 @@ class NewVariables:
         self.eta = 0.95             # [-]           Airfoil efficiency coefficient
         self.Cm0af = -0.1           # [-]           Airfoil zero lift pitching moment coefficient
         self.mu1 = 0.3              # [-]           Flap coefficient 1
-
         self.deda = None            # [-]           Downwash gradient
         self.cc = 1                 # [-]           Chord ratio (extended flap/clean)
+        self.CnBi = 0.024           # [-]           Wing configuration lateral stability component
 
 
         # Horizontal tail variables
@@ -190,6 +207,12 @@ class NewVariables:
         self.ih = 0                 # [rad]         Horizontal tail incidence angle
 
         self.CLh_L = -0.8           # [-]           Horizontal tail landing configuration lift coefficient
+
+
+        # Vertical tail variables
+        self.Sv = None              # [m2]          Vertical tail surface
+
+        self.CnB = None             # [-]           Directional stability coefficient
 
         '''
         # Flight performance parameters
@@ -212,40 +235,19 @@ class NewVariables:
         self.zT = 1                 # [m]           Thrust vector height
         self.zD = 0.5               # [m]           Drag vector heigh
 
-        # Fuselage geometry parameters
-        self.la = 9                 # [m]           Aircraft length
-        self.hfmax = 1.213          # [m]           Maximum fuselage height
-        self.Sfs = 5.258            # [m2]          Fuselage lateral surface area
-        self.hf1 = 1.146            # [m]           Fuselage nose height
-        self.hf2 = 0.306            # [m]           Fuselage tail height
-        self.bf1 = 0.960            # [m]           Fuselage nose width
-        self.bf2 = 0.243            # [m]           Fuselage tail width
 
         # Vertical tail geometry parameters
         self.lv = 6.2               # [m]           Vertical tail arm
-        self.Sv = None              # [m2]          Vertical tail surface
+
 
         # Elevator geometry parameters
         self.bebh = 1               # [-]           Elevator span
         self.de_max = 20*pi/180     # [rad]         Maximum elevator deflection
         self.de_min = -25*pi/180    # [rad]         Minimum elevator deflection (maximum negative)
-
-        # Propeller geometry parameters
-        self.Bp = 2.5               # [-]           Number of blades per propeller
-        self.lp1 = 2                # [m]           Distance 1st propeller plane - aircraft centre of gravity
-        self.lp2 = 2                # [m]           Distance 2nd propeller plane - aircraft centre of gravity
-        self.Dp1 = 2                # [m2]          1st propeller disk diameter
-        self.Dp2 = 2                # [m2]          2nd propeller disk diameter
-
-        # Wing aerodynamic parameters
-        self.CnBi = 0.024           # [-]           Wing configuration stability component
-
+        
         # Horizontal tail aerodynamic parameters
         self.CLh_TO = None          # [-]           Horizontal tail take-off lift coefficient
         self.CLah = 4               # [/rad]        Horizontal lift curve slope
-
-        # Vertical tail aerodynamic parameters
-        self.CnB = None             # [-]           Directional stability coefficient
         '''
 
     @property
