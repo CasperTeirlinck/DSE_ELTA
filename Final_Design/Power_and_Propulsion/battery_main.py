@@ -36,7 +36,7 @@ def main_bat(variables):
 
     # Calculating mass and volume based on cells only
     m_bat_cells = bat[2] * variables.batt_cell_mass
-    v_bat_cells = bat[2] * variables.batt_cell_volume * 1000 # from m^3 to L
+    v_bat_cells = (bat[0] * variables.batt_cell_diameter) * (bat[1] * variables.batt_cell_diameter) * variables.batt_cell_length * 1000 # from m^3 to L
 
     # Actual mass
     m_bat = m_bat_cells * 1.15
@@ -55,6 +55,46 @@ def main_bat(variables):
     variables.batt_Ns = bat[0]
     variables.batt_Np = bat[1]
     variables.batt_N = bat[2]
+    return variables
+
+
+def power_calculation(variables):
+    # TODO: should take place before battery sizing
+    """
+    Max power required for ROC at cruise speed at sea level as at sea level
+    Created on Tue Jun  2 14:02:24 2020
+
+    @author: HJ Hoogendoorn
+    """
+    private_V_cruise = 90 * 1.852 / 3.6  # [m/s]
+    private_Cruise_h = 12000 / 0.3048  # [m] SERVICE CEILING
+    private_C_D_cruise = 0.0341  # [*] based on GA Design
+    private_ROC = 500 / (60 / 0.3048)  # [m/s]
+    private_rho_cruise = 0.849137
+
+    #####################################################
+    private_V_TAS = private_V_cruise * np.sqrt(variables.rho0 / private_rho_cruise)
+
+    D_sea = 0.5 * variables.rho0 * private_V_cruise ** 2 * variables.S * private_C_D_cruise
+    D_cruise = 0.5 * private_rho_cruise * private_V_TAS ** 2 * variables.S * private_C_D_cruise
+
+    P_req_sea = private_ROC * variables.W + D_sea * private_V_cruise
+    P_req_cruise = private_ROC * variables.W + D_cruise * private_V_TAS
+
+    ###LIMITING CASE###
+    # print('Max P_req at cruise altitude [W]:', P_req_cruise)
+    #
+    # print('P_req at sea level [W]:',P_req_sea)
+    # print('Max P_req at cruise altitude [W]:', P_req_cruise)
+    # print('Max Thrust:', P_req_sea / private_V_cruise)
+    # print(P_req_cruise/private_V_TAS)
+
+    # Checking if power loading is achieved
+    if variables.WP < variables.WTO/(max(P_req_cruise, P_req_sea)):
+        print("POWER DOES NOT MEET W/P, ask Matthijs")
+
+    variables.P_max = max(P_req_cruise, P_req_sea)
+
     return variables
 
 

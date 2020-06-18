@@ -120,26 +120,27 @@ if __name__ ==  "__main__":
     class Test_variables_pp:
         def __init__(self):
             # Pipistrel alpha validation
-            self.CD0 = 0.0280
+            self.CD0 = 0.0250
             self.A = 11.6
-            self.e = 0.83
+            self.e = 0.85
             self.rho0 = 1.225
-            self.WP = 0.131
-            self.WS = 434
+            self.WP = 0.0899
+            self.WS = 567.35
             self.Especif_bat = 900000
             self.rho_bat = 500 * 3600
-            self.eff_tot_prop = 0.95* 0.88
+            self.eff_tot_prop = 0.95*0.90
             self.eff_batt = 0.95
             self.g0 = 9.80665
-            self.WTO_endurance = 550*9.81
-            self.WTO_range = self.WTO_endurance
+            self.WTO = 550*9.81
+            self.WTO_range = self.WTO
             self.range_m = 0.0
             self.endurance_s = 1.5*3600
             self.P_max = 60*1000
             self.S = 9.51
 
     test_v = Test_variables_pp()
-    print(energy_engine(test_v, endurance_s = test_v.endurance_s, range_m= 0.0 )/3600/1000, "[kWh]")
+    E = energy_engine(test_v, endurance_s = test_v.endurance_s, range_m= 0.0 )/3600/1000 + energy_avionics(test_v)/3600/1000
+    print(E, "[kWh]")
     print("Pipistrel website says 21 kWh :D :D :D")
 
 

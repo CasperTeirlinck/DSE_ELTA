@@ -340,7 +340,7 @@ class WingPlanform:
         CDS_wet_fus =  Cf_fus*  FF_fus*  IF_fus*  S_wet_fus
         CDS_wet_wing = Cf_wing* FF_wing* IF_wing* S_wet_wing
         CDS_wet_emp =  Cf_emp*  FF_emp*  IF_emp*  S_wet_emp
-        CDS_ref_gear = dCD_gear*l_gear*w_gear
+        CDS_ref_gear = dCD_gear* l_gear* w_gear
         
         dCD_flap = 0.0144*0.2*flap_area_ratio*(40-10)
 

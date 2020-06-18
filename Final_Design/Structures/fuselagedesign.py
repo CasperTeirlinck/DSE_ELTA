@@ -1,6 +1,7 @@
 from plateclass import *
 from stringerclass import *
 from loadinfo import *
+from Fuselageclass import *
 import copy
 from scipy.interpolate import interp1d
 from numpy import pi
@@ -8,173 +9,6 @@ import numpy as np
 from math import sqrt, cos, sin
 from matplotlib import pyplot as plt
 
-class CircCrossSection:
-    def __init__(self, length, r, ts, material):
-        self.l = length
-        self.material = material
-
-        self.total_area = 2*pi*r*ts
-
-        self.xbar, self.ybar = r, r
-        self.Ixx, self.Iyy, self.Ixy = pi*ts*2*r*r*r, pi*ts*2*r*r*r, 0
-
-        self.E = self.material.E
-
-        self.mass = self.total_area * self.material.rho
-
-
-class CrossSection:
-    def __init__(self, length):
-        self._l = length
-
-        self.plates = []
-        self.stiffeners = []
-
-        self.total_area = 0
-
-        self.xbar, self.ybar = None, None
-        self.Ixx, self.Iyy, self.Ixy = None, None, None
-
-        self.E = None
-
-        self.mass = 0
-
-    @property
-    def l(self):
-        return self._l
-
-    @l.setter
-    def l(self, val):
-        self._l = val
-        self.recalculate_component_effects()
-
-    def resetData(self, length):
-        self.__init__(length)
-
-    def addStringers(self, *stringers: Stringer):
-        for stringer in stringers:
-            stringer.properties.Le = self.l
-            self.stiffeners.append(stringer)
-        self.recalculate_component_effects()
-
-    def addPanels(self, *panels: Sheet):
-        for panel in panels:
-            panel.properties.a = self.l
-            self.plates.append(panel)
-        self.recalculate_component_effects()
-
-    def calc_total_area(self):
-        self.total_area = 0
-        for stiff in self.stiffeners:
-            self.total_area += stiff.properties.total_area
-        for plate in self.plates:
-            self.total_area += plate.properties.total_area
-
-    def calc_mass(self):
-        self.mass = 0
-        for stiff in self.stiffeners:
-            self.mass += stiff.properties.mass
-        for plate in self.plates:
-            self.mass += plate.properties.mass
-        return self.mass
-
-    def recalculate_component_effects(self):
-        self.calc_total_area()
-        self.xbar, self.ybar = self.calc_centroid()
-        self.Ixx, self.Iyy, self.Ixy = self.momentofinertia()
-        self.E = self.youngsmodulus()
-        self.calc_mass()
-
-    def calc_centroid(self):
-        Qx, Qy = 0, 0
-        for stiff in self.stiffeners:
-            Qx += stiff.ybar_global * stiff.properties.total_area
-            Qy += stiff.xbar_global * stiff.properties.total_area
-        for plate in self.plates:
-            Qx += plate.ybar_global * plate.properties.total_area
-            Qy += plate.xbar_global * plate.properties.total_area
-        return Qy/self.total_area, Qx/self.total_area
-
-    def momentofinertia(self):
-        Ixx, Iyy, Ixy = 0., 0., 0.
-        for stiff in self.stiffeners:
-            Ixx += stiff.Ixx_global + stiff.properties.total_area*(stiff.ybar_global-self.ybar)**2
-            Iyy += stiff.Iyy_global + stiff.properties.total_area*(stiff.xbar_global-self.xbar)**2
-            Ixy += stiff.Ixy_global + stiff.properties.total_area*(stiff.ybar_global-self.ybar)*(stiff.xbar_global-self.xbar)
-        for plate in self.plates:
-            # print(plate.rotation)
-            # print("Base", plate.Ixx_global)
-            # print("Steiner", plate.properties.total_area*(plate.ybar_global-self.ybar)**2)
-            # print()
-            Ixx += plate.Ixx_global + plate.properties.total_area*(plate.ybar_global-self.ybar)**2
-            Iyy += plate.Iyy_global + plate.properties.total_area*(plate.xbar_global-self.xbar)**2
-            # print("Base", plate.Ixy_global)
-            # print("Steiner", plate.properties.total_area*(plate.ybar_global-self.ybar)*(plate.xbar_global-self.xbar))
-            # print("Rotation", plate.rotation)
-            # print()
-            Ixy += plate.Ixy_global + plate.properties.total_area*(plate.ybar_global-self.ybar)*(plate.xbar_global-self.xbar)
-        return Ixx, Iyy, Ixy
-
-    def youngsmodulus(self):
-        E = 0
-        for stiff in self.stiffeners:
-            E += stiff.properties.material.E*stiff.properties.total_area/self.total_area
-        for plate in self.plates:
-            E += plate.properties.material.E*plate.properties.total_area/self.total_area
-        return E
-
-
-class FuselageSection:
-    def __init__(self, ypos, xpos, zpos, section_instance, rotation=0):
-        self.properties = copy.deepcopy(section_instance)
-        self.ypos = ypos
-        self.rotation = rotation
-
-        self.xbar_global, self.zbar_global = -self.properties.xbar*cos(rotation) - self.properties.ybar*sin(rotation), \
-                                             -self.properties.xbar*sin(rotation) + self.properties.ybar*cos(rotation)
-        self.zbar_global += zpos
-        self.xbar_global += xpos
-
-        self.Ixx_global, self.Izz_global, self.Ixz_global = translate_mmoi(
-            self.properties.Ixx, self.properties.Iyy, -self.properties.Ixy, rotation)
-
-
-
-class Fuselage:
-    def __init__(self):
-        self.sections = []
-
-        self.ys = []
-        self.El = []
-        self.Ixx = []
-        self.Izz = []
-        self.Ixz = []
-        self.xbars = []
-        self.zbars = []
-
-    def addSection(self, section: FuselageSection):
-        self.sections.append(section)
-
-    def recalculate_lists(self):
-        self.ys = []
-        self.E = []
-        self.Ixx = []
-        self.Izz = []
-        self.Ixz = []
-        self.xbars = []
-        self.zbars = []
-        for section in self.sections:
-            self.ys.append(section.ypos)
-            self.E.append(section.properties.E)
-            self.Ixx.append(section.Ixx_global)
-            self.Izz.append(section.Izz_global)
-            self.Ixz.append(section.Ixz_global)
-            self.xbars.append(section.xbar_global)
-            self.zbars.append(section.zbar_global)
-        self.ys = np.asarray(self.ys)
-        self.E = np.asarray(self.E)
-        self.Ixx, self.Izz, self.Ixz = np.asarray(self.Ixx), np.asarray(self.Izz), np.asarray(self.Ixz)
-        self.xbars, self.zbars = np.asarray(self.xbars), np.asarray(self.zbars)
 
 def create_compound_segment(material, length, ts, height, width, r_top, r_bot):
     cs = CrossSection(length)
@@ -188,8 +22,13 @@ def create_compound_segment(material, length, ts, height, width, r_top, r_bot):
     for idx, (x, y, w_sheet) in enumerate(zip(xs, ys, widths)):
         angle = idx*pi*0.25
         sheet = Sheet(length, w_sheet, ts, material, mode=2)
+        # print(sheet.xbar, sheet.ybar, "|||||||||", x, y, angle)
         pan = Panel(x, y, sheet, rotation=angle)
+        # print(pan.xbar_global, pan.ybar_global)
         cs.addPanels(pan)
+        # print("=======================")
+    # print()
+    cs.recalculate_component_effects()
     return cs
 
 def create_round_segment(material, length, ts, height, width=None, r_top=None, r_bot=None):
@@ -197,7 +36,7 @@ def create_round_segment(material, length, ts, height, width=None, r_top=None, r
     return cs
 
 
-def generate_fuselage(data, sparlocs, zshift, base_material, circ_material=None, stiff_material=None, base_ts=0.002):
+def generate_fuselage(data, sparlocs, zshift, ts, base_material, circ_material=None, stiff_material=None):
     if circ_material is None:
         circ_material = base_material
     if stiff_material is None:
@@ -210,7 +49,6 @@ def generate_fuselage(data, sparlocs, zshift, base_material, circ_material=None,
     interph = interp1d(ys, data[:,2])
     interprt = interp1d(ys, data[:,3])
     interprb = interp1d(ys, data[:,4])
-
     for idx, (y, zref) in enumerate(zip(sparlocs, zshift)):
         if idx == len(sparlocs)-1:
             length = 2.2-y
@@ -218,17 +56,17 @@ def generate_fuselage(data, sparlocs, zshift, base_material, circ_material=None,
             length = y-sparlocs[idx+1]
         if y < 6.099:
             width = interpw(y)
-            cs = create_compound_segment(base_material, length, base_ts, interph(y), width, interprt(y), interprb(y))
+            cs = create_compound_segment(base_material, length, ts(y), interph(y), width, interprt(y), interprb(y))
         else:
             width = interph(y)
-            cs = create_round_segment(circ_material, length, base_ts, interph(y), width, interprt(y), interprb(y))
+            cs = create_round_segment(circ_material, length, ts(y), interph(y), width, interprt(y), interprb(y))
 
-        fus.addSection(FuselageSection(y, xref+width/2, zref, cs))
+        fus.addSection(FuselageSection(y, xref+width*0.5, zref, cs))
 
     fus.recalculate_lists()
     return fus, sparlocs
 
-def make_default_fuselage():
+def make_default_fuselage(skint):
     data = np.genfromtxt("fuselage_data.csv", delimiter=",", skip_header=1)
     data *= 0.001
 
@@ -236,18 +74,18 @@ def make_default_fuselage():
                          n=0.6)
     carbon = MatProps(sigma_y=600000000, E=70000000000, poisson=0.1, rho=1.60, sigma_comp=570000000,
                       name="carbonfibre")
-    sparlocs = np.array([2.2, 2.3, 2.5, 2.755, 3.9, 5.9, 6., 6.05, 6.1, 6.5, 7., 8.5, 9., 9.4])[::-1]
-    zfunc = lambda y: 0
+    sparlocs = np.concatenate((np.arange(22, 60, 1)*0.1, np.array([5.95, 6.0, 6.05]), np.arange(61, 95, 1)*0.1))[::-1]
+    zfunc = lambda y: 0.0022*y*y*y-0.0458*y*y+0.3535*y-1.10606383
     zshift = [zfunc(y) for y in sparlocs]
-    fus, sparlocs = generate_fuselage(data, sparlocs, zshift, base_material=aluminium, circ_material=carbon)
+    fus, sparlocs = generate_fuselage(data, sparlocs, zshift, skint, base_material=aluminium, circ_material=carbon)
     return fus, sparlocs
 
-def analyze_fuselage(sparlocs, fus, bcs, *loads):
+def analyse_fuselage(sparlocs, fus, bcs, *loads):
     EIx = fus.E*fus.Ixx
     EIz = fus.E*fus.Izz
-    # plt.plot(sparlocs, EIx)
-    # plt.show()
-    system = LoadCase(y_coordinates=np.asarray(sparlocs), EIx=EIx, EIz=EIz)
+    areas = fus.areas
+    shearcentres = fus.zbars
+    system = LoadCase(y_coordinates=np.asarray(sparlocs), EIx=EIx, EIz=EIz, areas=areas, shearcentre_z = shearcentres)
     ymin = min(sparlocs)
     flag = False
     for load in loads:
@@ -271,18 +109,25 @@ def analyze_fuselage(sparlocs, fus, bcs, *loads):
         if bc["y"] < ymin:
             ymin = bc["y"]
             flag = True
+    old_sparlocs = sparlocs
     if flag == True:
         sparlocs = np.concatenate((sparlocs, np.array([ymin])))
         EIx = np.concatenate((EIx, np.array([EIx[-1]])))
         EIz = np.concatenate((EIz, np.array([EIz[-1]])))
         system.change_geometry(sparlocs, EIx, EIz)
-
     system.solve_bcs()
 
-    sparlocs = np.concatenate
-    sx, sz = system.get_shearforce(sparlocs)
-    mx, mz = system.get_moment(sparlocs)
-    ny = system.get_normalforce(sparlocs)
+    yout = np.concatenate((sparlocs, np.array([sparlocs[-1]-0.000003, 0.])))
+    areas = np.concatenate((areas, np.array([areas[-1], areas[-1], areas[-1]])))
+    shearcentres = np.concatenate((shearcentres, np.array([shearcentres[-1], shearcentres[-1], shearcentres[-1]])))
+    print("in-function:", min(sparlocs), max(sparlocs))
+    print(len(areas), len(shearcentres), len(yout))
+    system.change_areas(areas, shearcentres, y_locs=yout)
+    sx, sz = system.get_shearforce(yout)
+    mx, mz = system.get_moment(yout)
+    ny = system.get_normalforce(yout)
+    print("yout:", min(yout), max(yout))
+    shearflow = system.get_torque_shearflow(yout)
     totalforce, totalmoment, totalforce_res, totalmoment_res = \
         np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0])
     for force in system.forces:
@@ -295,18 +140,95 @@ def analyze_fuselage(sparlocs, fus, bcs, *loads):
         totalmoment += moment.vector
     for moment in system.reactionmoments:
         totalmoment_res += moment.vector
-    plt.subplot(131)
-    plt.plot(sparlocs, ny)
-    plt.subplot(132)
-    plt.plot(sparlocs, sx)
-    plt.plot(sparlocs, sz)
-    plt.subplot(133)
-    plt.plot(sparlocs, mx)
-    plt.plot(sparlocs, mz)
-    plt.show()
+    print(totalforce, totalforce_res)
+    print(totalmoment, totalmoment_res)
+    return yout, old_sparlocs, fus, sx, sz, mx, mz, ny, shearflow
+
+def n_stress_moments(x, z, mx, mz, ixx, izz, ixz):
+    return ((mx*izz-mz*ixz)*z + (mz*ixx-mx*ixz)*x)/(ixx*izz-ixz*ixz)
+
+def n_stress_int_n(area, ny):
+    return ny/area
+
+def analyse_forces(yout, sparlocs, fus, sx, sz, mx, mz, ny, shearflow):
+    maxstresses = []
+    minstresses = []
+    critloc_mins = []
+    critloc_maxs = []
+    normalstresses = []
+    for sparloc, section in zip(sparlocs, fus.sections):
+        critlen = sparloc - section.properties.l
+        nyi = ny[np.abs(yout - critlen) < 0.001]
+        normalstresses.append((nyi/section.properties.total_area).item())
+        sxi = sx[np.abs(yout - critlen) < 0.001]
+        szi = sz[np.abs(yout - critlen) < 0.001]
+        mxi = mx[np.abs(yout - critlen) < 0.001]
+        mzi = mz[np.abs(yout - critlen) < 0.001]
+        maxstress = np.array([0])
+        minstress = np.array([0])
+        critloc_min = (0,0)
+        critloc_max = (0,0)
+        if isinstance(section.properties, CircCrossSection):
+            for i in range(8):
+                x, z = section.xbar_global, section.zbar_global
+                angle = i*pi*0.25
+                x += cos(angle)*section.properties.radius
+                z += sin(angle)*section.properties.radius
+                stress = n_stress_moments(x, z, mxi, mzi, section.Ixx_global, section.Izz_global, section.Ixz_global)
+                if stress < minstress:
+                    minstress = stress
+                    critloc_min = (x, z)
+                if stress > maxstress:
+                    maxstress = stress
+                    critloc_max = (x, z)
+        else:
+            for plate in section.properties.plates:
+                x, z = -plate.xbar_global + section.xpos, plate.ybar_global + section.zpos
+                for k in range(2):
+                    i = k*2-1
+                    length = i * plate.properties.b*0.5
+                    (xi, zi) = (x + length*cos(plate.rotation), z - length*sin(plate.rotation))
+                    stress = n_stress_moments(xi, zi, mxi, mzi, section.Ixx_global, section.Izz_global, section.Ixz_global)
+                    if stress < minstress:
+                        minstress = stress
+                        critloc_min = (xi, zi)
+                    if stress > maxstress:
+                        maxstress = stress
+                        critloc_max = (xi, zi)
+                    if stress < -plate.properties.sigma_cr:
+                        print("Buckling occurs at y={}, x={}, z={}".format(sparloc, xi, zi))
+
+            for stiff in section.properties.stiffeners:
+                x, z = -stiff.xbar_global + section.xpos, stiff.ybar_global + section.zpos
+                stress = n_stress_moments(x, z, mxi, mzi, section.Ixx_global, section.Izz_global, section.Ixz_global)
+                if stress < minstress:
+                    minstress = stress
+                    critloc_min = (x, z)
+                if stress > maxstress:
+                    maxstress = stress
+                    critloc_max = (x, z)
+        maxstresses.append(maxstress.item())
+        critloc_maxs.append(critloc_max)
+        minstresses.append(minstress.item())
+        critloc_mins.append(critloc_min)
+    maxstresses = np.array(maxstresses)
+    minstresses = np.asarray(minstresses)
+    normalstresses = np.asarray(normalstresses)
+    critloc_maxs = np.asarray(critloc_maxs)
+    critloc_mins = np.asarray(critloc_mins)
+    return maxstresses, critloc_maxs, minstresses, critloc_mins, normalstresses
+
+
+def skinthickness(y):
+    if y > 6.099:
+        return 0.001
+    else:
+        return 0.002
+
 
 if __name__ == "__main__":
-    fus, sparlocs = make_default_fuselage()
+    t = skinthickness
+    fus, sparlocs = make_default_fuselage(t)
     y_origin=1.835
     bc1 = {'y' : 0.0+y_origin, 'defl_x' : 0.0}
     bc2 = {'y' : 0.0+y_origin, 'defl_z' : 0.0}
@@ -316,18 +238,15 @@ if __name__ == "__main__":
     bc6 = {'y' : 0.0+y_origin, 'angle_y' : 0.0}
     bcs = [bc1, bc2, bc3, bc4, bc5, bc6]
     loads = {}
-    # loads['f1'] = Force(xpos=0.0, ypos=0.5, zpos=0.0, xmag=1., ymag=0.0, zmag=0.0)
-    # loads['f2'] = Force(xpos=0.0, ypos=0.75, zpos=0.0, xmag=-50.0, ymag=0.0, zmag=10.0)
-    # loads['f3'] = Force(xpos=0.0, ypos=1.0, zpos=0.0, xmag=2.0, ymag=0.0, zmag=0.0)
-    # loads['m1'] = Moment(xpos=0.0, ypos=0.8, zpos=0.0, xmag=0.0, ymag=0.0, zmag=50.)
-    # loads['m1'] = Moment(xpos=0.0, ypos=1.0, zpos=0.0, xmag=0.0, ymag=0.0, zmag=-25.)
-    # loads["fhtail"] = Force(xpos=0.0, ypos=8.9, zpos=0.0, xmag=0, zmag=-700, ymag=70)
-    loads["fvtail"] = Force(xpos=0.0, ypos=8.9, zpos=0.0, xmag=300, ymag=30, zmag=0)
-    analyze_fuselage(sparlocs, fus, bcs, loads)
-    # print(fus.Ixx)
-    # print(fus.Izz)
-    # print(fus.Ixz)
-    # print(fus.xbars)
-    # print(fus.zbars)
-    # print(fus.E)
-    # print(fus.Ixx*fus.E)
+    loads["fhtail"] = Force(xpos=0.0, ypos=8.9, zpos=0.0, xmag=0, zmag=-8144, ymag=815)
+    loads["fvtail"] = Force(xpos=0.0, ypos=8.9, zpos=0.0, xmag=408, ymag=41, zmag=0)
+
+    yout, old_sparlocs, fus, sx, sz, mx, mz, ny, shearflow = analyse_fuselage(sparlocs, fus, bcs, loads)
+
+    sig_max, loc_max, sig_min, loc_min, sig_norm = analyse_forces(yout, old_sparlocs, fus, sx, sz, mx, mz, ny, shearflow)
+    print(fus.mass)
+    print(fus.zbars)
+    plt.plot(old_sparlocs, sig_min)
+    plt.plot(old_sparlocs, sig_max)
+    plt.show()
+
