@@ -325,7 +325,7 @@ class WingPlanform:
         FF_fus = 1 + 60./ld_fus**3 + ld_fus/400.
         IF_fus = 1.
         
-        S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.5*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage)*2.06
+        S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage)*2.06
         Cf_wing = (1-BLturbratio_wing)*_CfLaminar(rho_cruise,V_stall,MAC,visc) + BLturbratio_wing*_CfTurbulent(rho_cruise,V_stall,MAC,visc)
         FF_wing = 1. + 0.6*tc_airfoil/xc_airfoil + 100*tc_airfoil**4
         IF_wing = 1.25
