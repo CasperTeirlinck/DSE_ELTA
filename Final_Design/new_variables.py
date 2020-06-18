@@ -123,7 +123,7 @@ class NewVariables:
         self.coeff = None
 
     def init_weight(self):
-        self.b = 200
+        pass
 
     def init_propulsion(self):
         # Sizing
