@@ -626,7 +626,6 @@ class NewVariables:
             self.e = k_winglet/(Q+P*np.pi*self.A)
 
     def flap_sizing(self):
-
         # Inputs
         S = self.S                      # [m2]      Wing surface area
         b = self.b                      # [m]       Wing span
@@ -700,9 +699,14 @@ class NewVariables:
             else:
                 print("Flap is too large, it doesn't fit on the wing!")
 
+            # Calculate flap end
             f2 = f1 + bfl
 
-
+            # Update variables
+            self.f1 = f1
+            self.f2 = f2
+            self.bfl = bfl
+            self.Swf = Swf
 
 
 def sys_Aerodynamics_wing(v,resolution):
