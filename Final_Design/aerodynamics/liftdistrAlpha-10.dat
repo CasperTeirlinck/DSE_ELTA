@@ -4,8 +4,8 @@ ELTA
 T1-50.0 m/s-VLM2-Inviscid
 QInf  =   50.000000 m/s
 Alpha =  -10.000000
-Beta  =    0.000°
-Phi   =    0.000°
+Beta  =    0.000
+Phi   =    0.000
 Ctrl  =    0.000
 CL    =   -0.230952
 Cy    =   -0.000000

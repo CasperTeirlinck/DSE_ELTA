@@ -3,20 +3,26 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from math import pi, sqrt
 import copy
-from typing import Union
 from Final_Design.aerodynamics.utils import readAeroLoads
+from scipy import interpolate
+
 
 
 #################################################################
 ### SOME LINES NEED TO BE REVIEWED IF QC SWEEP IS IMPLEMENTED ###
+#################################################################
 ############## NEEDS REVIEW FOR SYMMETRIC AIRFOIL ###############
+#################################################################
 ##### ENSURE DATA FOR AIRFOIL IS GIVEN FROM TE -> TOP -> BOT ####
+#################################################################
 ######### SPAR Iyy IGNORED DUE TO THIN WALL ASSUMPTION ##########
+#################################################################
+### A/C WEIGHT AND AIR DENSITY MANUALLY ENTERED IN V_MAXG AND ###
+######## V_MING FUNCTIONS (ALSO MAX AND MIN LOAD FACTORS) #######
 #################################################################
 
 
 
-y_lst, cl_lst, cd_lst = readAeroLoads()
 
 class MatProps():
     def __init__(self, sigma_y, E, poisson, rho, G, sigma_comp=None, name=None, alpha=0.8, n=0.6):
@@ -158,13 +164,14 @@ class Z_Stringer(J_Stringer):
 
 class WingPlanform:
     def __init__(self):
-        self.b          = 16.6                   #m
+        self.b          = 6.2643*2               #m
         self.S          = 20                     #m2
         self.qc_sweep   = 0                      #rad
         self.taper      = 1.4
         self.airfoil    = 'naca4415'
         self.cr         = 1.98                   #m
         self.ct         = 0.79
+#        self.y_MAC      = (2/3)*self.cr*((1+self.taper+self.taper**2)/(1+self.taper))
 
 
 
@@ -284,10 +291,38 @@ class StiffenedWing(WingPlanform):
         self.Ixz_lst         = self.calc_MoI_cs()[2]
         
         self.Am_lst          = self.calc_wb_A()
+        self.V_wb            = self.calc_half_wing_volume()
+        
+        self.y_MAC           = self.calc_y_lift_loc()
         
         self.x_sc_cg_lst     = self.calc_sc_loc()[0]
         self.x_sc_lst        = self.calc_sc_loc()[1]
-
+        
+        self.v_maxg          = self.calc_v_maxg()[0]
+        self.ylst_maxL       = self.calc_v_maxg()[1]
+        self.L_dist_maxg     = self.calc_v_maxg()[2]
+        self.Lmax_tot        = self.calc_v_maxg()[3]
+        self.cp_maxL_lst     = self.calc_v_maxg()[4]
+        
+        self.v_ming          = self.calc_v_ming()[0]
+        self.ylst_minL       = self.calc_v_ming()[1]
+        self.L_dist_ming     = self.calc_v_ming()[2]
+        self.Lmin_tot        = self.calc_v_ming()[3]
+        self.cp_minL_lst     = self.calc_v_ming()[4]
+        
+        #INTERPOLATE LIFT TO GET LIFT AND CP AT ALL CROSS SECTIONS
+        
+        self.Lmax_cs_lst    = list(interpolate.interp1d(self.ylst_maxL, self.L_dist_maxg, kind='slinear', fill_value='extrapolate')(self.ylst))
+        self.cp_maxL        = interpolate.interp1d(self.ylst_maxL, self.cp_maxL_lst, kind='slinear', fill_value='extrapolate')([self.y_MAC])[0]
+        
+        self.Lmin_cs_lst    = list(interpolate.interp1d(self.ylst_minL, self.L_dist_ming, kind='slinear', fill_value='extrapolate')(self.ylst))
+        self.cp_minL        = interpolate.interp1d(self.ylst_minL, self.cp_minL_lst, kind='slinear', fill_value='extrapolate')([self.y_MAC])[0]
+    
+        
+        
+        
+        
+        
         
         
 
@@ -643,7 +678,7 @@ class StiffenedWing(WingPlanform):
             
             
                         
-            for j in range(len(self.stringers_u_lst)):
+            for j in range(len(self.stringers_u_lst[i])):
                 x = self.stringers_u_lst[i][j].xpos-self.x_bar[i]
                 z = self.stringers_u_lst[i][j].zpos-self.z_bar[i]
                 A = self.stringers_u_lst[i][j].properties.total_area
@@ -651,10 +686,10 @@ class StiffenedWing(WingPlanform):
                 z2A.append(z**2*A)
                 xzA.append(x*z*A)
             
-            for k in range(len(self.stringers_l_lst)):
-                x = self.stringers_l_lst[i][j].xpos-self.x_bar[i]
-                z = self.stringers_l_lst[i][j].zpos-self.z_bar[i]
-                A = self.stringers_l_lst[i][j].properties.total_area
+            for k in range(len(self.stringers_l_lst[i])):
+                x = self.stringers_l_lst[i][k].xpos-self.x_bar[i]
+                z = self.stringers_l_lst[i][k].zpos-self.z_bar[i]
+                A = self.stringers_l_lst[i][k].properties.total_area
                 x2A.append(x**2*A)
                 z2A.append(z**2*A)
                 xzA.append(x*z*A)
@@ -676,13 +711,13 @@ class StiffenedWing(WingPlanform):
             x_box_li = self.x_box_l[i]
             z_box_li = self.x_box_l[i]
             
-            for j in range(len(self.x_box_u)-1):
+            for j in range(len(x_box_ui)-1):
                 A_ub = abs(z_box_ui[j+1]*(x_box_ui[j+1]-x_box_ui[j]))
                 A_lb = abs(z_box_ui[j]*(x_box_ui[j+1]-x_box_ui[j]))
                 A_av = (A_ub+A_lb)/2
                 Am_cs.append(A_av)
             
-            for k in range(len(self.x_box_l)-1):
+            for k in range(len(x_box_li)-1):
                 A_ub = abs(z_box_li[k+1]*(x_box_li[k+1]-x_box_li[k]))
                 A_lb = abs(z_box_li[k]*(x_box_li[k+1]-x_box_li[k]))
                 A_av = (A_ub+A_lb)/2
@@ -856,7 +891,7 @@ class StiffenedWing(WingPlanform):
             x_sc_cg_lst.append(x_sc_cg)
             
 
-            x_sc = -(self.x_bar[i]+x_sc_cg)
+            x_sc = self.x_bar[i]+x_sc_cg
             
             
             x_sc_lst.append(x_sc)
@@ -864,14 +899,135 @@ class StiffenedWing(WingPlanform):
             
         return x_sc_cg_lst, x_sc_lst
     
-#    def calc_bending_moment(self, lo)
-                
-
-
+    def calc_y_lift_loc(self):
+        
+        ylst_aero, cl_lst, cd_lst, cp_lst = readAeroLoads(5)
+        
+        yA = []
+        A  = []
+        
+        for i in range(len(ylst_aero)-1):
+            y = (ylst_aero[i]+ylst_aero[i+1])/2
+            A_ub = cl_lst[i+1]*(ylst_aero[i+1]-ylst_aero[i])
+            A_lb = cl_lst[i]*(ylst_aero[i+1]-ylst_aero[i])
+            A_av = (A_ub+A_lb)/2
+            
+            yA.append(y*A_av)
+            A.append(A_av)
+        
+        return sum(yA)/sum(A)
+    
+    def calc_v_maxg(self):
+        
+        ylst_aero, cl_lst, cd_lst, cp_lst = readAeroLoads(5)
+        A_lst = []
+        
+        for i in range(len(ylst_aero)-1):
+            y = ylst_aero[i+1]-ylst_aero[i]
+            A_ub = y*cl_lst[i+1]
+            A_lb = y*cl_lst[i]
+            A_av = (A_ub+A_lb)/2
+            A_lst.append(A_av)
+            
+        v_maxg = np.sqrt((4.45*750*9.80665)/(1.225*self.S*sum(A_lst)))
+        
+        L_lst = [j * 0.5*1.225*v_maxg**2*self.S for j in cl_lst]
+        A_L = []
+        
+        for k in range(len(ylst_aero)-1):
+            y = ylst_aero[k+1]-ylst_aero[k]
+            A_ub = y*L_lst[k+1]
+            A_lb = y*L_lst[k]
+            A_av = (A_ub+A_lb)/2
+            A_L.append(A_av)
+            
+        return v_maxg, ylst_aero, L_lst ,sum(A_L), cp_lst
+    
+    def calc_v_ming(self):
+        
+        ylst_aero, cl_lst, cd_lst, cp_lst = readAeroLoads(-10)
+        A_lst = []
+        
+        for i in range(len(ylst_aero)-1):
+            y = ylst_aero[i+1]-ylst_aero[i]
+            A_ub = y*cl_lst[i+1]
+            A_lb = y*cl_lst[i]
+            A_av = (A_ub+A_lb)/2
+            A_lst.append(A_av)
+            
+        v_ming = np.sqrt((-2.45*750*9.80665)/(1.225*self.S*sum(A_lst)))
+        
+        L_lst = [j * 0.5*1.225*v_ming**2*self.S for j in cl_lst]
+        A_L = []
+        
+        for k in range(len(ylst_aero)-1):
+            y = ylst_aero[k+1]-ylst_aero[k]
+            A_ub = y*L_lst[k+1]
+            A_lb = y*L_lst[k]
+            A_av = (A_ub+A_lb)/2
+            A_L.append(A_av)
+            
+        return v_ming, ylst_aero, L_lst ,sum(A_L), cp_lst
+    
+    def interpolate_splines(self, ylst_cs, ylst_aero, L_lst):
+        
+        grad_lst = []
+        
+        for i in range(len(ylst_aero)-1):
+            grad = (L_lst[i+1]-L_lst[i])/(ylst_aero[i+1]-ylst_aero[i])
+            grad_lst.append(grad)
+        
+        L_int_lst = []
+        
+        for j in range(len(ylst_cs)):
+            y_cs = ylst_cs[j]
+            
+            for k in range(len(ylst_aero)-1):
+                if ylst_aero[k] <= y_cs <= ylst_aero[k+1]:
+                    grad = grad_lst[k]
+                    
+                    dL = grad*(y_cs-ylst_aero[k])
+                    L_int = L_lst[k]+dL
+                    L_int_lst.append(L_int)
+                    
+        
+        return L_int_lst
+    
+    def calc_half_wing_volume(self):
+        
+        Vi = []
+        
+        for i in range(len(self.Am_lst)-1):
+            dy = self.ylst[i+1]-self.ylst[i]
+            V_ub = self.Am_lst[i]*dy
+            V_lb = self.Am_lst[i+1]*dy
+            V_av = (V_ub+V_lb)*dy
+            Vi.append(V_av)
+        
+        return sum(Vi)
+    
+#    def calc_batt_endpoint_y(self)
+        
+        
+    
+#    def calc_torque_all_cs(self):
+#        
+#        if batt == False:
+#            
+#            for i in range(len(self.cross_sections))
+        
+          
+        
+        
+        
+    
+    
+        
+        
 
 
 aluminium=MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, G=28E9, name="AA2024", alpha=0.8, n=0.6)
 z_stiff = Z_Stringer(1, aluminium)
 j_stiff = J_Stringer(1, aluminium)
 skin    = Skin()
-wing = StiffenedWing(5, z_stiff, j_stiff, 10, 7, 0.25, 0.75, Spar,skin)
+wing = StiffenedWing(100, z_stiff, j_stiff, 50, 50, 0.25, 0.75, Spar,skin)
