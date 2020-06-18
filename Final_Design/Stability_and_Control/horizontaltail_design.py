@@ -6,7 +6,7 @@ Author: Bob
 import numpy as np
 from math import pi,sqrt,tan,cos,atan
 import matplotlib.pyplot as plt
-from wing_properties import XMAC,XLEMAC
+from wing_properties import XMAC,XLEMAC,sweep
 
 
 '''
@@ -227,7 +227,10 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     lh = variables.lh                   # [m]       Tail arm
     hh = variables.hh                   # [m]       Height horizontal tail from ground
     Ah = variables.Ah                   # [-]       Horizontal tail aspect ratio
-    sweeph = variables.sweeph           # [rad]     Horizontal tail half chord sweep
+    bh = variables.bh                   # [m]       Horizontal tail span
+    taperh = variables.taperh           # [-]       Horizontal tail taper ratio
+    sweeph = variables.sweeph           # [rad]     Horizontal tail quarter chord sweep angle
+    crh = variables.crh                 # [m]       Horizontal tail root chord
 
     VhV = variables.VhV                 # [-]       Tail/wing speed ratio
 
@@ -261,15 +264,16 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     a = sqrt(gamma*R*Tcruise)
     Mh = Vh/a
     betah = sqrt(1 - Mh**2)
-    CLah = 2*pi*Ah/(2 + sqrt(4 + (Ah*betah/eta)**2 * (1 + tan(sweeph)**2/(betah**2))))
+    sweepc2h = sweep(0.5,bh,sweeph,taperh,crh)
+    CLah = 2*pi*Ah/(2 + sqrt(4 + (Ah*betah/eta)**2 * (1 + tan(sweepc2h)**2/(betah**2))))
     # Lift rate coefficient of the aircraft less tail
     CLaA_h = CLaw * (1 + 2.15*bf/bw) * Snet/Sw + pi/2*bf**2/Sw
 
     # Aerodynamic center
     xacw = (0.25*MAC+xlemacw)/MAC
-    cg = Sw/bw
+    #cg = Sw/bw
     xacf1 = -1.8/CLaA_h * bf*hf*lfn/(Sw*MAC)
-    xacf2 = 0.273/(1 + taperw) * bf*cg*(bw-bf)/(MAC**2*(bw + 2.15*bf)) * tan(sweepw)
+    xacf2 = 0#0.273/(1 + taperw) * bf*cg*(bw-bf)/(MAC**2*(bw + 2.15*bf)) * tan(sweepw)
     xacwf = xacw + xacf1 + xacf2
     xacn = 0
     xac = xacwf + xacn

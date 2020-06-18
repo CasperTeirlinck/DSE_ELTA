@@ -1,5 +1,5 @@
 import numpy as np
-from math import sqrt
+from math import sqrt,cos
 
 
 
@@ -625,13 +625,7 @@ class NewVariables:
         else:
             self.e = k_winglet/(Q+P*np.pi*self.A)
 
-    def flap_sizing(self, fix_position='fuselage end'):
-        # Check input
-        fix_positionlst = ['fuselage end', 'aileron start']
-        if not fix_position in fix_positionlst:
-            print("Wrong fix_position input (" + fix_position + "). Choose 'fuselage end' or 'aileron start'")
-        else:
-            pass
+    def flap_sizing(self):
 
         # Inputs
         S = self.S  # [m2]      Wing surface area
@@ -654,11 +648,10 @@ class NewVariables:
         # Parameter calculations
         # Flap star/end location
         # Chord at flap start/end location
-        if fix_position == 'fuselage end':
-            bf = 1.5  # [m]       Fuselage width
-            d_ff = 0.05  # [m]       Spacing between fuselage and flap
-            f1 = bf / 2 + d_ff
-            cf1 = self.calcchord(f1, b, sweepc4, taper, cr)
+        bf = 1.5  # [m]       Fuselage width
+        d_ff = 0.05  # [m]       Spacing between fuselage and flap
+        f1 = bf / 2 + d_ff
+        cf1 = self.calcchord(f1, b, sweepc4, taper, cr)
         # else:
         #    b1 = variables.b1       # [m]       Aileron start
         #    d_af = 0.05             # [m]       Spacing between flap and aileron
@@ -688,55 +681,27 @@ class NewVariables:
 
         # Flap span calculation
         # Solving the equation:
-        # 'fuselage end': cf1*bfl - 0.5*bf^2*tan(sweepLE) + 0.5*bf^2*tan(sweepTE) = Swf/2
-        # 'aileron start': cf2*bfl + 0.5*bf^2*tan(sweepLE) - 0.5*bf^2*tan(sweepTE) = Swf/2
+        # cf1*bfl - 0.5*bf^2*tan(sweepLE) + 0.5*bf^2*tan(sweepTE) = Swf/2
         # a*bfl^2 + b*bfl + c = 0
+        A = 0.5 * (-tan(sweepLE) + tan(sweepTE))
+        B = cf1
+        C = -Swf / 2
 
-        # Fuselage end
-        if fix_position == 'fuselage end':
-            A = 0.5 * (-tan(sweepLE) + tan(sweepTE))
-            B = cf1
-            C = -Swf / 2
+        D = B ** 2 - 4 * A * C
 
-            D = B ** 2 - 4 * A * C
-
-            if not D >= 0:
-                print('There is a problem with the flap sizing!')
-                return
-            else:
-                bfllst = [0, 0]
-                bfllst[0] = (-B + sqrt(D)) / (2 * A)
-                bfllst[1] = (-B - sqrt(D)) / (2 * A)
-                if bfllst[0] > 0 and (f1 + bfllst[0]) < (b / 2):
-                    bfl = bfllst[0]
-                elif bfllst[1] > 0 and (f1 + bfllst[1]) < (b / 2):
-                    bfl = bfllst[1]
-                else:
-                    print("Flap is too large, it doesn't fit on the wing!")
-
-        # Aileron start
-        # else:
-        #    A = 0.5 * (tan(sweepLE) - tan(sweepTE))
-        #    B = cf2
-        #    C = -Swf / 2
-
-        #    D = B ** 2 - 4 * A * C
-
-        #    if not D >= 0:
-        #        print('There is a problem with the flap sizing!')
-        #        return
-        #    else:
-        #        bfllst = [0, 0]
-        #        bfllst[0] = (-B + sqrt(D)) / (2 * A)
-        #        bfllst[1] = (-B - sqrt(D)) / (2 * A)
-        #        if bfllst[0] > 0 and (f2 - bfllst[0]) > 0:
-        #            bfl = bfllst[0]
-        #        elif bfllst[1] > 0 and (f2 - bfllst[1]) > 0:
-        #            bfl = bfllst[1]
-        #        else:
-        #            print("Flap is too large, it doesn't fit on the wing!")
+        if not D >= 0:
+            print('There is a problem with the flap sizing!')
+            return
         else:
-            pass
+            bfllst = [0, 0]
+            bfllst[0] = (-B + sqrt(D)) / (2 * A)
+            bfllst[1] = (-B - sqrt(D)) / (2 * A)
+            if bfllst[0] > 0 and (f1 + bfllst[0]) < (b / 2):
+                bfl = bfllst[0]
+            elif bfllst[1] > 0 and (f1 + bfllst[1]) < (b / 2):
+                bfl = bfllst[1]
+            else:
+                print("Flap is too large, it doesn't fit on the wing!")
 
 
 def sys_Aerodynamics_wing(v,resolution):

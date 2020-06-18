@@ -104,14 +104,14 @@ class stabilitycontrol_variables:
         # Wing aerodynamic parameters
         self.eta = 0.95             # [-]       Airfoil efficiency coefficient
         self.CLaw = 5.4             # [/rad]    Wing lift rate coefficient
-        self.Cm0af = 0.05           # [-]       Airfoil zero lift pitching moment coefficient TODO Check this value
+        self.Cm0af = -0.1           # [-]       Airfoil zero lift pitching moment coefficient TODO Check this value
         self.mu1 = 0.3              # [-]       Flap coefficient 1
         self.dClmax = 1             # [-]       Airfoil lift coefficient increase at landing TODO Check this value
         self.cc = 1                 # [-]       Chord ratio (extended flap/clean)
         self.CL_landing = 2         # [-]       Wing lift coefficient at landing (all flaps deployed)
         self.Swf = 10               # [m2]      Reference wing flapped surface area TODO Check this value
         self.CL0 = 1                # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
-        self.CLA_h = 3              # [-]       Aircraft less tail lift coefficient TODO Check this value
+        self.CLA_h = 2              # [-]       Aircraft less tail lift coefficient TODO Check this value
         self.VhV = sqrt(0.85)       # [-]       Tail/wing speed ratio
         self.CnBi = 0.024           # [-]       Wing configuration stability component
         self.CLTO = 0.628           # [-]       Take-off lift coefficient
