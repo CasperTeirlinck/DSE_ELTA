@@ -35,6 +35,16 @@ class NewVariables:
 
         self.h_htail = None
 
+        self.W_wing = None
+        self.W_fgroup = None
+
+        self.xcg_wing = None
+        self.xcg_fgroup = None
+        self.xcgPL = None
+        self.xcgbat = None
+        self.xcg_min = None
+        self.xcg_max = None
+
     def init_aerodynamics(self,haswinglets,wingletheight):
         # Conditions
         self.clean_config = None
@@ -155,49 +165,42 @@ class NewVariables:
         self.batt_cell_P          = self.batt_cell_I_max * self.batt_cell_V_nom                     # Maximum power [W]
 
     def init_sc(self):
-        # Wing geometry parameters
+        # Wing variables
+        self.lfn = 1.5              # [m]           Distance nose - wing
+        self.xlemac = None          # [m]           Distance
         self.Snet = None            # [m2]          Net wing surface area
 
-        # Horizontal tail geometry parameters
-        self.lh = 6.2               # [m]           Horizontal tail arm
-        self.Sh = None              # [m2]          Minimum required horizontal tail surface
-        self.bh = None              # [m]           Horizontal tail span
-        self.Ah = None              # [-]           Horizontal tail aspect ratio
-        self.sweeph = 0             # [rad]         Horizontal tail half chord sweep
-        self.ch_r = 1               # [m]           Horizontal tail root chord
-        self.ih = 0                 # [rad]         Horizontal tail incidence angle
-
-        # Wing aerodynamic parameters
         self.VhV = sqrt(0.85)       # [-]           Tail/wing speed ratio
         self.eta = 0.95             # [-]           Airfoil efficiency coefficient
         self.Cm0af = -0.1           # [-]           Airfoil zero lift pitching moment coefficient
         self.mu1 = 0.3              # [-]           Flap coefficient 1
-        self.CnBi = 0.024           # [-]           Wing configuration stability component
+
         self.deda = None            # [-]           Downwash gradient
+        self.cc = 1                 # [-]           Chord ratio (extended flap/clean)
+
+
+        # Horizontal tail variables
+        self.lh = None              # [m]           Horizontal tail arm
+        self.Sh = None              # [m2]          Minimum required horizontal tail surface
+        self.bh = None              # [m]           Horizontal tail span
+        self.Ah = None              # [-]           Horizontal tail aspect ratio
+        self.sweeph = 0             # [rad]         Horizontal tail half chord sweep
+        self.ch_r = None            # [m]           Horizontal tail root chord
+        self.ih = 0                 # [rad]         Horizontal tail incidence angle
+
+        self.CLh_L = -0.8           # [-]           Horizontal tail landing configuration lift coefficient
 
         '''
         # Flight performance parameters
-        self.Vcruise = 50           # [m/s]         Cruise speed
-        self.hcruise = 914.4        # [m]           Cruise altitude
         self.a_pitch = 12*pi/180    # [rad/s]       Take-off pitch angular velocity
         self.VTO = 1.05 * 25.2      # [m/s]         Take-off velocity
         self.rhoTO = 1.225          # [kg/m3]       Take-off density
         self.VL = 1.1 * 25.2
         self.mu = 0.05              # [-]           Take-off friction factor
 
-        # Masses
-        self.W_fgroup = 980.665     # [N]           Fuselage group weight
-        self.W_wing = 1470.9975     # [N]           Wing weight
-
         # Centre of gravity
-        self.xcg_min = None         # [m]           Minimum center of gravity location
-        self.xcg_max = None         # [m]           Maximum center of gravity location
         self.zcg = 1                # [m]           Centre of gravity height
-        self.xcg_fgroup = 3         # [m]           Fuselage group center of gravity
         self.xcg_f = 2.3            # [m]           Fuselage centre of gravity location
-        self.xcg_wing = 1.7         # [m]           Wing center of gravity
-        self.xcg_bat = 3            # [m]           Battery center of gravity
-        self.xcgPL = 1              # [m]           Pilot/Passenger center of gravity
 
         # Component locations
         self.xmg = 2                # [m]           Main gear location
@@ -217,21 +220,6 @@ class NewVariables:
         self.bf1 = 0.960            # [m]           Fuselage nose width
         self.bf2 = 0.243            # [m]           Fuselage tail width
 
-        # Wing geometry parameters
-        self.lfn = 1.5              # [m]           Distance nose - wing
-        self.hw = 0.5               # [m]           Height of the wing, from ground
-        self.Snet = 10              # [m2]          Net wing surface area
-
-        # Horizontal tail geometry parameters
-        self.lh = 6.2               # [m]           Horizontal tail arm
-        self.Sh = None              # [m2]          Minimum required horizontal tail surface
-        self.bh = 5                 # [m]           Horizontal tail span
-        self.hh = 1.5               # [m]           Height horizontal tail from ground
-        self.Ah = 3                 # [-]           Horizontal tail aspect ratio
-        self.sweeph = 0             # [rad]         Horizontal tail half chord sweep
-        self.chr = 1                # [m]           Horizontal tail root chord
-        self.ih = 0                 # [rad]         Horizontal tail incidence angle
-
         # Vertical tail geometry parameters
         self.lv = 6.2               # [m]           Vertical tail arm
         self.Sv = None              # [m2]          Vertical tail surface
@@ -249,14 +237,9 @@ class NewVariables:
         self.Dp2 = 2                # [m2]          2nd propeller disk diameter
 
         # Wing aerodynamic parameters
-        self.eta = 0.95             # [-]           Airfoil efficiency coefficient
-        self.mu1 = 0.3              # [-]           Flap coefficient 1
-        self.VhV = sqrt(0.85)       # [-]           Tail/wing speed ratio
         self.CnBi = 0.024           # [-]           Wing configuration stability component
-        self.deda = None            # [-]           Downwash gradient
 
         # Horizontal tail aerodynamic parameters
-        self.CLh_L = -0.8           # [-]           Horizontal tail landing lift coefficient
         self.CLh_TO = None          # [-]           Horizontal tail take-off lift coefficient
         self.CLah = 4               # [/rad]        Horizontal lift curve slope
 

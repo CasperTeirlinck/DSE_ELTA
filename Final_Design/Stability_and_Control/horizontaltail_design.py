@@ -39,7 +39,7 @@ def loading_diagram(variables,xcg_wing,plot=False):
                                             # [m]       OEW center of gravity
 
     m_bat = variables.W_batt/g              # [kg]      Battery mass
-    xcg_bat = variables.xcg_bat             # [m]       Battery center of gravity
+    xcg_bat = variables.xcgbat             # [m]       Battery center of gravity
     m_pax = variables.WPL/g                 # [kg]      Single Pilot/Passenger mass
     xcg_pax = variables.xcgPL               # [m]       Pilot/Passenger center of gravity
     m_repbat = variables.WPL/g              # [kg]      Replaceable battery mass
@@ -238,18 +238,18 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     hcruise = variables.hcruise         # [m]       Cruise altitude
 
     eta = variables.eta                 # [-]       Airfoil efficiency coefficient
-    CLaw = variables.calcCLa            # [/rad]    Wing lift rate coefficient
+    CLaw = variables.calcCLa()          # [/rad]    Wing lift rate coefficient
     Cm0af = variables.Cm0af             # [-]       Airfoil zero lift pitching moment coefficient
     mu1 = variables.mu1                 # [-]       Flap coefficient 1
     mu2 = 1.2*(bfl/bw)+0.13             # [-]       Flap coefficient 2
     mu3 = 0.06*(bfl/bw)+0.0335          # [-]       Flap coefficient 3
     dClmax = variables.dClmax           # [-]       Airfoil lift coefficient increase at landing
     cc = variables.cc                   # [-]       Chord ratio (extended flap/clean)
-    CL_landing = variables.CL_landing   # [-]       Wing lift coefficient at landing (all flaps deployed)
-    Swf = variables.Swf                 # [m2]      Reference wing flapped surface area
+    CL_landing = variables.CL_landing   # [-]       Wing lift coefficient at landing (all flaps deployed) TODO Implement this
+    Swf = variables.flapaffectarea      # [m2]      Reference wing flapped surface area
     CL0 = variables.CL0                 # [-]       Flapped wing lift coefficient at zero angle of attack
     CLA_h = variables.CLA_h             # [-]       Aircraft less tail lift coefficient
-    CLh = variables.CLh_L               # [-]       Horizontal tail lift coefficient
+    CLh = variables.CLh_L               # [-]       Horizontal tail landing configuration lift coefficient
 
     sm_free = 0.05                      # [-]       Fraction neutral point shift for stick-free stability
     sm = 0.05                           # [-]       Stability margin
@@ -368,14 +368,14 @@ V&V:    Verified
 
 def sizing_htail_wingpos(variables,plot=False):
     # Inputs
-    lf = variables.lf               # [m]   Fuselage length
+    lf = variables.fuselagelength   # [m]   Fuselage length
     lfn = variables.lfn             # [m]   Distance nose - wing
-    Sw = variables.Sw               # [m2]  Wing surface area
-    sweepw = variables.sweepw       # [rad] Wing quarter chord sweep angle
-    taperw = variables.taperw       # [-]   Wing taper ratio
-    bw = variables.bw               # [m]   Wing span
+    Sw = variables.S                # [m2]  Wing surface area
+    sweepw = variables.sweep        # [rad] Wing quarter chord sweep angle
+    taperw = variables.taper        # [-]   Wing taper ratio
+    bw = variables.b                # [m]   Wing span
     MAC = variables.MAC
-    crw = variables.crw             # [m]   Wing root chord
+    crw = variables.c_r             # [m]   Wing root chord
     xcg_wing = variables.xcg_wing   # [m]   Wing center of gravity
 
     sm = 0.1                        # [-]   Safety margin
