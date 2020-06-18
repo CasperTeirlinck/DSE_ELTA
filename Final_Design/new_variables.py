@@ -548,7 +548,7 @@ class NewVariables:
             print('alphaMax not found')
             return None
         
-        self.wing_CL_max = CLmax
+        self.wing_CL_max = CLmax*(self.b-self.fuselagewidth)/self.b
         self.wing_alpha_max = alphamax
         self.stallloc = alphaMaxLoc
         #return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, alphaMaxLoc

@@ -93,28 +93,46 @@ if __name__ == "__main__":
     #             self.E_spec     = self.C_Wh / self.mass # Capacity per kg of weight [Wh/kg]
     #             self.E_vol_spec = self.C_Wh / self.volume # Capacity per unit volume [Wh/m^3]
     #             self.P          = self.I_max * self.V_nom # Maximum power [W]
-    cell1 = "Sam_21700_50E"
-    cell2 = "Sam_21700_40T"
-    cell3 = "Pan_18650B"
 
-    cell = cell_type(name = cell1)
-    # Test run
-    # To make this work please make a class !!!!!!
-    lol = num_of_cells(cell, E_req = 52*1000, V_req = 400, I_req = 189.75, DoD = 90)
-    print("Ns :", lol[0])
-    print("Np :", lol[1])
-    print("N  :", lol[2])
-    print("Batt energy [kWh]:", (lol[1]*cell.C_Ah*lol[0]*cell.V_nom)/1000)
-    print("Batt mass [kg] ESTIMATE!:", lol[2]*cell.mass, "* 1.4:", lol[2]*cell.mass*1.4)
-    print("Batt mass2 [kg]:", (52*1000)/250)
+
+    # cell1 = "Sam_21700_50E"
+    # cell2 = "Sam_21700_40T"
+    # cell3 = "Pan_18650B"
+    #
+    # cell = cell_type(name = cell1)
+    # # Test run
+    # # To make this work please make a class !!!!!!
+    # lol = num_of_cells(cell, E_req = 52*1000, V_req = 400, I_req = 189.75, DoD = 90)
+    # print("Ns :", lol[0])
+    # print("Np :", lol[1])
+    # print("N  :", lol[2])
+    # print("Batt energy [kWh]:", (lol[1]*cell.C_Ah*lol[0]*cell.V_nom)/1000)
+    # print("Batt mass [kg] ESTIMATE!:", lol[2]*cell.mass, "* 1.4:", lol[2]*cell.mass*1.4)
+    # print("Batt mass2 [kg]:", (52*1000)/250)
+
+    class TeslaValidation:
+        def __init__(self):
+            # Battery characteristics
+            self.V_req_batt   = 22.2    # Required voltage in Volts
+            self.I_req_batt   = 189.75  # Required current in Amps
+            self.DoD          = 95     # Depth of discharge of the battery
+
+            # Battery cell data of the Samsung 21700 50E
+            self.batt_cell_V_nom      = 3.8                                         # Nominal voltage [V]
+            self.batt_cell_I_max      = 4.87                                        # Maximum discharge current [A]
+            self.batt_cell_C_Ah       = 3.350                                       # Capacity [Ah]
+            self.batt_cell_C_Wh       = self.batt_cell_C_Ah * self.batt_cell_V_nom  # Capacity [Wh]
+
 
 
     # # Tesla validation: 74p, 6s, https://hsrmotors.com/products/battery_modules
-    # # Uncomment line 77! set cell to cell3!
-    # tesla_val = num_of_cells(cell, E_req = 0.0, V_req = 22.2, I_req = 0.0, DoD = 90)
-    # print("Ns :", tesla_val[0])
-    # print("Np :", tesla_val[1])
-    # print("N  :", tesla_val[2])
+    # Uncomment line 77! set cell to cell3!
+    print("Tesla validation")
+    test_v2 = TeslaValidation()
+    tesla_val = num_of_cells(test_v2, E_req = (5.2*1000))
+    print("Ns :", tesla_val[0])
+    print("Np :", tesla_val[1])
+    print("N  :", tesla_val[2])
 
 
 
