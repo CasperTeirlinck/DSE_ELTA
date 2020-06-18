@@ -628,35 +628,32 @@ class NewVariables:
     def flap_sizing(self):
 
         # Inputs
-        S = self.S  # [m2]      Wing surface area
-        b = self.b  # [m]       Wing span
-        sweepc4 = 0  # [rad]     Wing quarter chord sweep angle
-        taper = self.taper  # [rad]     Wing taper ratio
-        cr = self.c_r  # [m]       Wing root chord
+        S = self.S                      # [m2]      Wing surface area
+        b = self.b                      # [m]       Wing span
+        sweepc4 = 0                     # [rad]     Wing quarter chord sweep angle
+        taper = self.taper              # [rad]     Wing taper ratio
+        cr = self.c_r                   # [m]       Wing root chord
 
-        CLmax_req = 2  # [-]       Required maximum lift coefficient
-        CLmax_wing = 1.51  # [-]       Wing maximum lift coefficient
-        CLa = 2 * pi  # [/rad]    Wing lift curve slope
+        CLmax_req = 2                   # [-]       Required maximum lift coefficient
+        CLmax_wing = 1.51               # [-]       Wing maximum lift coefficient
+        CLa = 2 * pi                    # [/rad]    Wing lift curve slope
 
-        dClmax = 1.25 * 0.96  # [-]
-        da0l_airfoil = -15 * pi / 180  # [rad]
+        dClmax = 1.25 * 0.96            # [-]
+        da0l_airfoil = -15*pi/180       # [rad]
 
-        cfc = 0.8  # [-]       Start of the flap as percentage of the chord
+        cfc = 0.8                       # [-]       Start of the flap as percentage of the chord
 
-        sm = 0.1  # [-]       Safety margin
+        sm = 0.1                        # [-]       Safety margin
 
         # Parameter calculations
-        # Flap star/end location
         # Chord at flap start/end location
-        bf = 1.5  # [m]       Fuselage width
-        d_ff = 0.05  # [m]       Spacing between fuselage and flap
+        bf = 1.5                        # [m]       Fuselage width
+        d_ff = 0.05                     # [m]       Spacing between fuselage and flap
+
+        # Flap start location
         f1 = bf / 2 + d_ff
         cf1 = self.calcchord(f1, b, sweepc4, taper, cr)
-        # else:
-        #    b1 = variables.b1       # [m]       Aileron start
-        #    d_af = 0.05             # [m]       Spacing between flap and aileron
-        #    f2 = b1 - d_af
-        #    cf2 = chord(f2, b, sweepc4, taper, cr)
+
         # Leading edge sweep angle
         sweepLE = self.calcsweep(0, b, sweepc4, taper, cr)
 
@@ -682,7 +679,7 @@ class NewVariables:
         # Flap span calculation
         # Solving the equation:
         # cf1*bfl - 0.5*bf^2*tan(sweepLE) + 0.5*bf^2*tan(sweepTE) = Swf/2
-        # a*bfl^2 + b*bfl + c = 0
+        # A*bfl^2 + B*bfl + C = 0
         A = 0.5 * (-tan(sweepLE) + tan(sweepTE))
         B = cf1
         C = -Swf / 2
@@ -702,6 +699,10 @@ class NewVariables:
                 bfl = bfllst[1]
             else:
                 print("Flap is too large, it doesn't fit on the wing!")
+
+            f2 = f1 + bfl
+
+
 
 
 def sys_Aerodynamics_wing(v,resolution):
