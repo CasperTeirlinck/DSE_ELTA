@@ -6,7 +6,7 @@ import os
 import variables as v
 
 class WingPlanform:
-    def __init__(self, S, A, taper, twist, gamma, CD0):
+    def __init__(self, S, A, taper, twist, gamma):
         self.S = S
         self.A = A
         self.taper = taper
@@ -28,7 +28,6 @@ class WingPlanform:
         self.a0_r = None
         self.a0_t = None
 
-        self.CD0 = None
         self.hwl = None
         self.kwl = None
 
@@ -311,7 +310,7 @@ class WingPlanform:
         if not clean_config:
             return (Cf_wing* FF_wing* IF_wing* S_wet_wing)/self.S + dCD_flap
 
-    def calcCD0(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,l_gear,w_gear,dCD_gear,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,MAC=1.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5):
+    def calcCD0(self, S_wet_fus, l_fus, fus_A_max, w_fuselage, S_h, S_v, MAC_emp, BLturbratio_fus, BLturbratio_wing, BLturbratio_emp, l_gear, w_gear, dCD_gear, flap_area_ratio, tc_airfoil=0.15, xc_airfoil=0.3, MAC=1.3, tc_emp=0.12, xc_emp=0.3, V_stall=23.15, rho_cruise=1.04, clean_config=True, visc=1.8e-5):
         
         def _CfLaminar(rho,V,L,visc):
             Re = rho*V*L/visc
@@ -339,7 +338,7 @@ class WingPlanform:
         CDS_wet_fus =  Cf_fus*  FF_fus*  IF_fus*  S_wet_fus
         CDS_wet_wing = Cf_wing* FF_wing* IF_wing* S_wet_wing
         CDS_wet_emp =  Cf_emp*  FF_emp*  IF_emp*  S_wet_emp
-        CDS_ref_gear = dCD_gear*l_gear*w_gear
+        CDS_ref_gear = dCD_gear* l_gear* w_gear
         
         dCD_flap = 0.0144*0.2*flap_area_ratio*(40-10)
 
@@ -349,10 +348,10 @@ class WingPlanform:
         if not clean_config:
             return 1.05*(CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear)/self.S + dCD_flap
 
-    def calcOswald(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp, l_gear,w_gear,dCD_gear,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,MAC=1.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5,hasWinglets=False):
+    def calcOswald(self, CD0, w_fuselage, hasWinglets=False):
         k_fuselage = 1-2*(w_fuselage/self.b)**2
         Q = 1/(self.calcespan()*k_fuselage)
-        P = 0.38*self.calcCD0(S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,l_gear,w_gear,dCD_gear,flap_area_ratio,tc_airfoil,xc_airfoil,MAC,tc_emp,xc_emp,V_stall,rho_cruise,clean_config,visc)
+        P = 0.38 * CD0
         k_winglet = (1+2*self.hwl/(self.kwl*self.b))**2
         
         if not hasWinglets:
@@ -360,7 +359,6 @@ class WingPlanform:
 
         else:
             return k_winglet/(Q+P*np.pi*self.A)
-
 
     def flap_sizing(self, fix_position='fuselage end'):
         # Check input
