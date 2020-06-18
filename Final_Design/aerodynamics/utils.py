@@ -92,13 +92,13 @@ def plotDesignParams(x, y1, y2, xlabel='', y1label='', y2label=''):
     plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()
 
-def readAeroLoads():
+def readAeroLoads(alpha):
     cl_list = []
     cdi_list = []
     y_list = []
     xcp_list = []
     # with open('Final_Design/aerodynamics/liftdistrAlpha5.dat', 'r') as f:
-    with open(os.path.join( os.path.dirname(__file__), 'liftdistrAlpha0.dat' ), 'r') as f:
+    with open(os.path.join( os.path.dirname(__file__), f'liftdistrAlpha{alpha}.dat' ), 'r') as f:
         for line in f.readlines()[21:60]:
             columns = line.strip().split()
             if len(columns) > 0:
