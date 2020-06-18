@@ -4,9 +4,9 @@ from math import sqrt
 
 
 class NewVariables:
-    def __init__(self, S=25, A=15, taper=0.1, twist=10, gamma=10):
+    def __init__(self):
         self.init_general()
-        self.init_aerodynamics(S=S, A=A, taper=taper, twist=twist, gamma=gamma)
+        self.init_aerodynamics(S=S, A=A, taper=taper, twist=twist, gammaL=gammaL)
         self.init_weight()
         self.init_propulsion()
         self.init_sc()
@@ -18,17 +18,30 @@ class NewVariables:
         self.rho0 = 1.225
         self.g0 = 9.80665
         self.R = 287.05
-        self.gamma = 1.4
+        self.gamma = 1.4 
         self.lmbda = -0.0065
 
-    def init_aerodynamics(self, S, A, taper, twist, gamma, fuselagewidth, fuselagelength, fuselagearea_frontal,fuselagearea_wetted,turbBLratio_wing,turbBLratio_fuselage,turbBLratio_emp,landinggear_height,landinggear_width,Swf,wingletheight):
-        
-        self._S = S
-        self._A = A
-        self._taper = taper
-        self._twist = twist
-        self._gamma = gamma
+        self.fuselagelength = 9.420
+        self.fuselagewidth = 1.05
+        self.fuselagefrontalarea = 1.218
+        self.fuselagewettedarea = 17.507
 
+        self.h_landinggear = None
+        self.w_landinggear = None
+
+    def init_aerodynamics(haswinglets,wingletheight):
+        # Conditions
+        self.clean_config = None
+        self.hasWinglets = haswinglets
+        
+        # General wing geometry
+        self._S = 300
+        self._A = 2
+        self._taper = 0.467
+        self._twist = np.radians(6)
+        self._gammaL = 0
+
+        # Complementary wing geometry
         self._b = np.sqrt(A * S)
         self._c_r = (2 * S) / (self.b * (1 + taper))
         self.c_t = taper * self.c_r
@@ -37,18 +50,39 @@ class NewVariables:
         self._YMAC = self.b / 6 * (1 + 2 * taper) / (1 + taper)
         self.XMAC = self.YMAC * np.tan(self.sweepLE)
 
-        self.Clmax_r = None
-        self.Clmax_t = None
-        self.Cla_r = None
-        self.Cla_t = None
-        self.a0_r = None
-        self.a0_t = None
+        # Exterior design inputs
+        self.BLturbratio_wing = 0.65
+        self.BLturbratio_fus = 1
+        self.BLturbratio_emp = 0.65
 
 
-        self.hwl = winglet  height
-        self.kwl = None
+        # Constants & statistical variables
+        self.kwl = 2.1
+        self.dCD_landinggear = 35
 
+        # Airfoil properties
+        self.Clmax_r = 1.6
+        self.Clmax_t = self.Clmax_r
+        self.Cla_r = 1/np.radians(10)
+        self.Cla_t = self.Cla_r
+        self.a0_r = np.radians(-4)
+        self.a0_t = self.a0_r
+
+        # Freely adjustable variables
+        self.hwl = wingletheight
+
+
+        # Output variables
+        self.wing_CL_alpha = None
+        self.wing_CL_max = None
+        self.wing_alpha_max = None
+        self.CD0clean = None
+        self.CD0flap = None
+        self.e = None
+
+        # Working variables
         self.coeff = None
+        self.Swf = None
 
     def init_weight(self):
         self.b = 200
@@ -240,12 +274,12 @@ class NewVariables:
         # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
-    def gamma(self):
-        return self._gamma
+    def gammaL(self):
+        return self._gammaL
 
-    @gamma.setter
-    def gamma(self, val):
-        self._gamma = val
+    @gammaL.setter
+    def gammaL(self, val):
+        self._gammaL = val
         # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
@@ -283,12 +317,10 @@ class NewVariables:
     def update_WTO(self):
         self.WTO = self.Woew_classII + self.Wbat + self.WPL
 
-    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, Cd0_r, Cd0_t, deltaAlphaStall_r=0,
+    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, deltaAlphaStall_r=0,
                     deltaAlphaStall_t=0):
         self.Clmax_r = Clmax_r
         self.Clmax_t = Clmax_t
-        self.Cd0_r = Cd0_r
-        self.Cd0_t = Cd0_t
         self.Cla_r = Cla_r
         self.Cla_t = Cla_t
         self.a0_r = a0_r
@@ -317,18 +349,18 @@ class NewVariables:
             y = self.transformTheta(theta, b)
             return 2. / self.b * (Cla_t - Cla_r) * abs(y) + Cla_r
 
-        def _calculateTwistAngle(theta, b, twist, gamma):  # Verified
+        def _calculateTwistAngle(theta, b, twist, gammaL):  # Verified
             y = self.transformTheta(theta, b)
             b_half = .5 * b
-            if gamma != 0:
-                C1 = twist / (1 - np.exp(gamma * b_half))
-                C2 = C1 * np.exp(gamma * b_half)
-                return C1 - C2 * np.exp(-gamma * abs(y))
+            if gammaL != 0:
+                C1 = twist / (1 - np.exp(gammaL * b_half))
+                C2 = C1 * np.exp(gammaL * b_half)
+                return C1 - C2 * np.exp(-gammaL * abs(y))
             else:
                 return twist * (1 - abs(y) / b)
 
-        def _calculateZeroLiftAngle(theta, b, twist, a0_r, a0_t, gamma):
-            alpha_geometric = _calculateTwistAngle(theta, b, twist, gamma)
+        def _calculateZeroLiftAngle(theta, b, twist, a0_r, a0_t, gammaL):
+            alpha_geometric = _calculateTwistAngle(theta, b, twist, gammaL)
             y = self.transformTheta(theta, b)
             return 2. / b * (a0_t - a0_r) * abs(y) + a0_r - alpha_geometric
 
@@ -370,8 +402,6 @@ class NewVariables:
         coefficientmatrix = np.concatenate((column1, column2), axis=1)  # Merge columns into one matrix
 
         self.coeff = coefficientmatrix
-
-        return coefficientmatrix
 
     def calcCL(self, alpha):
 
@@ -424,8 +454,7 @@ class NewVariables:
         return Cl_distr, yPnts
 
     def calcCLa(self):
-        CLa = np.pi * self.A * self.coeff[0][0]
-        return CLa
+        self.CL_alpha_wing = np.pi * self.A * self.coeff[0][0]
 
     def calcCLmax(self, plotProgression=False, printMaxLoc=False):
 
@@ -490,7 +519,11 @@ class NewVariables:
         if not alphaMax:
             print('alphaMax not found')
             return None
-        return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, alphaMaxLoc
+        
+        self.wing_CL_max = CLmax
+        self.wing_alpha_max = alphamax
+        self.stallloc = alphaMaxLoc
+        #return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, alphaMaxLoc
 
     def calcDelta(self, alpha):
         A = np.array([A[0] * alpha + A[1] for A in self.coeff])
@@ -546,7 +579,7 @@ class NewVariables:
 
         return alphai_distr, yPnts
 
-    def calcCD0(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,l_gear,w_gear,dCD_gear,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,MAC=1.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5):
+    def calcCD0(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,l_gear,w_gear,dCD_gear,MAC,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5):
         
         def _CfLaminar(rho,V,L,visc):
             Re = rho*V*L/visc
@@ -584,17 +617,17 @@ class NewVariables:
         if not clean_config:
             return 1.05*(CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear)/self.S + dCD_flap
 
-    def calcOswald(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp, l_gear,w_gear,dCD_gear,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,MAC=1.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5,hasWinglets=False):
+    def calcOswald(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp, l_gear,w_gear,dCD_gear,MAC,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5,hasWinglets=False):
         k_fuselage = 1-2*(w_fuselage/self.b)**2
         Q = 1/(self.calcespan()*k_fuselage)
         P = 0.38*self.calcCD0(S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,l_gear,w_gear,dCD_gear,flap_area_ratio,tc_airfoil,xc_airfoil,MAC,tc_emp,xc_emp,V_stall,rho_cruise,clean_config,visc)
         k_winglet = (1+2*self.hwl/(self.kwl*self.b))**2
         
-        if not hasWinglets:
-            return 1/(Q+P*np.pi*self.A)
+        if not self.hasWinglets:
+            self.e = 1/(Q+P*np.pi*self.A)
 
         else:
-            return k_winglet/(Q+P*np.pi*self.A)
+            self.e = k_winglet/(Q+P*np.pi*self.A)
 
     def flap_sizing(self, fix_position='fuselage end'):
         # Check input
@@ -708,6 +741,22 @@ class NewVariables:
         #            print("Flap is too large, it doesn't fit on the wing!")
         else:
             pass
+
+
+def sys_Aerodynamics_wing(v,resolution):
+    v.setAirfoils(v.Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t)
+    #v.setwinglets() I think is is obsolete but I'm not sure
+    v.calcCoefficients(resolution,0.7)
+    v.calcCLa()
+    v.calcCLmax()
+    return v
+
+def sys_Aerodynamics_total(v)    
+    v.CD0clean = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf)
+    v.CD0flaps = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf,clean_config = False)
+    v.e_clean = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf,hasWinglets=v.haswinglets)
+    v.e_flaps = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf,hasWinglets=v.haswinglets,clean_config=True)
+    return v
 
 
 if __name__ == "__main__":
