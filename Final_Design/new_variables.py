@@ -198,7 +198,7 @@ class NewVariables:
 
 
         # Horizontal tail variables
-        self.lh = None              # [m]           Horizontal tail arm
+        self.lh = 6.9               # [m]           Horizontal tail arm
         self.Sh = None              # [m2]          Minimum required horizontal tail surface
         self.bh = None              # [m]           Horizontal tail span
         self.Ah = None              # [-]           Horizontal tail aspect ratio
@@ -210,6 +210,7 @@ class NewVariables:
 
 
         # Vertical tail variables
+        self.lv = 6.9               # [m]           Vertical tail arm
         self.Sv = None              # [m2]          Vertical tail surface
 
         self.CnB = None             # [-]           Directional stability coefficient
@@ -234,11 +235,6 @@ class NewVariables:
         self.zmg = 0                # [m]           Main gear height
         self.zT = 1                 # [m]           Thrust vector height
         self.zD = 0.5               # [m]           Drag vector heigh
-
-
-        # Vertical tail geometry parameters
-        self.lv = 6.2               # [m]           Vertical tail arm
-
 
         # Elevator geometry parameters
         self.bebh = 1               # [-]           Elevator span
