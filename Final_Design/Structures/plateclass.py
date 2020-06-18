@@ -56,6 +56,9 @@ class Sheet:
         self.ultimatestress = None # Ultimate tensile stress that the panel can take before yielding
         self.calc_sigma_ult_tensile()
 
+        self.Qx = None
+        self.Qy = None
+
         self.xbar = None
         self.ybar = None
 
@@ -189,12 +192,12 @@ class Sheet:
     def calc_centroid(self):
         if self.total_area is None:
             self.calc_total_area()
-        Qx = 0.5*self.ts * self.ts * self.b
-        Qy = 0.5*self.b * self.ts * self.b
+        self.Qx = 0.5*self.ts * self.ts * self.b
+        self.Qy = 0.5*self.b * self.ts * self.b
         for stringer in self.stringers:
-            Qx += stringer.ybar_global*stringer.properties.total_area
-            Qy += stringer.xbar_global*stringer.properties.total_area
-        return Qy/self.total_area, Qx/self.total_area
+            self.Qx += stringer.ybar_global*stringer.properties.total_area
+            self.Qy += stringer.xbar_global*stringer.properties.total_area
+        return self.Qy/self.total_area, self.Qx/self.total_area
 
     def momentofinertia(self):
         Ixx = self.b*self.ts*self.ts*self.ts/12 + self.b*self.ts*(self.ts*0.5-self.ybar)**2
@@ -221,8 +224,8 @@ class Panel:
         self.rotation = rotation
         # Centroid and mmoi with respect to reference coordinate system (using xpos, ypos, rotation)
         # x assumed positive to the left, y positive upwards
-        self.xbar_global, self.ybar_global = self.properties.xbar*cos(rotation) + self.properties.ybar*sin(rotation), \
-                                             -self.properties.xbar*sin(rotation) + self.properties.ybar*cos(rotation)
+        self.xbar_global, self.ybar_global = self.properties.xbar*cos(rotation) - self.properties.ybar*sin(rotation), \
+                                             self.properties.xbar*sin(rotation) + self.properties.ybar*cos(rotation)
         self.xbar_global += xpos
         self.ybar_global += ypos
 
