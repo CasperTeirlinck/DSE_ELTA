@@ -38,7 +38,8 @@ class NewVariables:
         self.W_wing = None
         self.W_fgroup = None
 
-        self.xcg_wing = None
+        self.cg_wing = None         # [m]           Distance LE root chord - wing cg
+
         self.xcg_fgroup = None
         self.xcgPL = None
         self.xcgbat = None
@@ -167,8 +168,7 @@ class NewVariables:
 
     def init_sc(self):
         # Wing variables
-        self.lfn = 1.5              # [m]           Distance nose - wing
-        self.xlemac = None          # [m]           Distance
+        self.xlemac = None          # [m]           Distance nose - leading edge mean aerodynamic chord
         self.Snet = None            # [m2]          Net wing surface area
 
         self.VhV = sqrt(0.85)       # [-]           Tail/wing speed ratio

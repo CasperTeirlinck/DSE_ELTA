@@ -201,7 +201,7 @@ Outputs:
 V&V:    Verified
 '''
 
-def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
+def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
     # Input parameters
     R = variables.R                     # [J/kg K]  Gas constant
     gamma = variables.gamma             # [-]       Heat capacity ratio
@@ -255,8 +255,11 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     sm = 0.05                           # [-]       Stability margin
 
     # Parameter calculations
-    # xlemac
-    xlemacw = XLEMAC(lfn,bw,sweepw,taperw,crw)
+    # lfn
+    xmac = XMAC(bw,sweepw,taperw,crw)
+    xwing = xlemac-xmac
+    sweepLEw = sweep(0,bw,sweepw,taperw,crw)
+    lfn = xwing + bf/2*tan(sweepLEw)
 
     # Tail lift rate coefficient
     Vh = VhV*Vcruise
@@ -270,7 +273,7 @@ def scissor_plot(variables,lfn,xcg_min,xcg_max,plot=False):
     CLaA_h = CLaw * (1 + 2.15*bf/bw) * Snet/Sw + pi/2*bf**2/Sw
 
     # Aerodynamic center
-    xacw = (0.25*MAC+xlemacw)/MAC
+    xacw = (0.25*MAC+xlemac)/MAC
     #cg = Sw/bw
     xacf1 = -1.8/CLaA_h * bf*hf*lfn/(Sw*MAC)
     xacf2 = 0#0.273/(1 + taperw) * bf*cg*(bw-bf)/(MAC**2*(bw + 2.15*bf)) * tan(sweepw)
@@ -369,22 +372,19 @@ V&V:    Verified
 def sizing_htail_wingpos(variables,plot=False):
     # Inputs
     lf = variables.fuselagelength   # [m]   Fuselage length
-    lfn = variables.lfn             # [m]   Distance nose - wing
     Sw = variables.S                # [m2]  Wing surface area
     sweepw = variables.sweep        # [rad] Wing quarter chord sweep angle
     taperw = variables.taper        # [-]   Wing taper ratio
     bw = variables.b                # [m]   Wing span
     MAC = variables.MAC
     crw = variables.c_r             # [m]   Wing root chord
-    xcg_wing = variables.xcg_wing   # [m]   Wing center of gravity
+    cg_wing = variables.cg_wing     # [m]   Wing center of gravity
 
     sm = 0.1                        # [-]   Safety margin
 
     # Parameter calculations
     # xlemac and xmac
-    xmacw = XMAC(bw,sweepw,taperw,crw)
-    # Distance leading edge root chord - centre of gravity wing
-    LEcr_xcgw = xcg_wing-lfn
+    xmac = XMAC(bw,sweepw,taperw,crw)
 
     # Create lists
     xlemaclf_lst = np.arange(0,1.001,0.001)
@@ -395,11 +395,11 @@ def sizing_htail_wingpos(variables,plot=False):
     # Perform wing shift
     for xlemaclf in xlemaclf_lst:
         xlemacw_i = xlemaclf*lf
-        lfn_i = xlemacw_i - xmacw
-        xcg_wing_i = lfn_i + LEcr_xcgw
+        xwing_i = xlemacw_i-xmac
+        xcg_wing_i = xwing_i + cg_wing
 
         xcg_min_i,xcg_max_i = loading_diagram(variables,xcg_wing_i)
-        variables,ShS_min_i = scissor_plot(variables,lfn_i,xcg_min_i,xcg_max_i)
+        variables,ShS_min_i = scissor_plot(variables,xlemacw_i,xcg_min_i,xcg_max_i)
 
         xcgmin_lst.append(xcg_min_i)
         xcgmax_lst.append(xcg_max_i)
@@ -418,13 +418,12 @@ def sizing_htail_wingpos(variables,plot=False):
     # Determine wing location parameters for minimum horizontal tail surface
     xlemaclf = xlemaclf_lst[i]
     xlemacw = xlemaclf*lf
-    lfn = xlemacw - xmacw
-    xcg_wing = lfn + LEcr_xcgw
+    xwing = xlemacw - xmac
+    xcg_wing = xwing + cg_wing
 
     # Update values in variables class
-    variables.lfn = lfn
     variables.xcg_wing = xcg_wing
-    variables.xlemacw = xlemacw
+    variables.xlemac = xlemacw
     variables.xcg_min = xcg_min*MAC
     variables.xcg_max = xcg_max*MAC
     variables.Sh = Sh_min
@@ -440,7 +439,7 @@ def sizing_htail_wingpos(variables,plot=False):
         loading_diagram(variables,xcg_wing,plot)
 
         # Scissor plot
-        scissor_plot(variables,lfn,xcg_min,xcg_max,plot)
+        scissor_plot(variables,xlemacw,xcg_min,xcg_max,plot)
 
         # Center of gravity range plot
         plt.plot(xcgmin_lst*100, xlemaclf_lst*100,label='Most forward center of gravity')
