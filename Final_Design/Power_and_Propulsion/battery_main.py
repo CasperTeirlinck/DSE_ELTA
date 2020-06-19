@@ -78,8 +78,8 @@ def power_calculation(variables):
     D_sea = 0.5 * variables.rho0 * private_V_cruise ** 2 * variables.S * private_C_D_cruise
     D_cruise = 0.5 * private_rho_cruise * private_V_TAS ** 2 * variables.S * private_C_D_cruise
 
-    P_req_sea = private_ROC * variables.W + D_sea * private_V_cruise
-    P_req_cruise = private_ROC * variables.W + D_cruise * private_V_TAS
+    P_req_sea = private_ROC * variables.WTO + D_sea * private_V_cruise
+    P_req_cruise = private_ROC * variables.WTO + D_cruise * private_V_TAS
 
     ###LIMITING CASE###
     # print('Max P_req at cruise altitude [W]:', P_req_cruise)
@@ -90,7 +90,7 @@ def power_calculation(variables):
     # print(P_req_cruise/private_V_TAS)
 
     # Checking if power loading is achieved
-    if variables.WP < variables.WTO/(max(P_req_cruise, P_req_sea)):
+    if variables.WP < (variables.WTO/(max(P_req_cruise, P_req_sea))):
         print("POWER DOES NOT MEET W/P, ask Matthijs")
 
     variables.P_max = max(P_req_cruise, P_req_sea)

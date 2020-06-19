@@ -215,8 +215,8 @@ class WingPlanform:
             fig = plt.figure(figsize=(10, 4.5))
             ax1 = fig.add_subplot(111)
 
-            ax1.plot(stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='', fillstyle='none', markevery=4, label='stall onset')
-            ax1.plot(-1*stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='', fillstyle='none', markevery=4)
+            ax1.plot(stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='v', fillstyle='none', markevery=4, label='stall onset')
+            ax1.plot(-1*stallProgression[:,0], np.degrees(stallProgression[:,1]), linewidth=2, color='red', marker='v', fillstyle='none', markevery=4)
 
             ax1.axvline(x=0, linewidth=2, color='black')
             ax1.axhline(y=0, linewidth=2, color='black')

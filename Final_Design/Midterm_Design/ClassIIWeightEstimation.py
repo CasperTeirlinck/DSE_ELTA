@@ -79,7 +79,18 @@ Nlbf = 1/4.44822
 
 def MainWingEstimation(variables): #W_to,S_w,n_ult,A_w,Strut 
     ## New equations
-    W_w = 0.036*(variables.S*mft*mft)**0.758*1.*(variables.A/1.)**0.6*(.5*variables.rhocruise*0.062*(variables.V*mft)**2)**0.006*variables.taper**0.04*(100*variables.tcwing)**(-0.3)*(variables.n_ult*variables.WTO*Nlbf)**0.49
+    W_w = 0.036*(variables.S*mft*mft)**0.758*1.*(variables.A/1.)**0.6*(.5*variables.rhocruise*0.062*(variables.V*mft)**2)**0.006*variables.taper**0.04*(100*tcwing)**(-0.3)*(variables.n_ult*variables.WTO*Nlbf)**0.49
+
+    ## Old mystery equation
+    #if not variables.strutted_wing:
+    #    W_w = (0.04674*(variables.WTO*Nlbs)**0.397*(variables.S*mft**2)**0.360*variables.n_ult**0.397*variables.A**1.712)
+    #else:
+    #    W_w = (0.002933*(variables.S*mft**2)**1.1018*variables.A**2.473*variables.n_ult**0.611)
+    return W_w/Nlbf
+
+def MainWingEstimationNew(variables,tc_airfoil = 0.15): #W_to,S_w,n_ult,A_w,Strut 
+    ## New equations
+    W_w = 0.036*(variables.S*mft*mft)**0.758*1.*(variables.A/1.)**0.6*(.5*variables.rhocruise*0.062*(variables.Vcruise*mft)**2)**0.006*variables.taper**0.04*(100*tc_airfoil)**(-0.3)*(variables.n_ult*variables.WTO*Nlbf)**0.49
 
     ## Old mystery equation
     #if not variables.strutted_wing:
