@@ -201,7 +201,7 @@ def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
     hcruise = variables.hcruise         # [m]       Cruise altitude
 
     eta = variables.eta                 # [-]       Airfoil efficiency coefficient
-    CLaw = variables.calcCLa()          # [/rad]    Wing lift rate coefficient
+    CLaw = variables.wing_CL_alpha         # [/rad]    Wing lift rate coefficient
     Cm0af = variables.Cm0af             # [-]       Airfoil zero lift pitching moment coefficient
     mu1 = variables.mu1                 # [-]       Flap coefficient 1
     mu2 = 1.2*(bfl/bw)+0.13             # [-]       Flap coefficient 2
@@ -211,7 +211,7 @@ def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
     CL_landing = variables.CL_landing   # [-]       Wing lift coefficient at landing (all flaps deployed) TODO Implement this
     Swf = variables.flapaffectedarea    # [m2]      Reference wing flapped surface area
     CL0 = variables.CL0flap             # [-]       Flapped wing lift coefficient at zero angle of attack
-    CLA_h = variables.CLA_h             # [-]       Aircraft less tail lift coefficient
+    CLA_h = CL_landing            # [-]       Aircraft less tail lift coefficient
     CLh = variables.CLh_L               # [-]       Horizontal tail landing configuration lift coefficient
 
     sm_free = 0.05                      # [-]       Fraction neutral point shift for stick-free stability

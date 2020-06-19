@@ -566,7 +566,7 @@ class NewVariables:
         return Cl_distr, yPnts
 
     def calcCLa(self):
-        self.CL_alpha_wing = np.pi * self.A * self.coeff[0][0]
+        self.wing_CL_alpha= np.pi * self.A * self.coeff[0][0]
 
     def calcCLmax(self, plotProgression=False, printMaxLoc=False):
 
@@ -937,7 +937,7 @@ def sys_Aerodynamics_wing(v,resolution):
     v.calcCLmax()
     v.CL0clean= v.calcCL(0)
     v.flap_sizing()
-    v.CL0flap = CL0 + (2.0 - v.wing_CL_max)
+    v.CL0flap = v.CL0clean + (2.0 - v.wing_CL_max)
     return v
 
 def sys_Aerodynamics_total(v):    
