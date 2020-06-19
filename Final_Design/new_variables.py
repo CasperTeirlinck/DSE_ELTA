@@ -853,7 +853,7 @@ def sys_Aerodynamics_wing(v,resolution):
     v.calcCLmax()
     return v
 
-def sys_Aerodynamics_total(v)    
+def sys_Aerodynamics_total(v):    
     v.CD0clean = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea)
     v.CD0flaps = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,clean_config = False)
     v.e_clean = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets)
