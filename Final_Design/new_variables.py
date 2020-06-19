@@ -1,6 +1,6 @@
 import numpy as np
 from math import sqrt,cos,pi
-
+import matplotlib.pyplot as plt
 
 
 class NewVariables:
@@ -61,14 +61,14 @@ class NewVariables:
         self._gammaL = 0
 
         # Complementary wing geometry
-        self._b = np.sqrt(A * S)
-        self._c_r = (2 * S) / (self.b * (1 + taper))
-        self.c_t = taper * self.c_r
-        self.MAC = (2 / 3) * self.c_r * ((1 + taper + taper ** 2) / (1 + taper))
-        self._sweepLE = np.arctan(-self.c_r / (2 * self.b) * (taper - 1))
-        self._YMAC = self.b / 6 * (1 + 2 * taper) / (1 + taper)
+        self._b = np.sqrt(self.A * self.S)
+        self._c_r = (2 * self.S) / (self.b * (1 + self.taper))
+        self.c_t = self.taper * self.c_r
+        self.MAC = (2 / 3) * self.c_r * ((1 + self.taper + self.taper ** 2) / (1 + self.taper))
+        self._sweepLE = np.arctan(-self.c_r / (2 * self.b) * (self.taper - 1))
+        self._YMAC = self.b / 6 * (1 + 2 * self.taper) / (1 + self.taper)
         self.XMAC = self.YMAC * np.tan(self.sweepLE)
-        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage
+        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*self.fuselagewidth,self.b),self.taper,self.S,self.b)*self.fuselagewidth
 
         # Flap geometry
         self.flapstart = None
@@ -117,9 +117,12 @@ class NewVariables:
         self.wing_CL_alpha = None
         self.wing_CL_max = None
         self.wing_alpha_max = None
-        self.CD0clean = None
+        self.CD0clean = 0.01912
         self.CD0flap = None
-        self.eclean = None
+        if haswinglets:
+            self.eclean = 0.84
+        if not haswinglets:
+            self.eclean = 0.79
         self.eflaps = None
 
         # Working variables
@@ -550,7 +553,7 @@ class NewVariables:
             return None
         
         self.wing_CL_max = CLmax*(self.b-self.fuselagewidth)/self.b
-        self.wing_alpha_max = alphamax
+        self.wing_alpha_max = alphaMax
         self.stallloc = alphaMaxLoc
         #return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, alphaMaxLoc
 
@@ -848,21 +851,16 @@ class NewVariables:
 
 
 def sys_Aerodynamics_wing(v,resolution):
-    v.setAirfoils(v.Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t)
+    v.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t)
     v.calcCoefficients(resolution,0.7)
     v.calcCLa()
     v.calcCLmax()
     return v
 
-def sys_Aerodynamics_total(v)    
+def sys_Aerodynamics_total(v):    
     v.CD0clean = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea)
     v.CD0flaps = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,clean_config = False)
     v.e_clean = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets)
     v.e_flaps = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets,clean_config=True)
     return v
 
-
-if __name__ == "__main__":
-    v = NewVariables()
-    print(v.a)
-    print(v.b)
