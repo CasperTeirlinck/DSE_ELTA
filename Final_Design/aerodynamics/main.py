@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
     CD0wing = wing.calcCD0wing(1.,0,0)
 
-    e = wing.calcOswald(CD0, v.w_fuselage, hasWinglets=True)
+    e = wing.calcOswald(CD0, v.w_fuselage, hasWinglets=False)
 
     print(CD0)
     print(CD0wing)
