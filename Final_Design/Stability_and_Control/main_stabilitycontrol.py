@@ -144,4 +144,3 @@ if __name__ ==  "__main__":
     test_v = stabilitycontrol_variables()
 
     test_v = sizing_htail_wingpos(test_v,plot=True)
-    print(test_v.xcg_wing)

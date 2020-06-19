@@ -324,8 +324,8 @@ Outputs:
     variables [class]:  The class contains updated values of:
                          - xcg_min [float]:     Minimum center of gravity location [m]
                          - xcg_max [float]:     Maximum center of gravity location [m]
-                         - xcg_wing [float]:    Wing centre of gravity location [m]
-                         - lfn [float]:         Distance nose - wing [m]
+                         - xwing [float]:       Wing location [m]
+                         - xlemac [float]:      Distance nose - leading edge mean aerodynamic chord [m]
                          - Sh_min [float]:      Minimum required horizontal tail surface [m2]
                          - deda [float]:        Wing downwash gradient [-]
 
