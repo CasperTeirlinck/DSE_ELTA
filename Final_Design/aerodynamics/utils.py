@@ -127,7 +127,7 @@ def plotPlanform(cr, ct, b, MAC, XMAC, YMAC):
     ax1.plot([0, b/2], [-cr*3/4, -ct*3/4], linewidth=3, color='blue')
     ax1.plot([0, -b/2], [-cr*3/4, -ct*3/4], linewidth=3, color='blue')
 
-    ax1.plot([YMAC, YMAC], [cr*1/4 - XMAC, cr*1/4 - XMAC - MAC], linewidth=2, linestyle='-.', color='black')
+    ax1.plot([YMAC, YMAC], [cr*1/4 - XMAC, cr*1/4 - XMAC - MAC], linewidth=2, linestyle='-.', color='black', label='MAC')
     ax1.plot([-YMAC, -YMAC], [cr*1/4 - XMAC, cr*1/4 - XMAC - MAC], linewidth=2, linestyle='-.', color='black')
 
 
@@ -138,6 +138,7 @@ def plotPlanform(cr, ct, b, MAC, XMAC, YMAC):
     ax1.yaxis.grid(color='black', linestyle='--')
     fig.suptitle('Wing Planform', fontsize=16, y=0.97)
     plt.axis('equal')
+    plt.legend(loc='lower right')
     plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()
 

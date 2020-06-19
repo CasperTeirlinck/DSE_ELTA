@@ -69,7 +69,7 @@ if __name__ == "__main__":
         plotHtail(c_r_h, c_t_h, b_h)
 
     wing = WingPlanform(v.S, v.A, taper, twist, v.gamma)
-    wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.Cd0_r, v.Cd0_t, v.deltaAlphaStall_r, v.deltaAlphaStall_t)
+    wing.setAirfoils(v.Clmax_r, v.Clmax_t, v.Cla_r, v.Cla_t, v.a0_r, v.a0_t, v.tc_airfoil, v.xc_airfoil, v.Cd0_r, v.Cd0_t)
     wing.setWinglets(v.hwl, v.kwl)
     wing.calcCoefficients(200, tipCutoff=0.6)
 
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
     print(f'\n=== ============ ===\n')
 
-    if False:
+    if True:
         plotPlanform(wing.c_r, wing.c_t, wing.b, wing.MAC, wing.XMAC, wing.YMAC)
 
     if False:
@@ -103,9 +103,7 @@ if __name__ == "__main__":
         Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
         plotLiftDistribution(yPnts, [Cl_distr])
 
-
-
-    CD0 = wing.calcCD0(v.S_wet_fus, v.l_fus, v.fus_A_max, v.w_fuselage, v.S_h, v.S_v, v.MAC_emp, v.BLturbratio_fus, v.BLturbratio_wing, v.BLturbratio_emp, v.l_gear, v.w_gear, v.dCD_gear, v.flap_area_ratio)
+    CD0 = wing.calcCD0(v.S_wet_fus, v.l_fus, v.fus_A_max, v.w_fuselage, v.S_h, v.S_v, v.MAC_emp, v.BLturbratio_fus, v.BLturbratio_wing, v.BLturbratio_emp, v.l_gear, v.w_gear, v.dCD_gear, v.flap_area_ratio, v.tc_emp, v.xc_emp, v.V_stall, v.rho_cruise, v.visc)
 
     CD0wing = wing.calcCD0wing(1.,0,0)
 
