@@ -21,10 +21,9 @@ def do_loop(v):
     sys_Aerodynamics_wing(v,wingresolution)
     sys_Aerodynamics_total(v)
     v.W_wing = MainWingEstimationNew(v)
-    
-    v = main_bat(v)
+
     v = power_calculation(v)
-    
+    v = main_bat(v)
     v = sizing_htail_wingpos(v)
     v = verticaltail_sizing(v)
     v = elevator_sizing(v)

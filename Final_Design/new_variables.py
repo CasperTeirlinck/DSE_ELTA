@@ -214,7 +214,6 @@ class NewVariables:
 
         # Wing variables
         self.xlemac = None          # [m]           Distance nose - leading edge mean aerodynamic chord
-        self.Snet = None            # [m2]          Net wing surface area
 
         self.VhV = sqrt(0.85)       # [-]           Tail/wing speed ratio
         self.eta = 0.95             # [-]           Airfoil efficiency coefficient
@@ -355,7 +354,7 @@ class NewVariables:
         self._b = val
         self.c_r = (2 * self.S) / (self.b * (1 + self.taper))
         self.YMAC = self.b / 6 * (1 + 2 * self.taper) / (1 + self.taper)
-        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage
+        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*self.fuselagewidth,self.b),self.taper,self.S,self.b)*self.fuselagewidth
         # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
