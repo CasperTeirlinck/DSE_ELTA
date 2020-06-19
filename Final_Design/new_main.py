@@ -1,6 +1,8 @@
 from loading_diagram2 import *
 from new_variables import *
 from Stability_and_Control.horizontaltail_design import *
+from Stability_and_Control.verticaltail_design import *
+from Stability_and_Control.empennagecontrol_design import *
 from Power_and_Propulsion.battery_main import *
 from Midterm_Design.ClassIIWeightEstimation import *
 
