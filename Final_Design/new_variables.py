@@ -1,7 +1,7 @@
 import numpy as np
 from math import sqrt,cos,pi
 import matplotlib.pyplot as plt
-
+from numpy import linalg as la
 
 class NewVariables:
     def __init__(self,haswinglets,wingletheight):
@@ -108,7 +108,7 @@ class NewVariables:
         self.dphi = 60*pi/180               # [rad]     Bank angle
         self.dtTO = 5                       # [s]       Bank time take-off
         self.dtL = 4                        # [s]       Bank time landing
-        self.clear_tip = 0.05*(b/2)         # [m]       Distance from the tip that should be clear of control surfaces
+        self.clear_tip = 0.2   # [m]       Distance from the tip that should be clear of control surfaces
         self.da = 20*pi/180                 # [rad]     Aileron deflection angle
         self.clda = 0.046825*180/pi         # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
 
@@ -858,9 +858,9 @@ def sys_Aerodynamics_wing(v,resolution):
     return v
 
 def sys_Aerodynamics_total(v):    
-    v.CD0clean = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea)
-    v.CD0flaps = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,clean_config = False)
-    v.e_clean = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets)
-    v.e_flaps = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets,clean_config=True)
+    v.CD0clean = v.calcCD0(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea)
+    v.CD0flaps = v.calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,clean_config = False)
+    v.e_clean = v.calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets)
+    v.e_flaps = v.calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets,clean_config=True)
     return v
 

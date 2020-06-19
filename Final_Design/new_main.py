@@ -5,7 +5,7 @@ from Power_and_Propulsion.battery_main import *
 from Midterm_Design.ClassIIWeightEstimation import *
 
 wingresolution = 100
-iterating_designpoint = True
+iterating_designpoint = False
 
 def do_subloop1(airplane):
     sizing_htail_wingpos(v)
@@ -32,3 +32,4 @@ def do_loop(v):
 
 if __name__ == "__main__":
     v = NewVariables(False,0.)
+    do_loop(v)
