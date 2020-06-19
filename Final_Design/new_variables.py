@@ -2,12 +2,13 @@ import numpy as np
 from math import sqrt,cos,pi
 import matplotlib.pyplot as plt
 from numpy import linalg as la
+from Structures.materials import materials
 
 class NewVariables:
     def __init__(self,haswinglets,wingletheight):
         self.init_general()
         self.init_aerodynamics(haswinglets,wingletheight)
-        self.init_weight()
+        self.init_fuselage()
         self.init_propulsion()
         self.init_sc()
 
@@ -152,8 +153,45 @@ class NewVariables:
         # Working variables
         self.coeff = None
 
-    def init_weight(self):
-        pass
+    def init_fuselage(self):
+        self.Wfus_aft = 50*9.81
+        self.cockpitbulkhead = 2.2 # m, back of the cockpit
+        self._sparsamount = 8 # [-] amount of spars behind the cockpit bulkhead in the fuselage
+        self.sparlocs = [2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.sparsamount+1) for n in range(self.sparsamount+1)]
+        self.skin_t = 2.0 # [mm] thickness of the skin
+        self.skin_t_func = None # Only change if a custom skin thickness function is required.
+        self.mats = materials()
+        self.stringermod = 1.0 # one-dimensional scaling parameter for stringers, geometry stays the same.
+        self.cricstringermod = 1.0 # one-dimensional scaling parameter for stringers in circular area, geometry stays the same.
+        self.longeronmod = 4.0 # one-dimensional scaling parameter for longerons, geometry stays the same.
+        self._n_stiff = 5 # Amount of stiffeners per panel
+        self.n_stiff_circ = 6 # Amount of stringers total for circular section
+        self.n_longs = 4 # Can't change, only to 0 if longerons should be disabled
+        self.n_stringers = np.ones(8) * self.n_stiff
+        self.material_regular = self.mats['alu7075']
+        self.material_circular = self.mats['carbonfibre']
+        self.batteryoffset = 0.1 # [m] battery distance behind the cockpit aft bulkhead
+        self.batteryoffset2 = 0.2 # [m] distance of second attachment point of the battery from the first
+
+
+
+    @property
+    def n_stiff(self):
+        return self._n_stiff
+
+    @n_stiff.setter
+    def n_stiff(self, val):
+        self._n_stiff = val
+        self.n_stringers = np.ones(8)*val
+
+    @property
+    def sparsamount(self):
+        return self._sparsamount
+
+    @sparsamount.setter
+    def sparsamount(self, val):
+        self._sparsamount = val
+        self.sparlocs = [2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.sparsamount+1) for n in range(self.sparsamount+1)]
 
     def init_propulsion(self):
         # Sizing
