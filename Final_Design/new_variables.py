@@ -20,7 +20,7 @@ class NewVariables:
         self.R = 287.05
         self.gamma = 1.4 
         self.lmbda = -0.0065
-
+    
         self.Vcruise = 50           # [m/s]         Cruise speed
         self.hcruise = 914.4        # [m]           Cruise altitude
 
@@ -30,8 +30,8 @@ class NewVariables:
         self.fuselagefrontalarea = 1.218
         self.fuselagewettedarea = 17.507
 
-        self.h_landinggear = None
-        self.w_landinggear = None
+        self.h_landinggear = 2
+        self.w_landinggear = 0.5
 
         self.h_htail = None
 
@@ -54,13 +54,14 @@ class NewVariables:
         self.hasWinglets = haswinglets
         
         # General wing geometry
-        self._S = 300
-        self._A = 2
+        self._S = 16.5
+        self._A = 10.1
         self._taper = 0.467
         self._twist = np.radians(6)
         self._gammaL = 0
 
         # Complementary wing geometry
+        self._Sh = 100              # [m2]          Minimum required horizontal tail surface
         self._b = np.sqrt(self.A * self.S)
         self._c_r = (2 * self.S) / (self.b * (1 + self.taper))
         self.c_t = self.taper * self.c_r
@@ -216,7 +217,6 @@ class NewVariables:
 
         # Horizontal tail variables
         self.lh = 6.9               # [m]           Horizontal tail arm
-        self._Sh = 100              # [m2]          Minimum required horizontal tail surface
         self.bh = None              # [m]           Horizontal tail span
         self.Ah = None              # [-]           Horizontal tail aspect ratio
         self.sweeph = 0             # [rad]         Horizontal tail half chord sweep
@@ -442,6 +442,10 @@ class NewVariables:
     def calculateChord(self, theta, taper, S, b):  # Verified
         y = self.transformTheta(theta, b)
         return 2 * (self.c_t - self.c_r) / b * abs(y) + self.c_r
+
+    def calcsweep(self,pc,b,sweepc4,taper,cr):
+        sweepLE = np.arctan(np.tan(sweepc4) - cr/(2*b)*(taper-1))
+        return np.arctan(np.tan(sweepLE) + 2*pc*cr*(taper-1)/b)
 
     def calcCoefficients(self, N=150, tipCutoff=0.9,
                          FuselageIncluded=False):  # Verified without lift slope & twist implementation
@@ -700,7 +704,7 @@ class NewVariables:
         FF_wing = 1. + 0.6*tc_airfoil/xc_airfoil + 100*tc_airfoil**4
         IF_wing = 1.25
 
-        S_wet_emp = (Sh + Sv)*2.04
+        S_wet_emp = (S_h + S_v)*2.04
         Cf_emp = (1-BLturbratio_emp)*_CfLaminar(rho_cruise,V_stall,MAC_emp,visc) + BLturbratio_emp*_CfTurbulent(rho_cruise,V_stall,MAC_emp,visc)
         FF_emp = 1. + 0.6*tc_emp/xc_emp + 100*tc_emp**4
         IF_emp = 1.05
@@ -738,9 +742,9 @@ class NewVariables:
         taper = self.taper              # [rad]     Wing taper ratio
         cr = self.c_r                   # [m]       Wing root chord
 
-        CLmax_req = self.CLmax_req      # [-]       Required maximum lift coefficient
-        CLmax_wing = self.calcCLmax()   # [-]       Wing maximum lift coefficient
-        CLa = self.calcCLa()            # [/rad]    Wing lift curve slope
+        #CLmax_req = self.CLmax_req      # [-]       Required maximum lift coefficient
+        #CLmax_wing = self.calcCLmax()   # [-]       Wing maximum lift coefficient
+        #CLa = self.calcCLa()            # [/rad]    Wing lift curve slope
 
         dClmax = self.dClmax            # [-]
         da0l_airfoil = self.da0l_airfoil# [rad]
@@ -756,7 +760,7 @@ class NewVariables:
 
         # Flap start location
         f1 = bf / 2 + d_ff
-        cf1 = self.calcchord(f1, b, sweepc4, taper, cr)
+        cf1 = self.calculateChord(self.transformSpan(f1,self.b), self.taper, self.S, self.b)
 
         # Leading edge sweep angle
         sweepLE = self.calcsweep(0, b, sweepc4, taper, cr)
@@ -768,7 +772,7 @@ class NewVariables:
         sweepTE = self.calcsweep(1, b, sweepc4, taper, cr)
 
         # Increase in lift coefficient
-        dCLmax = (CLmax_req - CLmax_wing) * (1 + sm)
+        dCLmax = (2.0 - self.wing_CL_max) * (1 + sm)
 
         # Required flapped surface
         SwfS = dCLmax / (0.9 * dClmax * cos(sweep_hinge))
@@ -778,13 +782,13 @@ class NewVariables:
         da0L = da0l_airfoil * SwfS * cos(sweep_hinge)
 
         # Change in lift curve slope
-        CLa_flapped = CLa
+        CLa_flapped = self.wing_CL_alpha
 
         # Flap span calculation
         # Solving the equation:
         # cf1*bfl - 0.5*bf^2*tan(sweepLE) + 0.5*bf^2*tan(sweepTE) = Swf/2
         # A*bfl^2 + B*bfl + C = 0
-        A = 0.5 * (-tan(sweepLE) + tan(sweepTE))
+        A = 0.5 * (-np.tan(sweepLE) + np.tan(sweepTE))
         B = cf1
         C = -Swf / 2
 
@@ -924,12 +928,13 @@ def sys_Aerodynamics_wing(v,resolution):
     v.calcCoefficients(resolution,0.7)
     v.calcCLa()
     v.calcCLmax()
+    v.flap_sizing()
     return v
 
 def sys_Aerodynamics_total(v):    
     v.CD0clean = v.calcCD0(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea)
-    v.CD0flaps = v.calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,clean_config = False)
-    v.e_clean = v.calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets)
-    v.e_flaps = v.calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets,clean_config=True)
+    v.CD0flaps = v.calcCD0(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,clean_config = False)
+    v.e_clean = v.calcOswald(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.hasWinglets)
+    v.e_flaps = v.calcOswald(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.hasWinglets,clean_config=True)
     return v
 

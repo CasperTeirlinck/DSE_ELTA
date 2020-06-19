@@ -29,6 +29,7 @@ def do_loop(v):
     v = verticaltail_sizing(v)
     v = elevator_sizing(v)
 
+    
 
 if __name__ == "__main__":
     v = NewVariables(False,0.)
