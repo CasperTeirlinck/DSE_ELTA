@@ -14,7 +14,7 @@ class NewVariables:
     def init_general(self):
         self.WTO = None
         self.Woew_classII = None
-        self.WPL = None
+        self.WPL = 1961.33
         self.rho0 = 1.225
         self.g0 = 9.80665
         self.R = 287.05
@@ -41,7 +41,7 @@ class NewVariables:
         self.cg_wing = None         # [m]           Distance LE root chord - wing cg
 
         self.xcg_fgroup = None
-        self.xcg_fuselage
+        self.xcg_fuselage = None
         self.xcgPL = None
         self.xcgbat = None
         self.xcg_min = None

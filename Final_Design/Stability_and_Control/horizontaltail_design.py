@@ -39,123 +39,87 @@ def loading_diagram(variables,xcg_wing,plot=False):
                                             # [m]       OEW center of gravity
 
     m_bat = variables.W_batt/g              # [kg]      Battery mass
-    xcg_bat = variables.xcgbat             # [m]       Battery center of gravity
-    m_pax = variables.WPL/g                 # [kg]      Single Pilot/Passenger mass
-    xcg_pax = variables.xcgPL               # [m]       Pilot/Passenger center of gravity
-    m_repbat = variables.WPL/g              # [kg]      Replaceable battery mass
-    xcg_repbat = xcg_pax                    # [m]       Replaceable battery center of gravity
+    xcg_bat = variables.xcgbat              # [m]       Battery center of gravity
+    m_PL = variables.WPL/g                  # [kg]      Payload mass
+    xcg_PL = variables.xcgPL                # [m]       Payload center of gravity
 
     sm = 0.05                               # [-]       Safety Margin
 
     # Create mass and center of gravity lists
-    m_lst = [m_oe+m_bat]
-    xcg_lst = [(xcg_oew*m_oe + xcg_bat*m_bat)/m_lst[0]]
+    m_lst = [m_oe]
+    xcg_lst = [xcg_oew]
+
+
+    # First Battery, then Payload
 
     # Battery loading
-    def battery_loading(initial_m,initial_xcg,m_repbat,xcg_repbat):
-        m_new = initial_m + m_repbat
-        xm_new = initial_xcg*initial_m + xcg_repbat*m_repbat
-        xcg_new = xm_new/m_new
+    bp_b_m = [m_lst[0]]
+    bp_b_xcg =[xcg_lst[0]]
 
-        return m_new,xcg_new
+    m_new = bp_b_m[-1] + m_bat
+    xm_new = bp_b_xcg[-1]*bp_b_m[-1] + xcg_bat*m_bat
+    xcg_new = xm_new/m_new
 
-    # Pilot loading
-    def pax_loading(initial_m,initial_xcg,m_pax,xcg_pax):
-        m_new = initial_m + m_pax
-        xm_new = initial_xcg*initial_m + xcg_pax*m_pax
-        xcg_new = xm_new/m_new
-
-        return m_new,xcg_new
-
-
-    # 1 Pilot + Replaceable Battery
-    # First Battery, then Pilot
-    # Battery loading
-    m_new,xcg_new = battery_loading(m_lst[-1],xcg_lst[-1],m_repbat,xcg_repbat)
-
-    # Create loading lists
-    bp_m_repbat = [m_lst[-1]]
-    bp_xcg_repbat = [xcg_lst[-1]]
-
-    # Append new mass and center of gravity
     m_lst.append(m_new)
-    bp_m_repbat.append(m_new)
+    bp_b_m.append(m_new)
     xcg_lst.append(xcg_new)
-    bp_xcg_repbat.append(xcg_new)
+    bp_b_xcg.append(xcg_new)
 
-    # Pilot loading
-    m_new,xcg_new = pax_loading(m_lst[-1],xcg_lst[-1],m_pax,xcg_pax)
+    # Payload loading
+    bp_p_m = [bp_b_m[-1]]
+    bp_p_xcg = [bp_b_xcg[-1]]
 
-    # Create loading lists
-    bp_m_pax = [m_lst[-1]]
-    bp_xcg_pax = [xcg_lst[-1]]
+    m_new = bp_p_m[-1] + m_PL
+    xm_new = bp_p_xcg[-1]*bp_p_m[-1] + xcg_PL*m_PL
+    xcg_new = xm_new/m_new
 
-    # Append new mass and center of gravity
     m_lst.append(m_new)
-    bp_m_pax.append(m_new)
+    bp_p_m.append(m_new)
     xcg_lst.append(xcg_new)
-    bp_xcg_pax.append(xcg_new)
+    bp_p_xcg.append(xcg_new)
 
-    # First Pilot, then Battery
-    # Pilot loading
-    m_new,xcg_new = pax_loading(m_lst[0],xcg_lst[0],m_pax,xcg_pax)
 
-    # Create loading lists
-    pb_m_pax = [m_lst[0]]
-    pb_xcg_pax = [xcg_lst[0]]
+    # First payload, then Battery
 
-    # Append new mass and center of gravity
+    # Payload loading
+    pb_p_m = [m_lst[0]]
+    pb_p_xcg = [xcg_lst[0]]
+
+    m_new = pb_p_m[-1] + m_PL
+    xm_new = pb_p_xcg[-1]*pb_p_m[-1] + xcg_PL*m_PL
+    xcg_new = xm_new/m_new
+
     m_lst.append(m_new)
-    pb_m_pax.append(m_new)
+    pb_p_m.append(m_new)
     xcg_lst.append(xcg_new)
-    pb_xcg_pax.append(xcg_new)
+    pb_p_xcg.append(xcg_new)
 
     # Battery loading
-    m_new,xcg_new = battery_loading(m_lst[-1],xcg_lst[-1],m_repbat,xcg_repbat)
+    pb_b_m = [pb_p_m[-1]]
+    pb_b_xcg =[pb_p_xcg[-1]]
 
-    # Create loading lists
-    pb_m_repbat = [m_lst[-1]]
-    pb_xcg_repbat = [xcg_lst[-1]]
+    m_new = pb_b_m[-1] + m_bat
+    xm_new = pb_b_xcg[-1]*pb_b_m[-1] + xcg_bat*m_bat
+    xcg_new = xm_new/m_new
 
-    # Append new mass and center of gravity
     m_lst.append(m_new)
-    pb_m_repbat.append(m_new)
+    pb_b_m.append(m_new)
     xcg_lst.append(xcg_new)
-    pb_xcg_repbat.append(xcg_new)
-
-
-    # 2 Pilots
-    # Calculate mass of 2 pilots
-    m_pax = 2*m_pax
-
-    # Pilot loading
-    m_new,xcg_new = pax_loading(m_lst[0],xcg_lst[0],m_pax,xcg_pax)
-
-    # Create loading lists
-    p_m = [m_lst[0]]
-    p_xcg = [xcg_lst[0]]
-
-    # Append new mass and center of gravity
-    m_lst.append(m_new)
-    p_m.append(m_new)
-    xcg_lst.append(xcg_new)
-    p_xcg.append(xcg_new)
+    pb_b_xcg.append(xcg_new)
 
 
     # Transform to numpy arrays and calculate fraction of MAC
     m_lst = np.array(m_lst)
-    bp_m_repbat = np.array(bp_m_repbat)
-    bp_m_pax = np.array(bp_m_pax)
-    pb_m_repbat = np.array(pb_m_repbat)
-    pb_m_pax = np.array(pb_m_pax)
-    p_m = np.array(p_m)
+    bp_b_m = np.array(bp_b_m)
+    bp_p_m = np.array(bp_p_m)
+    pb_p_m = np.array(pb_p_m)
+    pb_b_m = np.array(pb_b_m)
 
     xcg_lst = np.array(xcg_lst)/MAC
-    bp_xcg_repbat = np.array(bp_xcg_repbat)/MAC
-    bp_xcg_pax = np.array(bp_xcg_pax)/MAC
-    pb_xcg_repbat = np.array(pb_xcg_repbat)/MAC
-    pb_xcg_pax = np.array(pb_xcg_pax)/MAC
-    p_xcg = np.array(p_xcg)/MAC
+    bp_b_xcg = np.array(bp_b_xcg)/MAC
+    bp_p_xcg = np.array(bp_p_xcg)/MAC
+    pb_p_xcg = np.array(pb_p_xcg)/MAC
+    pb_b_xcg = np.array(pb_b_xcg)/MAC
 
     # Get Maximum and minimum center of gravity location and apply safety margin
     xcg_min = min(xcg_lst) - sm/2
@@ -163,11 +127,10 @@ def loading_diagram(variables,xcg_wing,plot=False):
 
     # Create loading diagram
     if plot:
-        plt.plot(bp_xcg_repbat*100,bp_m_repbat,color='#1f77b4',label='Pilot + Battery: Replaceable Battery Loading')
-        plt.plot(pb_xcg_repbat*100,pb_m_repbat,color='#1f77b4')
-        plt.plot(bp_xcg_pax*100,bp_m_pax,color='#ff7f0e',label='Pilot + Battery: Pilot Loading')
-        plt.plot(pb_xcg_pax*100,pb_m_pax,color='#ff7f0e')
-        plt.plot(p_xcg*100,p_m,color='#2ca02c',label='2 Pilots: Pilot Loading')
+        plt.plot(bp_b_xcg*100,bp_b_m,color='#1f77b4',label='Battery loading')
+        plt.plot(pb_b_xcg*100,pb_b_m,color='#1f77b4')
+        plt.plot(bp_p_xcg*100,bp_p_m,color='#ff7f0e',label='Payload loading')
+        plt.plot(pb_p_xcg*100,pb_p_m,color='#ff7f0e')
         plt.plot([xcg_min*100,xcg_min*100],[min(m_lst),max(m_lst)],'r',label='Minimum/Maximum Center of Gravity')
         plt.plot([xcg_max*100,xcg_max*100],[min(m_lst),max(m_lst)],'r')
         plt.title('Loading Diagram')
