@@ -324,8 +324,8 @@ Outputs:
     variables [class]:  The class contains updated values of:
                          - xcg_min [float]:     Minimum center of gravity location [m]
                          - xcg_max [float]:     Maximum center of gravity location [m]
-                         - xcg_wing [float]:    Wing centre of gravity location [m]
-                         - lfn [float]:         Distance nose - wing [m]
+                         - xwing [float]:       Wing location [m]
+                         - xlemac [float]:      Distance nose - leading edge mean aerodynamic chord [m]
                          - Sh_min [float]:      Minimum required horizontal tail surface [m2]
                          - deda [float]:        Wing downwash gradient [-]
 
@@ -385,7 +385,7 @@ def sizing_htail_wingpos(variables,plot=False):
     xcg_wing = xwing + cg_wing
 
     # Update values in variables class
-    variables.xcg_wing = xcg_wing
+    variables.xwing = xwing
     variables.xlemac = xlemacw
     variables.xcg_min = xcg_min*MAC
     variables.xcg_max = xcg_max*MAC

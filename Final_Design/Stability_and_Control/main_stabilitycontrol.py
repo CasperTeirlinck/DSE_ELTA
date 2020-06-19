@@ -34,6 +34,7 @@ class stabilitycontrol_variables:
         self.xcg_fgroup = 3             # [m]       Fuselage group center of gravity
         self.xcg_f = 2.3                # [m]       Fuselage centre of gravity location
         self.cg_wing = 1                # [m]       Wing center of gravity
+        self.xwing = None
         self.xcgbat = 4                 # [m]       Battery center of gravity
         self.xcgPL = 1                  # [m]       Payload center of gravity
         self.xmg = 2                    # [m]       Main gear location

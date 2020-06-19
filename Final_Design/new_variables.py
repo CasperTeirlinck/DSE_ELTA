@@ -39,6 +39,7 @@ class NewVariables:
         self.W_fgroup = None
 
         self.cg_wing = None         # [m]           Distance LE root chord - wing cg
+        self.xwing = None
 
         self.xcg_fgroup = None
         self.xcg_fuselage = None
