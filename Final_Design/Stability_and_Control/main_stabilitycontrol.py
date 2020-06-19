@@ -23,10 +23,10 @@ class stabilitycontrol_variables:
 
         # Weight parameters
         self.WTO = 7354.9875            # [N]       Take-off weight
-        self.W_fgroup = 100             # [kg]      Fuselage group weight
-        self.W_wing = 150               # [kg]      Wing weight
-        self.W_batt = 300               # [kg]      Battery weight
-        self.WPL = 100                  # [kg]      Payload weight
+        self.W_fgroup = 100*9.80665     # [kg]      Fuselage group weight
+        self.W_wing = 150*9.80665       # [kg]      Wing weight
+        self.W_batt = 300*9.80665       # [kg]      Battery weight
+        self.WPL = 1961.33              # [kg]      Payload weight
 
         # Centre of gravity parameters
         self.xcg_min = None             # [m]       Minimum center of gravity location
@@ -34,7 +34,7 @@ class stabilitycontrol_variables:
         self.xcg_fgroup = 3             # [m]       Fuselage group center of gravity
         self.xcg_f = 2.3                # [m]       Fuselage centre of gravity location
         self.cg_wing = 1                # [m]       Wing center of gravity
-        self.xcgbat = 3                 # [m]       Battery center of gravity
+        self.xcgbat = 4                 # [m]       Battery center of gravity
         self.xcgPL = 1                  # [m]       Payload center of gravity
         self.xmg = 2                    # [m]       Main gear location
         self.xacw = 1                   # [m]       Wing/fuselage aerodynamic centre location
