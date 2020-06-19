@@ -14,29 +14,37 @@ S_wet_fus = 17.507
 l_fus = 9.420
 fus_A_max = 1.218
 w_fuselage = 1.05
-S_h = 0.3*S
-S_v = 0.15*S
-MAC_emp = 1
+
 BLturbratio_fus = 1
 BLturbratio_wing = 0.65
-BLturbratio_emp = 0.65
 l_gear = 0.9
 w_gear = 0.2
 dCD_gear = 0.15
 flap_area_ratio = 0
+
+# Empennage
+S_h = 0.3*S
+S_v = 0.15*S
+MAC_emp = 1
+BLturbratio_emp = 0.65
+tc_emp=0.12
+xc_emp=0.3
+V_stall=23.15
+rho_cruise=1.04
+visc=1.8e-5
 
 # NACA 4415
 Clmax_r = 1.6
 Cla_r = 1/np.radians(10)
 Cd0_r = 0.007
 a0_r = np.radians(-4)
-deltaAlphaStall_r = np.radians(8)
+tc_airfoil = 0.15
+xc_airfoil = 0.3
 
 Clmax_t = Clmax_r
 Cla_t = Cla_r
 Cd0_t = Cd0_r
 a0_t = a0_r
-deltaAlphaStall_t = deltaAlphaStall_r
 
 
 

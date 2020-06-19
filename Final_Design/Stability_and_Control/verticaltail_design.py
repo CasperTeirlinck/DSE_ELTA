@@ -19,23 +19,26 @@ def directional_stability(lcg,lf,hfmax,Sfs,Sw,bw,hf1,hf2,bf1,bf2,lp1,lp2,Dp1,Dp2
 
 # Vertical tail sizing
 def verticaltail_sizing(variables):
-    lcg = variables.xcg_f       # [m]       Fuselage centre of gravity location
-    lf = variables.lf           # [m]       Fuselage length
-    hfmax = variables.hfmax     # [m]       Maximum fuselage height
-    Sfs = variables.Sfs         # [m2]      Fuselage lateral surface area
-    hf1 = variables.hf1         # [m]       Fuselage nose height
-    hf2 = variables.hf2         # [m]       Fuselage tail height
-    bf1 = variables.bf1         # [m]       Fuselage nose width
-    bf2 = variables.bf2         # [m]       Fuselage tail width
-    Bp = variables.Bp           # [-]       Number of blades per porpeller
-    lp1 = variables.lp1         # [m]       Distance 1st propeller plane - aircraft centre of gravity
-    lp2 = variables.lp2         # [m]       Distance 1st propeller plane - aircraft centre of gravity
-    Dp1 = variables.Dp1         # [m2]      1st propeller disk diameter
-    Dp2 = variables.Dp2         # [m2]      1st propeller disk diameter
-    Sw = variables.Sw           # [m2]      Wing surface area
-    bw = variables.bw           # [m]       Wing span
-    CnBi = variables.CnBi       # [-]       Wing configuration stability component
-    lv = variables.lv           # [m]       Vertical tail arm
+    lcg = variables.xcg_fuselage        # [m]       Fuselage centre of gravity location
+    lf = variables.fuselagelength       # [m]       Fuselage length
+    hfmax = variables.fuselageheight    # [m]       Maximum fuselage height
+    Sfs = variables.Sfs                 # [m2]      Fuselage lateral surface area
+    hf1 = variables.hf1                 # [m]       Fuselage nose height
+    hf2 = variables.hf2                 # [m]       Fuselage tail height
+    bf1 = variables.bf1                 # [m]       Fuselage nose width
+    bf2 = variables.bf2                 # [m]       Fuselage tail width
+    Bp = variables.Bp                   # [-]       Number of blades per porpeller
+    xcg = variables.xcg_max
+    xp1 = variables.xp1
+    xp2 = variables.xp2
+    lp1 = xcg - xp1
+    lp2 = xcg - xp2                     # [m]       Distance 1st propeller plane - aircraft centre of gravity
+    Dp1 = variables.Dp1                 # [m2]      1st propeller disk diameter
+    Dp2 = variables.Dp2                 # [m2]      1st propeller disk diameter
+    Sw = variables.S                    # [m2]      Wing surface area
+    bw = variables.b                    # [m]       Wing span
+    CnBi = variables.CnBi               # [-]       Wing configuration stability component
+    lv = variables.lv                   # [m]       Vertical tail arm
 
     CnB = directional_stability(lcg,lf,hfmax,Sfs,Sw,bw,hf1,hf2,bf1,bf2,lp1,lp2,Dp1,Dp2,Bp,CnBi)
     print('---- Vertical tail sizing -----')

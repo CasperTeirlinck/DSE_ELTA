@@ -36,7 +36,7 @@ def main_bat(variables):
 
     # Calculating mass and volume based on cells only
     m_bat_cells = bat[2] * variables.batt_cell_mass
-    v_bat_cells = bat[2] * variables.batt_cell_volume * 1000 # from m^3 to L
+    v_bat_cells = (bat[0] * variables.batt_cell_diameter) * (bat[1] * variables.batt_cell_diameter) * variables.batt_cell_length * 1000 # from m^3 to L
 
     # Actual mass
     m_bat = m_bat_cells * 1.15

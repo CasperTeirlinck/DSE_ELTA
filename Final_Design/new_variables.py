@@ -1,12 +1,12 @@
 import numpy as np
-from math import sqrt,cos
+from math import sqrt,cos,pi
 
 
 
 class NewVariables:
-    def __init__(self):
+    def __init__(self,haswinglets,wingletheight):
         self.init_general()
-        self.init_aerodynamics(S=S, A=A, taper=taper, twist=twist, gammaL=gammaL)
+        self.init_aerodynamics(haswinglets,wingletheight)
         self.init_weight()
         self.init_propulsion()
         self.init_sc()
@@ -14,22 +14,41 @@ class NewVariables:
     def init_general(self):
         self.WTO = None
         self.Woew_classII = None
-        self.WPL = None
+        self.WPL = 1961.33
         self.rho0 = 1.225
         self.g0 = 9.80665
         self.R = 287.05
         self.gamma = 1.4 
         self.lmbda = -0.0065
 
+        self.Vcruise = 50           # [m/s]         Cruise speed
+        self.hcruise = 914.4        # [m]           Cruise altitude
+
         self.fuselagelength = 9.420
         self.fuselagewidth = 1.05
+        self.fuselageheight = 1.211
         self.fuselagefrontalarea = 1.218
         self.fuselagewettedarea = 17.507
 
         self.h_landinggear = None
         self.w_landinggear = None
 
-    def init_aerodynamics(haswinglets,wingletheight):
+        self.h_htail = None
+
+        self.W_wing = None
+        self.W_fgroup = None
+
+        self.cg_wing = None         # [m]           Distance LE root chord - wing cg
+        self.xwing = None
+
+        self.xcg_fgroup = None
+        self.xcg_fuselage = None
+        self.xcgPL = None
+        self.xcgbat = None
+        self.xcg_min = None
+        self.xcg_max = None
+
+    def init_aerodynamics(self,haswinglets,wingletheight):
         # Conditions
         self.clean_config = None
         self.hasWinglets = haswinglets
@@ -49,6 +68,13 @@ class NewVariables:
         self._sweepLE = np.arctan(-self.c_r / (2 * self.b) * (taper - 1))
         self._YMAC = self.b / 6 * (1 + 2 * taper) / (1 + taper)
         self.XMAC = self.YMAC * np.tan(self.sweepLE)
+        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage
+
+        # Flap geometry
+        self.flapstart = None
+        self.flapend = None
+        self.flapspan = None
+        self.flapaffectedarea = None
 
         # Exterior design inputs
         self.BLturbratio_wing = 0.65
@@ -71,6 +97,21 @@ class NewVariables:
         # Freely adjustable variables
         self.hwl = wingletheight
 
+        # Flap variables
+        self.CLmax_req = 2                  # [-]       Required maximum lift coefficient
+        self.dClmax = 1.25 * 0.96           # [-]
+        self.da0l_airfoil = -15*pi/180      # [rad]
+        self.cfc = 0.8                      # [-]       Start of the flap as percentage of the chord
+        self.d_ff = 0.05                    # [m]       Spacing between fuselage and flap
+
+        # Aileron variables
+        self.dphi = 60*pi/180               # [rad]     Bank angle
+        self.dtTO = 5                       # [s]       Bank time take-off
+        self.dtL = 4                        # [s]       Bank time landing
+        self.clear_tip = 0.05*(b/2)         # [m]       Distance from the tip that should be clear of control surfaces
+        self.da = 20*pi/180                 # [rad]     Aileron deflection angle
+        self.clda = 0.046825*180/pi         # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
+
 
         # Output variables
         self.wing_CL_alpha = None
@@ -78,14 +119,14 @@ class NewVariables:
         self.wing_alpha_max = None
         self.CD0clean = None
         self.CD0flap = None
-        self.e = None
+        self.eclean = None
+        self.eflaps = None
 
         # Working variables
         self.coeff = None
-        self.Swf = None
 
     def init_weight(self):
-        self.b = 200
+        pass
 
     def init_propulsion(self):
         # Sizing
@@ -128,27 +169,64 @@ class NewVariables:
         self.batt_cell_P          = self.batt_cell_I_max * self.batt_cell_V_nom                     # Maximum power [W]
 
     def init_sc(self):
+        # Fuselage variables
+        self.Sfs = 5.258            # [m2]          Fuselage lateral surface area
+        self.hf1 = 1.146            # [m]           Fuselage nose height
+        self.hf2 = 0.306            # [m]           Fuselage tail height
+        self.bf1 = 0.960            # [m]           Fuselage nose width
+        self.bf2 = 0.243            # [m]           Fuselage tail width
+
+
+        # Propeller geometry parameters
+        self.Bp = 2.5               # [-]           Number of blades per propeller
+        self.xp1 = 2                # [m]           1st propeller location
+        self.xp2 = 2                # [m]           2nd propeller location
+        self.Dp1 = 2                # [m2]          1st propeller disk diameter
+        self.Dp2 = 2                # [m2]          2nd propeller disk diameter
+
+
+        # Wing variables
+        self.xlemac = None          # [m]           Distance nose - leading edge mean aerodynamic chord
+        self.Snet = None            # [m2]          Net wing surface area
+
+        self.VhV = sqrt(0.85)       # [-]           Tail/wing speed ratio
+        self.eta = 0.95             # [-]           Airfoil efficiency coefficient
+        self.Cm0af = -0.1           # [-]           Airfoil zero lift pitching moment coefficient
+        self.mu1 = 0.3              # [-]           Flap coefficient 1
+        self.deda = None            # [-]           Downwash gradient
+        self.cc = 1                 # [-]           Chord ratio (extended flap/clean)
+        self.CnBi = 0.024           # [-]           Wing configuration lateral stability component
+
+
+        # Horizontal tail variables
+        self.lh = 6.9               # [m]           Horizontal tail arm
+        self.Sh = None              # [m2]          Minimum required horizontal tail surface
+        self.bh = None              # [m]           Horizontal tail span
+        self.Ah = None              # [-]           Horizontal tail aspect ratio
+        self.sweeph = 0             # [rad]         Horizontal tail half chord sweep
+        self.ch_r = None            # [m]           Horizontal tail root chord
+        self.ih = 0                 # [rad]         Horizontal tail incidence angle
+
+        self.CLh_L = -0.8           # [-]           Horizontal tail landing configuration lift coefficient
+
+
+        # Vertical tail variables
+        self.lv = 6.9               # [m]           Vertical tail arm
+        self.Sv = None              # [m2]          Vertical tail surface
+
+        self.CnB = None             # [-]           Directional stability coefficient
+
+        '''
         # Flight performance parameters
-        self.Vcruise = 50           # [m/s]         Cruise speed
-        self.hcruise = 914.4        # [m]           Cruise altitude
         self.a_pitch = 12*pi/180    # [rad/s]       Take-off pitch angular velocity
         self.VTO = 1.05 * 25.2      # [m/s]         Take-off velocity
         self.rhoTO = 1.225          # [kg/m3]       Take-off density
+        self.VL = 1.1 * 25.2
         self.mu = 0.05              # [-]           Take-off friction factor
 
-        # Masses
-        self.W_fgroup = 980.665     # [N]           Fuselage group weight
-        self.W_wing = 1470.9975     # [N]           Wing weight
-
         # Centre of gravity
-        self.xcg_min = None         # [m]           Minimum center of gravity location
-        self.xcg_max = None         # [m]           Maximum center of gravity location
         self.zcg = 1                # [m]           Centre of gravity height
-        self.xcg_fgroup = 3         # [m]           Fuselage group center of gravity
         self.xcg_f = 2.3            # [m]           Fuselage centre of gravity location
-        self.xcg_wing = 1.7         # [m]           Wing center of gravity
-        self.xcg_bat = 3            # [m]           Battery center of gravity
-        self.xcgPL = 1              # [m]           Pilot/Passenger center of gravity
 
         # Component locations
         self.xmg = 2                # [m]           Main gear location
@@ -159,63 +237,15 @@ class NewVariables:
         self.zT = 1                 # [m]           Thrust vector height
         self.zD = 0.5               # [m]           Drag vector heigh
 
-        # Fuselage geometry parameters
-        self.la = 9                 # [m]           Aircraft length
-        self.lf = 9.420             # [m]           Fuselage length
-        self.bf = 1.05              # [m]           Fuselage width
-        self.hf = 1.213             # [m]           Fuselage height
-        self.hfmax = 1.213          # [m]           Maximum fuselage height
-        self.Sfs = 5.258            # [m2]          Fuselage lateral surface area
-        self.hf1 = 1.146            # [m]           Fuselage nose height
-        self.hf2 = 0.306            # [m]           Fuselage tail height
-        self.bf1 = 0.960            # [m]           Fuselage nose width
-        self.bf2 = 0.243            # [m]           Fuselage tail width
-
-        # Wing geometry parameters
-        self.lfn = 1.5              # [m]           Distance nose - wing
-        self.hw = 0.5               # [m]           Height of the wing, from ground
-        self.Snet = 10              # [m2]          Net wing surface area
-
-        # Horizontal tail geometry parameters
-        self.lh = 6.2               # [m]           Horizontal tail arm
-        self.Sh = None              # [m2]          Minimum required horizontal tail surface
-        self.bh = 5                 # [m]           Horizontal tail span
-        self.hh = 1.5               # [m]           Height horizontal tail from ground
-        self.Ah = 3                 # [-]           Horizontal tail aspect ratio
-        self.sweeph = 0             # [rad]         Horizontal tail half chord sweep
-        self.chr = 1                # [m]           Horizontal tail root chord
-        self.ih = 0                 # [rad]         Horizontal tail incidence angle
-
-        # Vertical tail geometry parameters
-        self.lv = 6.2               # [m]           Vertical tail arm
-        self.Sv = None              # [m2]          Vertical tail surface
-
         # Elevator geometry parameters
         self.bebh = 1               # [-]           Elevator span
         self.de_max = 20*pi/180     # [rad]         Maximum elevator deflection
         self.de_min = -25*pi/180    # [rad]         Minimum elevator deflection (maximum negative)
-
-        # Propeller geometry parameters
-        self.Bp = 2.5               # [-]           Number of blades per propeller
-        self.lp1 = 2                # [m]           Distance 1st propeller plane - aircraft centre of gravity
-        self.lp2 = 2                # [m]           Distance 2nd propeller plane - aircraft centre of gravity
-        self.Dp1 = 2                # [m2]          1st propeller disk diameter
-        self.Dp2 = 2                # [m2]          2nd propeller disk diameter
-
-        # Wing aerodynamic parameters
-        self.eta = 0.95             # [-]           Airfoil efficiency coefficient
-        self.mu1 = 0.3              # [-]           Flap coefficient 1
-        self.VhV = sqrt(0.85)       # [-]           Tail/wing speed ratio
-        self.CnBi = 0.024           # [-]           Wing configuration stability component
-        self.deda = None            # [-]           Downwash gradient
-
+        
         # Horizontal tail aerodynamic parameters
-        self.CLh_L = -0.8           # [-]           Horizontal tail landing lift coefficient
         self.CLh_TO = None          # [-]           Horizontal tail take-off lift coefficient
         self.CLah = 4               # [/rad]        Horizontal lift curve slope
-
-        # Vertical tail aerodynamic parameters
-        self.CnB = None             # [-]           Directional stability coefficient
+        '''
 
     @property
     def S(self):
@@ -225,6 +255,7 @@ class NewVariables:
     def S(self, val):
         self._S = val
         self.b = np.sqrt(self.A * self.S)
+        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage
         # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
@@ -245,6 +276,7 @@ class NewVariables:
         self._b = val
         self.c_r = (2 * self.S) / (self.b * (1 + self.taper))
         self.YMAC = self.b / 6 * (1 + 2 * self.taper) / (1 + self.taper)
+        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage
         # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
@@ -258,6 +290,7 @@ class NewVariables:
         self.MAC = (2 / 3) * self.c_r * ((1 + self.taper + self.taper ** 2) / (1 + self.taper))
         self.sweepLE = np.arctan(-self.c_r / (2 * self.b) * (self.taper - 1))
         self.YMAC = self.b / 6 * (1 + 2 * self.taper) / (1 + self.taper)
+        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage
         # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
@@ -516,7 +549,7 @@ class NewVariables:
             print('alphaMax not found')
             return None
         
-        self.wing_CL_max = CLmax
+        self.wing_CL_max = CLmax*(self.b-self.fuselagewidth)/self.b
         self.wing_alpha_max = alphamax
         self.stallloc = alphaMaxLoc
         #return CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, alphaMaxLoc
@@ -590,7 +623,7 @@ class NewVariables:
         FF_fus = 1 + 60./ld_fus**3 + ld_fus/400.
         IF_fus = 1.
         
-        S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.5*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage)*2.06
+        S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage)*2.06
         Cf_wing = (1-BLturbratio_wing)*_CfLaminar(rho_cruise,V_stall,MAC,visc) + BLturbratio_wing*_CfTurbulent(rho_cruise,V_stall,MAC,visc)
         FF_wing = 1. + 0.6*tc_airfoil/xc_airfoil + 100*tc_airfoil**4
         IF_wing = 1.25
@@ -633,21 +666,21 @@ class NewVariables:
         taper = self.taper              # [rad]     Wing taper ratio
         cr = self.c_r                   # [m]       Wing root chord
 
-        CLmax_req = 2                   # [-]       Required maximum lift coefficient
-        CLmax_wing = 1.51               # [-]       Wing maximum lift coefficient
-        CLa = 2 * pi                    # [/rad]    Wing lift curve slope
+        CLmax_req = self.CLmax_req      # [-]       Required maximum lift coefficient
+        CLmax_wing = self.calcCLmax()   # [-]       Wing maximum lift coefficient
+        CLa = self.calcCLa()            # [/rad]    Wing lift curve slope
 
-        dClmax = 1.25 * 0.96            # [-]
-        da0l_airfoil = -15*pi/180       # [rad]
+        dClmax = self.dClmax            # [-]
+        da0l_airfoil = self.da0l_airfoil# [rad]
 
-        cfc = 0.8                       # [-]       Start of the flap as percentage of the chord
+        cfc = self.cfc                  # [-]       Start of the flap as percentage of the chord
 
         sm = 0.1                        # [-]       Safety margin
 
         # Parameter calculations
         # Chord at flap start/end location
-        bf = 1.5                        # [m]       Fuselage width
-        d_ff = 0.05                     # [m]       Spacing between fuselage and flap
+        bf = self.fuselagewidth         # [m]       Fuselage width
+        d_ff = self.d_ff                # [m]       Spacing between fuselage and flap
 
         # Flap start location
         f1 = bf / 2 + d_ff
@@ -703,25 +736,129 @@ class NewVariables:
             f2 = f1 + bfl
 
             # Update variables
-            self.f1 = f1
-            self.f2 = f2
-            self.bfl = bfl
-            self.Swf = Swf
+            self.flapstart = f1
+            self.flapend = f2
+            self.flapspan = bfl
+            self.flapaffectedarea = Swf
+
+    def aileron_sizing(self):
+        # Iteration parameters
+        sizing = True
+        i = 0                       # [-]       Number of iterations
+        max_i = 1000                # [-]       Maximum number of iterations
+        step = 0.01                 # [m]       Increase/Decrease of aileron length at every iteration
+
+        # Inputs
+        dphi = self.dphi            # [rad]     Bank angle
+        dtTO = self.dtTO            # [s]       Bank time take-off
+        dtL = self.dtL              # [s]       Bank time landing
+        VTO = self.VTO              # [m/s]     Take-off speed
+        VL = self.VL                # [m/s]     Landing speed
+
+        bf = self.fuselagewidth     # [m]       Fuselage width
+
+        S = self.S                  # [m2]      Wing surface area
+        b = self.b                  # [m]       Wing span
+        taper = self.taper          # [-]       Wing taper ratio
+        cr = self.c_r               # [m]       Wing root chord
+        cla = self.calcCLa()        # [/rad]    Take-off configuration lift curve slope
+        cd0_TO = self.CD0clean      # [-]       Take-off configuration zero lift drag coefficient
+        cd0_L = self.CD0flap        # [-]       Landing configuration zero lift drag coefficient
+
+        b1 = self.b1                # [m]       Aileron start
+        clear_tip = self.clear_tip  # [m]       Distance from the tip that should be clear of control surfaces
+        da = self.da                # [rad]     Aileron deflection angle
+        clda = self.clda            # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
+
+        sm = 0.1                    # [-]       Safety margin
+
+        # Parameter calculations
+        # Required roll rate
+        p_reqTO = dphi / dtTO * (1 + sm)
+        p_reqL = dphi / dtL * (1 + sm)
+
+        # Aileron end
+        b2 = b / 2 - clear_tip
+
+        # Check initial b1
+        if b1 < bf / 2:
+            print('Initial value for b1 is too small! Change b1.')
+        else:
+            pass
+
+        # Create history list
+        b1lst = [b1]
+
+        # Roll rate calculation
+        def roll_rate(V, cd0):
+            # Calculate roll damping
+            Clp = -(cla + cd0) * cr * b / (24 * S) * (1 + 3 * taper)
+
+            # Calculate roll authority
+            Clda = clda * cr / (S * b) * ((b2 ** 2 - b1 ** 2) + 4 * (taper - 1) / (3 * b) * (b2 ** 3 - b1 ** 3))
+
+            # Calculate roll rate for take-off and landing
+            p = -Clda / Clp * da * 2 * V / b
+
+            return p
+
+        # Perform iterations
+        while sizing and i < 100:
+            # Calculate roll rate
+            p_TO = roll_rate(VTO, cd0_TO)
+            p_L = roll_rate(VL, cd0_L)
+
+            # Check whether p is larger than required
+            # If p is smaller than required
+            if p_TO < p_reqTO or p_L < p_reqL:
+                b1 -= step
+
+            # If p is larger than required
+            else:
+                # Check for convergence
+                if abs(b1 - b1lst[-1]) < (step / 2):
+                    sizing = False
+                else:
+                    b1 += step
+
+            # Add values to history lists
+            b1lst.append(b1)
+
+            # Add iteration
+            i += 1
+
+            # Check aileron size
+            if b1 < bf / 2:
+                print('Aileron became too large.')
+                sizing = False
+            # Check for maximum number of iterations
+            elif i >= max_i:
+                sizing = False
+                print('Aileron sizing did not converge within', i, 'iterations.')
+            else:
+                pass
+
+        # Transform to numpy arrays
+        # b1lst = np.array(b1lst)
+        # b2lst = np.array(b2lst)
+
+        # Update values in variables class
+        self.b1 = b1
+        self.b2 = b2
 
 
 def sys_Aerodynamics_wing(v,resolution):
     v.setAirfoils(v.Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t)
-    #v.setwinglets() I think is is obsolete but I'm not sure
     v.calcCoefficients(resolution,0.7)
     v.calcCLa()
     v.calcCLmax()
     return v
 
 def sys_Aerodynamics_total(v)    
-    v.CD0clean = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf)
-    v.CD0flaps = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf,clean_config = False)
-    v.e_clean = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf,hasWinglets=v.haswinglets)
-    v.e_flaps = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.Swf,hasWinglets=v.haswinglets,clean_config=True)
+    v.CD0clean = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea)
+    v.CD0flaps = calcCD0(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,clean_config = False)
+    v.e_clean = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets)
+    v.e_flaps = calcOswald(v.fuselagewetted,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_emp,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.haswinglets,clean_config=True)
     return v
 
 

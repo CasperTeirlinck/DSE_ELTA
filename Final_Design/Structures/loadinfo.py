@@ -63,7 +63,7 @@ class Moment(Force):
 
 
 class LoadCase:
-    def __init__(self, y_coordinates=None, EIx=None, EIz=None):
+    def __init__(self, y_coordinates=None, EIx=None, EIz=None, areas=None, shearcentre_z=None, shearcentre_x=None):
 
         self.forces = []
         self.moments = []
@@ -82,12 +82,30 @@ class LoadCase:
         self.EIxfunc = interp1d(self.y_samples, EIx)
         self.EIzfunc = interp1d(self.y_samples, EIz)
 
+        self.areas = areas
+        # self.shearcentre_x = shearcentre_x
+        self.shearcentre_z = shearcentre_z
+        self.areasfunc = interp1d(self.y_samples, areas)
+        # self.shearcentre_x_func = interp1d(self.y_samples, shearcentre_x)
+        self.shearcentre_z_func = interp1d(self.y_samples, shearcentre_z)
+
     def change_geometry(self, y_coordinates, EIx, EIz):
         self.y_samples = y_coordinates
         self.EIx = EIx
         self.EIz = EIz
         self.EIxfunc = interp1d(self.y_samples, EIx)
         self.EIzfunc = interp1d(self.y_samples, EIz)
+
+    def change_areas(self, areas, shearcentre_z, y_locs=None):
+        if y_locs is None:
+            y_locs = self.y_samples
+        print("In-class:", min(y_locs), max(y_locs))
+        self.areas = areas
+        # self.shearcentre_x = shearcentre_x
+        self.shearcentre_z = shearcentre_z
+        self.areasfunc = interp1d(y_locs, areas)
+        # self.shearcentre_x_func = interp1d(y_locs, shearcentre_x)
+        self.shearcentre_z_func = interp1d(y_locs, shearcentre_z)
 
     def add_boundary_condition(self, x=0., y=0., z=0., defl_x=None, defl_y=None, defl_z=None, angle_x=None, angle_y=None, angle_z=None):
         constraints = (defl_x != None) + (defl_y != None) + (defl_z != None) + (angle_x != None) + (angle_y != None) + (angle_z != None)
@@ -134,9 +152,48 @@ class LoadCase:
         reactionmomentx, reactionmomenty, reactionmomentz = vect_r_m[0], vect_r_m[1], vect_r_m[2]
         return reactionmomentx, reactionmomenty, reactionmomentz
 
+    def _single_yout_torque_shear(self, vect_mag, position, shearcentre):
+        return vect_mag*(position-shearcentre)
+
+    def _vectorized_numpy_torque_shear(self, vect_mag, position):
+        return np.vectorize(partial(self._single_yout_torque_shear, vect_mag, position))
+
+    def _always_returns_number(self, number, vector): # Don't ask me why, but this works, just leave it
+        return number
+
+    def _vectorized_number(self, number):
+        return np.vectorize(partial(self._always_returns_number, number))
+
+    def get_torque_shearflow(self, yout):
+        firsty = [yout.item(0)]
+        yout = [y+0.000000001 for y in yout[1:]]
+        firsty.extend(yout)
+        yout = np.asarray(firsty)
+        shearflow = []
+        shearflowfunc = []
+        s_centres = self.shearcentre_z_func(yout)
+        areas = self.areasfunc(yout)
+        for force in self.forces:
+            shearflow.append(self._vectorized_numpy_torque_shear(force.vector[0], force.position[2]))
+            shearflowfunc.append(step_function_moment(force.position[1]))
+        for force in self.reactionforces:
+            shearflow.append(self._vectorized_numpy_torque_shear(force.vector[0], force.position[2]))
+            shearflowfunc.append(step_function_moment(force.position[1]))
+        for moment in self.moments:
+            shearflow.append(self._vectorized_number(moment.vector[1]))
+            shearflowfunc.append(step_function_moment(moment.position[1]))
+        for moment in self.reactionmoments:
+            shearflow.append(self._vectorized_number(moment.vector[1]))
+            shearflowfunc.append(step_function_moment(moment.position[1]))
+        for i in range(len(shearflow)):
+            shearflow[i] = shearflow[i](s_centres)*shearflowfunc[i](yout)
+        shearflow = np.sum(shearflow, axis=0)
+        shearflow = shearflow * 0.5 / areas
+        return shearflow
+
     def get_normalforce(self, yout):
-        yout = np.array([y+0.000001 for y in yout])
-        normaly = list()
+        yout = np.array([y+0.000000001 for y in yout])
+        normaly = []
         normalyfunc = []
         for force in self.forces:
             normaly.append(force.vector[1])

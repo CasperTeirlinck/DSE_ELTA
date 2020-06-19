@@ -33,7 +33,7 @@ class WingPlanform:
 
         self.coeff = None
 
-    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, deltaAlphaStall_r=0, deltaAlphaStall_t=0, Cd0_r=0, Cd0_t=0):
+    def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, tc_airfoil, xc_airfoil, Cd0_r, Cd0_t):
         self.Clmax_r = Clmax_r
         self.Clmax_t = Clmax_t
         self.Cd0_r = Cd0_r
@@ -42,8 +42,8 @@ class WingPlanform:
         self.Cla_t = Cla_t
         self.a0_r = a0_r
         self.a0_t = a0_t
-        self.deltaAlphaStall_r = deltaAlphaStall_r
-        self.deltaAlphaStall_t = deltaAlphaStall_t
+        self.tc_airfoil = tc_airfoil
+        self.xc_airfoil = xc_airfoil
 
     def setWinglets(self, hwl, kwl):
         self.hwl = hwl
@@ -310,7 +310,7 @@ class WingPlanform:
         if not clean_config:
             return (Cf_wing* FF_wing* IF_wing* S_wet_wing)/self.S + dCD_flap
 
-    def calcCD0(self, S_wet_fus, l_fus, fus_A_max, w_fuselage, S_h, S_v, MAC_emp, BLturbratio_fus, BLturbratio_wing, BLturbratio_emp, l_gear, w_gear, dCD_gear, flap_area_ratio, tc_airfoil=0.15, xc_airfoil=0.3, MAC=1.3, tc_emp=0.12, xc_emp=0.3, V_stall=23.15, rho_cruise=1.04, clean_config=True, visc=1.8e-5):
+    def calcCD0(self, S_wet_fus, l_fus, fus_A_max, w_fuselage, S_h, S_v, MAC_emp, BLturbratio_fus, BLturbratio_wing, BLturbratio_emp, l_gear, w_gear, dCD_gear, flap_area_ratio, tc_emp, xc_emp, V_stall, rho_cruise, visc, clean_config=True):
         
         def _CfLaminar(rho,V,L,visc):
             Re = rho*V*L/visc
@@ -326,11 +326,13 @@ class WingPlanform:
         IF_fus = 1.
         
         S_wet_wing = (self.S - self.calculateChord(self.transformSpan(.5*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage)*2.06
-        Cf_wing = (1-BLturbratio_wing)*_CfLaminar(rho_cruise,V_stall,MAC,visc) + BLturbratio_wing*_CfTurbulent(rho_cruise,V_stall,MAC,visc)
-        FF_wing = 1. + 0.6*tc_airfoil/xc_airfoil + 100*tc_airfoil**4
+
+        Cf_wing = (1-BLturbratio_wing)*_CfLaminar(rho_cruise,V_stall,self.MAC,visc) + BLturbratio_wing*_CfTurbulent(rho_cruise,V_stall,self.MAC,visc)
+        FF_wing = 1. + 0.6*self.tc_airfoil/self.xc_airfoil + 100*self.tc_airfoil**4
         IF_wing = 1.25
 
         S_wet_emp = (S_h + S_v)*2.04
+        
         Cf_emp = (1-BLturbratio_emp)*_CfLaminar(rho_cruise,V_stall,MAC_emp,visc) + BLturbratio_emp*_CfTurbulent(rho_cruise,V_stall,MAC_emp,visc)
         FF_emp = 1. + 0.6*tc_emp/xc_emp + 100*tc_emp**4
         IF_emp = 1.05
