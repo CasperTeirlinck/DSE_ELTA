@@ -1340,6 +1340,26 @@ class StiffenedWing(WingPlanform):
         return Vx_maxg, Vx_ming
     
     
+    def calc_Mx_dist(self):
+        Mx_maxg = [0]
+        Mx_ming = [0]
+        
+        for i in range(1, len(self.Vz_maxg_lst)-1):
+            
+            dy = self.ylst[i+1]-self.ylst(i)
+            
+            Mx_maxg_i = (self.Vz_maxg_lst[i+1]-self.Vz_maxg_lst[i-1])/2*dy
+            Mx_ming_i = (self.Vz_ming_lst[i+1]-self.Vz_ming_lst[i-1])/2*dy
+            
+            Mx_maxg.append(Mx_maxg_i)
+            Mx_ming.append(Mx_ming_i)
+            
+        Mx_maxg.append(0)
+        Mx_maxg.append(0)
+        
+        
+    
+    
     
     def integrate(self, ylst, L_lst):
         A_lst = []
