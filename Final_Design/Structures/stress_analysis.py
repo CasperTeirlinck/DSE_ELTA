@@ -20,6 +20,11 @@ from scipy import interpolate
 ### A/C WEIGHT AND AIR DENSITY MANUALLY ENTERED IN V_MAXG AND ###
 ######## V_MING FUNCTIONS (ALSO MAX AND MIN LOAD FACTORS) #######
 #################################################################
+### BATTERY VOLUME HARD CODED IN CALC_BATT_ENDPOINT FUNCTION ####
+#################################################################
+######### AERODYNAMIC STUFF HARD CODED IN VMIN AND VMAX #########
+#################################################################
+
 
 
 
@@ -232,6 +237,8 @@ class StiffenedWing(WingPlanform):
         self.spar_lst        = [list(zeros) for zeros in np.zeros((n,2))]
         self.skin            = skin
         
+        self.batt            = batt
+        
         self.n_string_u      = n_string_u                               #number of stringers on upper sheet
         self.n_string_l      = n_string_l                               #number of stringers on lower sheet
         self.spar_le_loc     = spar_le_loc                              #x/c location of leading edge spar
@@ -303,20 +310,64 @@ class StiffenedWing(WingPlanform):
         self.L_dist_maxg     = self.calc_v_maxg()[2]
         self.Lmax_tot        = self.calc_v_maxg()[3]
         self.cp_maxL_lst     = self.calc_v_maxg()[4]
+        self.D_dist_maxg     = self.calc_v_maxg()[5]
+        self.Dmax_tot        = self.calc_v_maxg()[6]
         
         self.v_ming          = self.calc_v_ming()[0]
         self.ylst_minL       = self.calc_v_ming()[1]
         self.L_dist_ming     = self.calc_v_ming()[2]
         self.Lmin_tot        = self.calc_v_ming()[3]
         self.cp_minL_lst     = self.calc_v_ming()[4]
+        self.D_dist_ming     = self.calc_v_ming()[5]
+        self.Dmin_tot        = self.calc_v_ming()[6]
         
         #INTERPOLATE LIFT TO GET LIFT AND CP AT ALL CROSS SECTIONS
         
         self.Lmax_cs_lst    = list(interpolate.interp1d(self.ylst_maxL, self.L_dist_maxg, kind='slinear', fill_value='extrapolate')(self.ylst))
+        self.Dmax_cs_lst    = list(interpolate.interp1d(self.ylst_maxL, self.D_dist_maxg, kind='slinear', fill_value='extrapolate')(self.ylst))
+        self.cp_maxL_int    = list(interpolate.interp1d(self.ylst_maxL, self.cp_maxL_lst, kind='slinear', fill_value='extrapolate')(self.ylst))
         self.cp_maxL        = interpolate.interp1d(self.ylst_maxL, self.cp_maxL_lst, kind='slinear', fill_value='extrapolate')([self.y_MAC])[0]
         
         self.Lmin_cs_lst    = list(interpolate.interp1d(self.ylst_minL, self.L_dist_ming, kind='slinear', fill_value='extrapolate')(self.ylst))
+        self.Dmin_cs_lst    = list(interpolate.interp1d(self.ylst_minL, self.L_dist_ming, kind='slinear', fill_value='extrapolate')(self.ylst))
+        self.cp_minL_int    = list(interpolate.interp1d(self.ylst_minL, self.cp_minL_lst, kind='slinear', fill_value='extrapolate')(self.ylst))
         self.cp_minL        = interpolate.interp1d(self.ylst_minL, self.cp_minL_lst, kind='slinear', fill_value='extrapolate')([self.y_MAC])[0]
+        
+        self.xcp_maxg_lst   = self.calc_xloc_cp()[0]
+        self.xcp_ming_lst   = self.calc_xloc_cp()[1]
+        
+        if batt == False:
+        
+            self.T_lst_maxg     = self.calc_torque_all_cs()[0]
+            self.T_lst_ming     = self.calc_torque_all_cs()[1]
+            self.T_root_maxg    = self.calc_torque_all_cs()[2]
+            self.T_root_ming    = self.calc_torque_all_cs()[3]
+            
+            self.Vz_maxg_lst    = self.calc_Vz_dist()[0]
+            self.Vz_ming_lst    = self.calc_Vz_dist()[1]
+            
+            self.Vx_maxg_lst    = self.calc_Vx_dist()[0]
+            self.Vx_ming_lst    = self.calc_Vx_dist()[1]
+        
+        if self.batt == True:
+            self.y_batt         = self.calc_batt_endpoint_y()[0]
+            self.V_batt         = self.calc_batt_endpoint_y()[1]
+            
+            self.batt_load_lst  = self.create_batt_loads_cs()
+            
+            self.T_lst_maxg     = self.calc_torque_all_cs()[0]
+            self.T_lst_ming     = self.calc_torque_all_cs()[1]
+            self.T_root_maxg    = self.calc_torque_all_cs()[2]
+            self.T_root_ming    = self.calc_torque_all_cs()[3]
+            
+            self.Vz_maxg_lst    = self.calc_Vz_dist()[0]
+            self.Vz_ming_lst    = self.calc_Vz_dist()[1]
+            
+            self.Vx_maxg_lst    = self.calc_Vx_dist()[0]
+            self.Vx_ming_lst    = self.calc_Vx_dist()[1]
+            
+        
+        
     
         
         
@@ -902,6 +953,8 @@ class StiffenedWing(WingPlanform):
     def calc_y_lift_loc(self):
         
         ylst_aero, cl_lst, cd_lst, cp_lst = readAeroLoads(5)
+        cl_lst[-1] = 0
+        cd_lst[-1] = 0
         
         yA = []
         A  = []
@@ -920,6 +973,8 @@ class StiffenedWing(WingPlanform):
     def calc_v_maxg(self):
         
         ylst_aero, cl_lst, cd_lst, cp_lst = readAeroLoads(5)
+        cl_lst[-1] = 0
+        cd_lst[-1] = 0
         A_lst = []
         
         for i in range(len(ylst_aero)-1):
@@ -932,20 +987,30 @@ class StiffenedWing(WingPlanform):
         v_maxg = np.sqrt((4.45*750*9.80665)/(1.225*self.S*sum(A_lst)))
         
         L_lst = [j * 0.5*1.225*v_maxg**2*self.S for j in cl_lst]
+        D_lst = [l * 0.5*1.225*v_maxg**2*self.S for l in cd_lst]
         A_L = []
+        A_D = []
         
         for k in range(len(ylst_aero)-1):
             y = ylst_aero[k+1]-ylst_aero[k]
             A_ub = y*L_lst[k+1]
             A_lb = y*L_lst[k]
             A_av = (A_ub+A_lb)/2
-            A_L.append(A_av)
             
-        return v_maxg, ylst_aero, L_lst ,sum(A_L), cp_lst
+            A_ub_D = y*D_lst[k+1]
+            A_lb_D = y*D_lst[k]
+            A_av_D = (A_ub_D+A_lb_D)/2
+            
+            A_L.append(A_av)
+            A_D.append(A_av_D)
+            
+        return v_maxg, ylst_aero, L_lst ,sum(A_L), cp_lst, D_lst, sum(A_D)
     
     def calc_v_ming(self):
         
         ylst_aero, cl_lst, cd_lst, cp_lst = readAeroLoads(-10)
+        cl_lst[-1] = 0
+        cd_lst[-1] = 0
         A_lst = []
         
         for i in range(len(ylst_aero)-1):
@@ -958,16 +1023,24 @@ class StiffenedWing(WingPlanform):
         v_ming = np.sqrt((-2.45*750*9.80665)/(1.225*self.S*sum(A_lst)))
         
         L_lst = [j * 0.5*1.225*v_ming**2*self.S for j in cl_lst]
+        D_lst = [l * 0.5*1.225*v_ming**2*self.S for l in cd_lst]
         A_L = []
+        A_D = []
         
         for k in range(len(ylst_aero)-1):
             y = ylst_aero[k+1]-ylst_aero[k]
             A_ub = y*L_lst[k+1]
             A_lb = y*L_lst[k]
             A_av = (A_ub+A_lb)/2
-            A_L.append(A_av)
             
-        return v_ming, ylst_aero, L_lst ,sum(A_L), cp_lst
+            A_ub_D = y*D_lst[k+1]
+            A_lb_D = y*D_lst[k]
+            A_av_D = (A_ub_D+A_lb_D)/2
+            
+            A_L.append(A_av)
+            A_D.append(A_av_D)
+            
+        return v_ming, ylst_aero, L_lst ,sum(A_L), cp_lst, D_lst, sum(A_D)
     
     def interpolate_splines(self, ylst_cs, ylst_aero, L_lst):
         
@@ -1006,15 +1079,294 @@ class StiffenedWing(WingPlanform):
         
         return sum(Vi)
     
-#    def calc_batt_endpoint_y(self)
+    def calc_batt_endpoint_y(self):
+        
+        V_batt = 131/2/1000  #L->m3
+        Vi     = []
+        y_batt = []
+        i=0
+        while sum(Vi) < V_batt:
+            
+            y  = self.ylst[i+1]
+            dy = self.ylst[i+1]-self.ylst[i]
+            V_ub = self.Am_lst[i]*dy
+            V_lb = self.Am_lst[i+1]*dy
+            V_av = (V_ub+V_lb)*dy
+            Vi.append(V_av)
+            y_batt.append(y)
+            i += 1
+            
+        return y_batt[-1], sum(Vi)
+            
+            
+        
+    def calc_xloc_cp(self):
+        
+        x_cp_maxg = []
+        x_cp_ming = []
+        
+        for i in range(len(self.ylst)):
+            x_le = min(self.cross_sections[i][0])
+            x_cp_maxg_i = x_le+self.cp_maxL_int[i]*self.clst[i]
+            x_cp_ming_i = x_le+self.cp_minL_int[i]*self.clst[i]
+            
+            x_cp_maxg.append(x_cp_maxg_i)
+            x_cp_ming.append(x_cp_ming_i)
+            
+        return x_cp_maxg, x_cp_ming
+            
+    
+    def create_batt_loads_cs(self):
+        
+        m_batt = 200                    #kg
+        W_batt = m_batt*9.80665
+        w = W_batt/2/self.y_batt        #N/m
+        
+        batt_load_lst = []
+        
+        for i in range(len(self.cross_sections)):
+            if self.ylst[i] < self.y_batt:
+                batt_load_lst.append(w)
+            else:
+                batt_load_lst.append(0)
+        
+        return batt_load_lst
         
         
     
-#    def calc_torque_all_cs(self):
-#        
-#        if batt == False:
-#            
-#            for i in range(len(self.cross_sections))
+    def calc_torque_all_cs(self):
+        
+        T_lst_maxg = []
+        T_lst_ming = []
+        
+        if self.batt == False:
+            
+            for i in range(1, len(self.cross_sections)+1):
+                Li_maxg = self.Lmax_cs_lst[-i]
+                Li_ming = self.Lmin_cs_lst[-i]
+                
+                d_maxg  = self.xcp_maxg_lst[-i]-self.x_sc_lst[-i] #-ve d = -ve torque
+                d_ming  = self.xcp_ming_lst[-i]-self.x_sc_lst[-i]
+                
+                T_local_maxg = Li_maxg*d_maxg
+                T_local_ming = Li_ming*d_ming
+                
+                if len(T_lst_maxg) != 0:
+                    T_lst_maxg.append(T_local_maxg + T_lst_maxg[-i+1])
+                    T_lst_ming.append(T_local_ming + T_lst_ming[-i+1])
+                
+                if len(T_lst_maxg) == 0:
+                    T_lst_maxg.append(T_local_maxg)
+                    T_lst_ming.append(T_local_ming)
+                
+                
+            T_root_maxg = -T_lst_maxg[-1]
+            T_root_ming = -T_lst_ming[-1]
+            
+            T_lst_maxg[-1] = T_lst_maxg[-1]+T_root_maxg
+            T_lst_ming[-1] = T_lst_ming[-1]+T_root_ming
+            
+            
+            T_lst_maxg.reverse()
+            T_lst_ming.reverse()
+        
+        if self.batt == True:
+            for i in range(1, len(self.cross_sections)+1):
+                Li_maxg = self.Lmax_cs_lst[-i]
+                Li_ming = self.Lmin_cs_lst[-i]
+                
+                d_maxg  = self.xcp_maxg_lst[-i]-self.x_sc_lst[-i] #-ve d = -ve torque
+                d_ming  = self.xcp_ming_lst[-i]-self.x_sc_lst[-i]
+                
+                W_batti = self.batt_load_lst[-i]
+                
+                d_batt  = self.x_bar[-i]
+                
+                T_local_maxg = Li_maxg*d_maxg + W_batti*d_batt
+                T_local_ming = Li_ming*d_ming + W_batti*d_batt
+                
+                if len(T_lst_maxg) != 0:
+                    T_lst_maxg.append(T_local_maxg + T_lst_maxg[-i+1])
+                    T_lst_ming.append(T_local_ming + T_lst_ming[-i+1])
+                
+                if len(T_lst_maxg) == 0:
+                    T_lst_maxg.append(T_local_maxg)
+                    T_lst_ming.append(T_local_ming)
+                
+                
+            T_root_maxg = -T_lst_maxg[-1]
+            T_root_ming = -T_lst_ming[-1]
+            
+            T_lst_maxg[-1] = T_lst_maxg[-1]+T_root_maxg
+            T_lst_ming[-1] = T_lst_ming[-1]+T_root_ming
+            
+            
+            T_lst_maxg.reverse()
+            T_lst_ming.reverse()
+            
+        return T_lst_maxg, T_lst_ming, T_root_maxg, T_root_ming
+    
+    def calc_Vz_dist(self):
+        
+        Vz_maxg = []
+        Vz_ming = []
+        
+        ylst_interm  = []
+        L_lst_interm_maxg = []
+        L_lst_interm_ming = []
+        W_batt_interm     = []
+        
+        if self.batt == False:
+            for i in range(1, len(self.cross_sections)+1):
+                
+                Li_maxg = self.Lmax_cs_lst[-i]
+                Li_ming = self.Lmin_cs_lst[-i]
+                
+                ylst_interm.append(self.ylst[-i])
+                
+                L_lst_interm_maxg.append(Li_maxg)
+                L_lst_interm_ming.append(Li_ming)
+                
+                
+                if len(Vz_maxg) != 0:
+                    L_toti_maxg = self.integrate(ylst_interm, L_lst_interm_maxg)
+                    L_toti_ming = self.integrate(ylst_interm, L_lst_interm_ming)
+                    
+                    Vz_loc_maxg = -L_toti_maxg
+                    Vz_loc_ming = -L_toti_ming
+                    
+                    Vz_maxg.append(Vz_loc_maxg)
+                    Vz_ming.append(Vz_loc_ming)
+                    
+                if len(Vz_maxg) == 0:
+                    Vz_maxg.append(-Li_maxg)
+                    Vz_ming.append(-Li_ming)
+                    
+            Vz_root_maxg = -Vz_maxg[-1]
+            Vz_root_ming = -Vz_ming[-1]
+            
+            Vz_maxg[-1] = Vz_maxg[-1]+Vz_root_maxg
+            Vz_ming[-1] = Vz_ming[-1]+Vz_root_ming
+            
+            Vz_maxg.reverse()
+            Vz_ming.reverse()
+            
+            
+        if self.batt == True:
+            for i in range(1, len(self.cross_sections)+1):
+                
+                Li_maxg = self.Lmax_cs_lst[-i]
+                Li_ming = self.Lmin_cs_lst[-i]
+                W_batti = self.batt_load_lst[-i]
+                
+                ylst_interm.append(self.ylst[-i])
+                
+                L_lst_interm_maxg.append(Li_maxg)
+                L_lst_interm_ming.append(Li_ming)
+                W_batt_interm.append(W_batti)
+                
+                
+                if len(Vz_maxg) != 0:
+                    L_toti_maxg = self.integrate(ylst_interm, L_lst_interm_maxg)
+                    L_toti_ming = self.integrate(ylst_interm, L_lst_interm_ming)
+                    W_batt_toti = self.integrate(ylst_interm, W_batt_interm)
+                    
+                    Vz_loc_maxg = -L_toti_maxg+W_batt_toti
+                    Vz_loc_ming = -L_toti_ming+W_batt_toti
+                    
+                    Vz_maxg.append(Vz_loc_maxg)
+                    Vz_ming.append(Vz_loc_ming)
+                    
+                if len(Vz_maxg) == 0:
+                    Vz_maxg.append(-Li_maxg+W_batti)
+                    Vz_ming.append(-Li_ming+W_batti)
+                    
+            Vz_root_maxg = -Vz_maxg[-1]
+            Vz_root_ming = -Vz_ming[-1]
+            
+            Vz_maxg[-1] = Vz_maxg[-1]+Vz_root_maxg
+            Vz_ming[-1] = Vz_ming[-1]+Vz_root_ming
+            
+            Vz_maxg.reverse()
+            Vz_ming.reverse()
+            
+            
+        return Vz_maxg, Vz_ming
+    
+    def calc_Vx_dist(self):
+                
+        Vx_maxg = []
+        Vx_ming = []
+        
+        ylst_interm  = []
+        D_lst_interm_maxg = []
+        D_lst_interm_ming = []
+        
+        
+        for i in range(1, len(self.cross_sections)+1):
+            
+            Di_maxg = self.Dmax_cs_lst[-i]
+            Di_ming = self.Dmin_cs_lst[-i]
+            
+            ylst_interm.append(self.ylst[-i])
+            
+            D_lst_interm_maxg.append(Di_maxg)
+            D_lst_interm_ming.append(Di_ming)
+            
+            
+            if len(Vx_maxg) != 0:
+                D_toti_maxg = self.integrate(ylst_interm, D_lst_interm_maxg)
+                D_toti_ming = self.integrate(ylst_interm, D_lst_interm_ming)
+                
+                Vx_loc_maxg = D_toti_maxg
+                Vx_loc_ming = D_toti_ming
+                
+                Vx_maxg.append(Vx_loc_maxg)
+                Vx_ming.append(Vx_loc_ming)
+                
+            if len(Vx_maxg) == 0:
+                Vx_maxg.append(-Di_maxg)
+                Vx_ming.append(-Di_ming)
+                
+        Vx_root_maxg = -Vx_maxg[-1]
+        Vx_root_ming = -Vx_ming[-1]
+        
+        Vx_maxg[-1] = Vx_maxg[-1]+Vx_root_maxg
+        Vx_ming[-1] = Vx_ming[-1]+Vx_root_ming
+        
+        Vx_maxg.reverse()
+        Vx_ming.reverse()
+        
+        return Vx_maxg, Vx_ming
+    
+    
+    
+    def integrate(self, ylst, L_lst):
+        A_lst = []
+        for i in range(len(ylst)-1):
+            dy = abs(ylst[i+1]-ylst[i])
+            
+            A_ub = L_lst[i+1]*dy
+            A_lb = L_lst[i]*dy
+            A_av = (A_ub+A_lb)/2
+            
+            A_lst.append(A_av)
+            
+        return sum(A_lst)
+    
+    
+    
+        
+                    
+            
+            
+            
+    
+    
+                
+                
+                    
+               
         
           
         
