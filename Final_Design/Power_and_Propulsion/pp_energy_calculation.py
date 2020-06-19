@@ -11,7 +11,7 @@ def E_cruise_range(variables, range_m):
     :param range_m: range in meters
     :return: energy required for cruising based on range [J]
     """
-    CL, CD = sqrt(pi * variables.A * variables.e * variables.CD0), 2 * variables.CD0
+    CL, CD = sqrt(pi * variables.A * variables.eclean * variables.CD0clean), 2 * variables.CD0clean
     E = (range_m * variables.WTO)/(CL / CD)
 
     # Removing the 100 kg of battery (range is flying solo)
@@ -27,7 +27,7 @@ def E_cruise_endurance(variables, endurance_s):
     :param endurance_s: endurance in seconds
     :return: the energy for cruising based on range [J]
     """
-    CL, CD = sqrt(3 * pi * variables.CD0 * variables.e * variables.A), 4 * variables.CD0
+    CL, CD = sqrt(3 * pi * variables.CD0clean * variables.eclean * variables.A), 4 * variables.CD0clean
     V_loiter = CL/CD / sqrt(0.5 * variables.rho0 * CL**3 / CD**2 / (variables.WTO/variables.S))
     E = endurance_s*(1/2)*variables.rho0*(V_loiter**3)*variables.S*CD
     return E

@@ -189,11 +189,11 @@ def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
 
     lh = variables.lh                   # [m]       Tail arm
     zh = variables.h_htail              # [m]       Height horizontal tail from ground
-    Ah = variables.Ah                   # [-]       Horizontal tail aspect ratio
-    bh = variables.bh                   # [m]       Horizontal tail span
-    taperh = variables.taperh           # [-]       Horizontal tail taper ratio
+    Ah = variables.A_h                   # [-]       Horizontal tail aspect ratio
+    bh = variables.b_h                   # [m]       Horizontal tail span
+    taperh = variables.taper_h           # [-]       Horizontal tail taper ratio
     sweeph = variables.sweeph           # [rad]     Horizontal tail quarter chord sweep angle
-    crh = variables.cr_h                # [m]       Horizontal tail root chord
+    crh = variables.c_r_h                # [m]       Horizontal tail root chord
 
     VhV = variables.VhV                 # [-]       Tail/wing speed ratio
 
@@ -209,8 +209,8 @@ def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
     dClmax = variables.dClmax           # [-]       Airfoil lift coefficient increase at landing
     cc = variables.cc                   # [-]       Chord ratio (extended flap/clean)
     CL_landing = variables.CL_landing   # [-]       Wing lift coefficient at landing (all flaps deployed) TODO Implement this
-    Swf = variables.flapaffectarea      # [m2]      Reference wing flapped surface area
-    CL0 = variables.CL0                 # [-]       Flapped wing lift coefficient at zero angle of attack
+    Swf = variables.flapaffectedarea    # [m2]      Reference wing flapped surface area
+    CL0 = variables.CL0flap             # [-]       Flapped wing lift coefficient at zero angle of attack
     CLA_h = variables.CLA_h             # [-]       Aircraft less tail lift coefficient
     CLh = variables.CLh_L               # [-]       Horizontal tail landing configuration lift coefficient
 
@@ -336,7 +336,7 @@ def sizing_htail_wingpos(variables,plot=False):
     # Inputs
     lf = variables.fuselagelength   # [m]   Fuselage length
     Sw = variables.S                # [m2]  Wing surface area
-    sweepw = variables.sweep        # [rad] Wing quarter chord sweep angle
+    sweepw = 0        # [rad] Wing quarter chord sweep angle
     taperw = variables.taper        # [-]   Wing taper ratio
     bw = variables.b                # [m]   Wing span
     MAC = variables.MAC
