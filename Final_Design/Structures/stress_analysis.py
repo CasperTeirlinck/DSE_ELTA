@@ -176,7 +176,7 @@ class WingPlanform:
         self.airfoil    = 'naca4415'
         self.cr         = 1.98                   #m
         self.ct         = 0.79
-#        self.y_MAC      = (2/3)*self.cr*((1+self.taper+self.taper**2)/(1+self.taper))
+        self.y_MAC      = (2/3)*self.cr*((1+self.taper+self.taper**2)/(1+self.taper))
 
 
 
@@ -243,6 +243,7 @@ class StiffenedWing(WingPlanform):
         self.n_string_l      = n_string_l                               #number of stringers on lower sheet
         self.spar_le_loc     = spar_le_loc                              #x/c location of leading edge spar
         self.spar_te_loc     = spar_te_loc                              #x/c location of trailing edge spar
+        
         self.cross_sections  = self.create_cross_sections(n)[0]         #list of cross sections x,z coordinates (output: [[[x1,x2],[z1,z2]],...])
         self.ylst            = self.create_cross_sections(n)[1]         #list of all y coordinates of the cross sections
         self.clst            = self.create_cross_sections(n)[2]         #list of all chord lengths of cross sections
@@ -300,8 +301,6 @@ class StiffenedWing(WingPlanform):
         self.Am_lst          = self.calc_wb_A()
         self.V_wb            = self.calc_half_wing_volume()
         
-        self.y_MAC           = self.calc_y_lift_loc()
-        
         self.x_sc_cg_lst     = self.calc_sc_loc()[0]
         self.x_sc_lst        = self.calc_sc_loc()[1]
         
@@ -328,6 +327,8 @@ class StiffenedWing(WingPlanform):
         self.cp_maxL_int    = list(interpolate.interp1d(self.ylst_maxL, self.cp_maxL_lst, kind='slinear', fill_value='extrapolate')(self.ylst))
         self.cp_maxL        = interpolate.interp1d(self.ylst_maxL, self.cp_maxL_lst, kind='slinear', fill_value='extrapolate')([self.y_MAC])[0]
         
+        self.xsc_at_yMAC    = interpolate.interp1d(self.ylst, self.x_sc_lst, kind = 'slinear', fill_value='extrapolate')([self.y_MAC])[0]
+        
         self.Lmin_cs_lst    = list(interpolate.interp1d(self.ylst_minL, self.L_dist_ming, kind='slinear', fill_value='extrapolate')(self.ylst))
         self.Dmin_cs_lst    = list(interpolate.interp1d(self.ylst_minL, self.L_dist_ming, kind='slinear', fill_value='extrapolate')(self.ylst))
         self.cp_minL_int    = list(interpolate.interp1d(self.ylst_minL, self.cp_minL_lst, kind='slinear', fill_value='extrapolate')(self.ylst))
@@ -345,9 +346,23 @@ class StiffenedWing(WingPlanform):
             
             self.Vz_maxg_lst    = self.calc_Vz_dist()[0]
             self.Vz_ming_lst    = self.calc_Vz_dist()[1]
+            self.Vz_maxg_root   = self.calc_Vz_dist()[2]
+            self.Vz_ming_root   = self.calc_Vz_dist()[3]
             
             self.Vx_maxg_lst    = self.calc_Vx_dist()[0]
             self.Vx_ming_lst    = self.calc_Vx_dist()[1]
+            self.Vx_maxg_root   = self.calc_Vx_dist()[2]
+            self.Vx_ming_root   = self.calc_Vx_dist()[3]
+            
+            self.Mx_maxg_lst    = self.calc_Mx_dist()[0]
+            self.Mx_ming_lst    = self.calc_Mx_dist()[1]
+            self.Mx_maxg_root   = self.calc_Mx_dist()[2]
+            self.Mx_ming_root   = self.calc_Mx_dist()[3]
+            
+            self.Mz_maxg_lst    = self.calc_Mz_dist()[0]
+            self.Mz_ming_lst    = self.calc_Mz_dist()[1]
+            self.Mz_maxg_root   = self.calc_Mz_dist()[2]
+            self.Mz_ming_root   = self.calc_Mz_dist()[3]
         
         if self.batt == True:
             self.y_batt         = self.calc_batt_endpoint_y()[0]
@@ -362,9 +377,23 @@ class StiffenedWing(WingPlanform):
             
             self.Vz_maxg_lst    = self.calc_Vz_dist()[0]
             self.Vz_ming_lst    = self.calc_Vz_dist()[1]
+            self.Vz_maxg_root   = self.calc_Vz_dist()[2]
+            self.Vz_ming_root   = self.calc_Vz_dist()[3]
             
             self.Vx_maxg_lst    = self.calc_Vx_dist()[0]
             self.Vx_ming_lst    = self.calc_Vx_dist()[1]
+            self.Vx_maxg_root   = self.calc_Vx_dist()[2]
+            self.Vx_ming_root   = self.calc_Vx_dist()[3]
+            
+            self.Mx_maxg_lst    = self.calc_Mx_dist()[0]
+            self.Mx_ming_lst    = self.calc_Mx_dist()[1]
+            self.Mx_maxg_root   = self.calc_Mx_dist()[2]
+            self.Mx_ming_root   = self.calc_Mx_dist()[3]
+            
+            self.Mz_maxg_lst    = self.calc_Mz_dist()[0]
+            self.Mz_ming_lst    = self.calc_Mz_dist()[1]
+            self.Mz_maxg_root   = self.calc_Mz_dist()[2]
+            self.Mz_ming_root   = self.calc_Mz_dist()[3]
             
         
         
@@ -1139,25 +1168,50 @@ class StiffenedWing(WingPlanform):
         T_lst_maxg = []
         T_lst_ming = []
         
+        ylst_interm = []
+        L_maxg_interm_lst = []
+        L_ming_interm_lst = []
+        W_batt_interm = []
+        
+        xcp_maxg_interm = []
+        xcp_ming_interm = []
+        
+        
         if self.batt == False:
             
             for i in range(1, len(self.cross_sections)+1):
+                ylst_interm.append(self.ylst[-i])
+                
                 Li_maxg = self.Lmax_cs_lst[-i]
                 Li_ming = self.Lmin_cs_lst[-i]
                 
-                d_maxg  = self.xcp_maxg_lst[-i]-self.x_sc_lst[-i] #-ve d = -ve torque
-                d_ming  = self.xcp_ming_lst[-i]-self.x_sc_lst[-i]
+                L_maxg_interm_lst.append(Li_maxg)
+                L_ming_interm_lst.append(Li_ming)
                 
-                T_local_maxg = Li_maxg*d_maxg
-                T_local_ming = Li_ming*d_ming
+                xcp_maxg_i = self.xcp_maxg_lst[-i]
+                xcp_ming_i = self.xcp_ming_lst[-i]
+                
+                xcp_maxg_interm.append(xcp_maxg_i)
+                xcp_ming_interm.append(xcp_ming_i)
                 
                 if len(T_lst_maxg) != 0:
-                    T_lst_maxg.append(T_local_maxg + T_lst_maxg[-i+1])
-                    T_lst_ming.append(T_local_ming + T_lst_ming[-i+1])
+                    L_maxg_toti = self.integrate(ylst_interm, L_maxg_interm_lst)
+                    L_ming_toti = self.integrate(ylst_interm, L_ming_interm_lst)
+                    
+                    xcp_maxg = self.integrate(ylst_interm, xcp_maxg_interm)/(ylst_interm[0]-ylst_interm[i-1])
+                    xcp_ming = self.integrate(ylst_interm, xcp_maxg_interm)/(ylst_interm[0]-ylst_interm[i-1])
+                    
+                    xsc_i   = self.x_sc_lst[-i]
+                    
+                    T_maxg_toti = L_maxg_toti*(xcp_maxg-xsc_i)
+                    T_ming_toti = L_ming_toti*(xcp_ming-xsc_i)
+                    
+                    T_lst_maxg.append(T_maxg_toti)
+                    T_lst_ming.append(T_ming_toti)
                 
                 if len(T_lst_maxg) == 0:
-                    T_lst_maxg.append(T_local_maxg)
-                    T_lst_ming.append(T_local_ming)
+                    T_lst_maxg.append(0)
+                    T_lst_ming.append(0)
                 
                 
             T_root_maxg = -T_lst_maxg[-1]
@@ -1172,26 +1226,41 @@ class StiffenedWing(WingPlanform):
         
         if self.batt == True:
             for i in range(1, len(self.cross_sections)+1):
+                ylst_interm.append(self.ylst[-i])
+                
                 Li_maxg = self.Lmax_cs_lst[-i]
                 Li_ming = self.Lmin_cs_lst[-i]
-                
-                d_maxg  = self.xcp_maxg_lst[-i]-self.x_sc_lst[-i] #-ve d = -ve torque
-                d_ming  = self.xcp_ming_lst[-i]-self.x_sc_lst[-i]
-                
                 W_batti = self.batt_load_lst[-i]
                 
-                d_batt  = self.x_bar[-i]
+                L_maxg_interm_lst.append(Li_maxg)
+                L_ming_interm_lst.append(Li_ming)
+                W_batt_interm.append(W_batti)
                 
-                T_local_maxg = Li_maxg*d_maxg + W_batti*d_batt
-                T_local_ming = Li_ming*d_ming + W_batti*d_batt
+                xcp_maxg_i = self.xcp_maxg_lst[-i]
+                xcp_ming_i = self.xcp_ming_lst[-i]
+                
+                xcp_maxg_interm.append(xcp_maxg_i)
+                xcp_ming_interm.append(xcp_ming_i)
                 
                 if len(T_lst_maxg) != 0:
-                    T_lst_maxg.append(T_local_maxg + T_lst_maxg[-i+1])
-                    T_lst_ming.append(T_local_ming + T_lst_ming[-i+1])
+                    L_maxg_toti = self.integrate(ylst_interm, L_maxg_interm_lst)
+                    L_ming_toti = self.integrate(ylst_interm, L_ming_interm_lst)
+                    W_batt_toti = self.integrate(ylst_interm, W_batt_interm)
+                    
+                    xcp_maxg = self.integrate(ylst_interm, xcp_maxg_interm)/(ylst_interm[0]-ylst_interm[i-1])
+                    xcp_ming = self.integrate(ylst_interm, xcp_maxg_interm)/(ylst_interm[0]-ylst_interm[i-1])
+                    
+                    xsc_i   = self.x_sc_lst[-i]
+                    
+                    T_maxg_toti = L_maxg_toti*(xcp_maxg-xsc_i)+W_batt_toti*(self.x_bar[-1]-xsc_i)
+                    T_ming_toti = L_ming_toti*(xcp_ming-xsc_i)+W_batt_toti*(self.x_bar[-1]-xsc_i)
+                    
+                    T_lst_maxg.append(T_maxg_toti)
+                    T_lst_ming.append(T_ming_toti)
                 
                 if len(T_lst_maxg) == 0:
-                    T_lst_maxg.append(T_local_maxg)
-                    T_lst_ming.append(T_local_ming)
+                    T_lst_maxg.append(0)
+                    T_lst_ming.append(0)
                 
                 
             T_root_maxg = -T_lst_maxg[-1]
@@ -1203,7 +1272,6 @@ class StiffenedWing(WingPlanform):
             
             T_lst_maxg.reverse()
             T_lst_ming.reverse()
-            
         return T_lst_maxg, T_lst_ming, T_root_maxg, T_root_ming
     
     def calc_Vz_dist(self):
@@ -1291,7 +1359,7 @@ class StiffenedWing(WingPlanform):
             Vz_ming.reverse()
             
             
-        return Vz_maxg, Vz_ming
+        return Vz_maxg, Vz_ming, Vz_root_maxg, Vz_root_ming
     
     def calc_Vx_dist(self):
                 
@@ -1337,29 +1405,127 @@ class StiffenedWing(WingPlanform):
         Vx_maxg.reverse()
         Vx_ming.reverse()
         
-        return Vx_maxg, Vx_ming
+        return Vx_maxg, Vx_ming, Vx_root_maxg, Vx_root_ming
     
     
     def calc_Mx_dist(self):
-        Mx_maxg = [0]
-        Mx_ming = [0]
+        Mx_maxg = []
+        Mx_ming = []
         
-        for i in range(1, len(self.Vz_maxg_lst)-1):
-            
-            dy = self.ylst[i+1]-self.ylst(i)
-            
-            Mx_maxg_i = (self.Vz_maxg_lst[i+1]-self.Vz_maxg_lst[i-1])/2*dy
-            Mx_ming_i = (self.Vz_ming_lst[i+1]-self.Vz_ming_lst[i-1])/2*dy
-            
-            Mx_maxg.append(Mx_maxg_i)
-            Mx_ming.append(Mx_ming_i)
-            
-        Mx_maxg.append(0)
-        Mx_maxg.append(0)
+        ylst_interm       = []
+        L_lst_maxg_interm = []
+        L_lst_ming_interm = []
+        W_batt_interm     = []
         
+        if self.batt == False:
+            for i in range(1, len(self.Vz_maxg_lst)+1):
+                ylst_interm.append(self.ylst[-i])
+                L_lst_maxg_interm.append(self.Lmax_cs_lst[-i])
+                L_lst_ming_interm.append(self.Lmin_cs_lst[-i])
+                
+                if len(Mx_maxg) != 0:
+                    d_maxg = self.calc_force_loc(ylst_interm, L_lst_maxg_interm)
+                    d_ming = self.calc_force_loc(ylst_interm, L_lst_ming_interm)
+                    
+                    L_maxg_toti = self.integrate(ylst_interm, L_lst_maxg_interm)
+                    L_ming_toti = self.integrate(ylst_interm, L_lst_ming_interm)
+                    
+                    Mx_maxg_i = L_maxg_toti*d_maxg
+                    Mx_ming_i = L_ming_toti*d_ming
+                    
+                    Mx_maxg.append(Mx_maxg_i)
+                    Mx_ming.append(Mx_ming_i)
+                    
+                if len(Mx_maxg) == 0:
+                    Mx_maxg.append(0)
+                    Mx_ming.append(0)
+                
+            Mx_root_maxg = -Mx_maxg[-1]
+            Mx_root_ming = -Mx_ming[-1]
+            
+            Mx_maxg[-1]  = Mx_maxg[-1]+Mx_root_maxg
+            Mx_ming[-1]  = Mx_ming[-1]+Mx_root_ming
+            
+            Mx_maxg.reverse()
+            Mx_ming.reverse()
         
+        if self.batt == True:
+            for i in range(1, len(self.Vz_maxg_lst)+1):
+                ylst_interm.append(self.ylst[-i])
+                L_lst_maxg_interm.append(self.Lmax_cs_lst[-i])
+                L_lst_ming_interm.append(self.Lmin_cs_lst[-i])
+                W_batt_interm.append(self.batt_load_lst[-i])
+                
+                if len(Mx_maxg) != 0:
+                    d_maxg = self.calc_force_loc(ylst_interm, L_lst_maxg_interm)
+                    d_ming = self.calc_force_loc(ylst_interm, L_lst_ming_interm)                    
+                    d_batt = self.calc_force_loc(ylst_interm, W_batt_interm)
+                    
+                    L_maxg_toti = self.integrate(ylst_interm, L_lst_maxg_interm)
+                    L_ming_toti = self.integrate(ylst_interm, L_lst_ming_interm)
+                    W_batt_toti = self.integrate(ylst_interm, W_batt_interm)
+                    
+                    Mx_maxg_i = L_maxg_toti*d_maxg-W_batt_toti*d_batt
+                    Mx_ming_i = L_ming_toti*d_ming-W_batt_toti*d_batt
+                    
+                    Mx_maxg.append(Mx_maxg_i)
+                    Mx_ming.append(Mx_ming_i)
+                
+                if len(Mx_maxg) == 0:
+                    Mx_maxg.append(0)
+                    Mx_ming.append(0)
+            
+            Mx_root_maxg = -Mx_maxg[-1]
+            Mx_root_ming = -Mx_ming[-1]
+            
+            Mx_maxg[-1]  = Mx_maxg[-1]+Mx_root_maxg
+            Mx_ming[-1]  = Mx_ming[-1]+Mx_root_ming
+            
+            Mx_maxg.reverse()
+            Mx_ming.reverse()
+        
+        return Mx_maxg, Mx_ming, Mx_root_maxg, Mx_root_ming
     
-    
+    def calc_Mz_dist(self):
+        Mx_maxg = []
+        Mx_ming = []
+        
+        ylst_interm       = []
+        D_lst_maxg_interm = []
+        D_lst_ming_interm = []
+        
+        for i in range(1, len(self.Vz_maxg_lst)+1):
+            ylst_interm.append(self.ylst[-i])
+            D_lst_maxg_interm.append(self.Dmax_cs_lst[-i])
+            D_lst_ming_interm.append(self.Dmin_cs_lst[-i])
+            
+            if len(Mx_maxg) != 0:
+                d_maxg = self.calc_force_loc(ylst_interm, D_lst_maxg_interm)
+                d_ming = self.calc_force_loc(ylst_interm, D_lst_ming_interm)
+                
+                D_maxg_toti = self.integrate(ylst_interm, D_lst_maxg_interm)
+                D_ming_toti = self.integrate(ylst_interm, D_lst_ming_interm)
+                
+                Mx_maxg_i = D_maxg_toti*d_maxg
+                Mx_ming_i = D_ming_toti*d_ming
+                
+                Mx_maxg.append(Mx_maxg_i)
+                Mx_ming.append(Mx_ming_i)
+                
+            if len(Mx_maxg) == 0:
+                Mx_maxg.append(0)
+                Mx_ming.append(0)
+            
+        Mx_root_maxg = -Mx_maxg[-1]
+        Mx_root_ming = -Mx_ming[-1]
+        
+        Mx_maxg[-1]  = Mx_maxg[-1]+Mx_root_maxg
+        Mx_ming[-1]  = Mx_ming[-1]+Mx_root_ming
+        
+        Mx_maxg.reverse()
+        Mx_ming.reverse()
+        
+        return Mx_maxg, Mx_ming, Mx_root_maxg, Mx_root_ming
     
     def integrate(self, ylst, L_lst):
         A_lst = []
@@ -1373,6 +1539,28 @@ class StiffenedWing(WingPlanform):
             A_lst.append(A_av)
             
         return sum(A_lst)
+    
+    def calc_force_loc(self, ylst_aero, cl_lst):
+        
+        yA = []
+        A  = []
+        
+        for i in range(len(ylst_aero)-1):
+            y = (ylst_aero[i]+ylst_aero[i+1])/2
+            A_ub = cl_lst[i+1]*(ylst_aero[i+1]-ylst_aero[i])
+            A_lb = cl_lst[i]*(ylst_aero[i+1]-ylst_aero[i])
+            A_av = (A_ub+A_lb)/2
+            
+            yA.append(y*A_av)
+            A.append(A_av)
+            
+        if sum(A) != 0:
+            return sum(yA)/sum(A)
+        
+        if sum(A) == 0:
+            return 0
+    
+        
     
     
     
