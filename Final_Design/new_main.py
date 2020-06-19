@@ -19,7 +19,6 @@ def do_loop(v):
         get_design_point(v)
 
     sys_Aerodynamics_wing(v,wingresolution)
-    print(v.flapstart,v.flapend)
     sys_Aerodynamics_total(v)
     v.W_wing = MainWingEstimationNew(v)
     
