@@ -6,8 +6,8 @@ from Stability_and_Control.empennagecontrol_design import *
 from Power_and_Propulsion.battery_main import *
 from Midterm_Design.ClassIIWeightEstimation import *
 
-wingresolution = 1005
-iterating_designpoint = False
+wingresolution = 100
+iterating_designpoint = True
 
 def do_subloop1(airplane):
     sizing_htail_wingpos(v)
@@ -20,15 +20,16 @@ def do_loop(v):
     if iterating_designpoint:
         get_design_point(v)
 
-    sys_Aerodynamics_wing(v,wingresolution)
+    sys_Aerodynamics_wing(v ,wingresolution)
     sys_Aerodynamics_total(v)
     v.W_wing = MainWingEstimationNew(v)
 
     v = power_calculation(v)
     v = main_bat(v)
+
     v = sizing_htail_wingpos(v)
     v = verticaltail_sizing(v)
-    v = elevator_sizing(v)
+    #v = elevator_sizing(v)
 
 
 
