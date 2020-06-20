@@ -24,9 +24,11 @@ class NewVariables:
 
         self.Vcruise = 50           # [m/s]         Cruise speed
         self.V = self.Vcruise
-        self.Vs = 23.15
+        self.Vs = 23.15    
         self.hcruise = 914.4        # [m]           Cruise altitude
         self.rhocruise = 1.12
+        self.rhotakeoff = 
+
         self.fuselagelength = 9.420
         self.fuselagewidth = 1.05
         self.fuselageheight = 1.211

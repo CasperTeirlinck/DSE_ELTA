@@ -90,7 +90,7 @@ def turnrate(rho, V, CD0, phi, A, e, WS):
 
 def get_design_point(variables, plot_result=False):
     # Returns WS and WP of the feasible design point
-    WS_s = stallspeed(CLmax=variables.CL_landing, Vs=variables.Vs, rho=variables.rho)  # Stallspeed
+    WS_s = stallspeed(CLmax=variables.CL_landing, Vs=variables.Vs, rho=variables.rhocruise)  # Stallspeed
     # WS_s = stallspeed(CLmax=variables.CLmaxto, Vs=variables.Vs, rho=variables.rho)  # Stallspeed
 
     WS_landing1 = landing(CLmax=variables.CLmaxland, rho=variables.rho, sland=variables.sland,
