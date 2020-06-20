@@ -93,7 +93,7 @@ def get_design_point(variables, plot_result=False):
     WS_s = stallspeed(CLmax=variables.CL_landing, Vs=variables.Vs, rho=variables.rhocruise)  # Stallspeed
     # WS_s = stallspeed(CLmax=variables.CLmaxto, Vs=variables.Vs, rho=variables.rho)  # Stallspeed
 
-    WS_landing1 = landing(CLmax=variables.CLmaxland, rho=variables.rho, sland=variables.sland,
+    WS_landing1 = landing(CLmax=variables.CLmaxland, rho=variables.rhotakeoff, sland=variables.sland,
                           f=variables.f)  # Pessimistic landing
     # WS_landing2 = landing(CLmax=variables.CLmaxland[1], rho=variables.rho, sland=variables.sland,
     #                       f=variables.f)  # Neutral landing

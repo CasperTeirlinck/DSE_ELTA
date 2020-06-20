@@ -103,7 +103,7 @@ if __name__ == "__main__":
         Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
         plotLiftDistribution(yPnts, [Cl_distr])
 
-    CD0 = wing.calcCD0(v.S_wet_fus, v.l_fus, v.fus_A_max, v.w_fuselage, v.S_h, v.S_v, v.MAC_emp, v.BLturbratio_fus, v.BLturbratio_wing, v.BLturbratio_emp, v.l_gear, v.w_gear, v.dCD_gear, v.flap_area_ratio, v.tc_emp, v.xc_emp, v.V_stall, v.rho_cruise, v.visc)
+    CD0 = wing.calcCD0(v.S_wet_fus, v.l_fus, v.fus_A_max, v.w_fuselage, v.S_h, v.S_v, v.MAC_emp, v.BLturbratio_fus, v.BLturbratio_wing, v.BLturbratio_emp, v.l_gear, v.w_gear, v.dCD_gear, v.flap_area_ratio, v.tc_emp, v.xc_emp, v.V_stall, v.rho_cruise, v.visc,clean_config=False)
 
     CD0wing = wing.calcCD0wing(1.,0,0)
 

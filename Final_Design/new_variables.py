@@ -28,7 +28,8 @@ class NewVariables:
         self.Vs = 23.15    
         self.hcruise = 914.4        # [m]           Cruise altitude
         self.rhocruise = 1.12
-        self.rhotakeoff = 
+        self.rhotakeoff = 1.04
+        self.sigma = self.rhotakeoff/rhocruise
 
         self.fuselagelength = 9.420
         self.fuselagewidth = 1.05
@@ -38,8 +39,8 @@ class NewVariables:
 
         self.n_ult = 4.81 # TO BE OVERWRITTEN. ASK CASPER HOW TO IMPLEMENT THIS
 
-        self.h_landinggear = 2
-        self.w_landinggear = 0.5
+        self.h_landinggear = 0.8
+        self.w_landinggear = 0.175
 
         self.h_htail = self.h_landinggear + .5*self.fuselageheight
 
@@ -56,8 +57,10 @@ class NewVariables:
         self.xcg_min = None
         self.xcg_max = None
 
-        self.WP = 0.121 #PLACEHOLDERS
-        self.WS = 592 #PLACEHOLDERS
+
+
+        self.WP = 0.121 
+        self.WS = 592 
 
     def init_aerodynamics(self,haswinglets,wingletheight):
         # Conditions
@@ -108,10 +111,10 @@ class NewVariables:
         
         # Requirements
         self.CL_landing = 2.0
-
+        self.CL_takeoff = self.CL_landing/(1.1**2)
         # Constants statistical variables
         self.kwl = 2.1
-        self.dCD_landinggear = 35
+        self.dCD_landinggear = 0.15
 
         # Airfoil properties
         self.Clmax_r = 1.6
@@ -146,7 +149,7 @@ class NewVariables:
         self.wing_CL_max = None
         self.wing_alpha_max = None
         self.CD0clean = 0.01912
-        self.CD0flap = None
+        self.CD0flap = 0.04
         if haswinglets:
             self.eclean = 0.84
         if not haswinglets:
