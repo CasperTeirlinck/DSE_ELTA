@@ -29,7 +29,13 @@ class NewVariables:
         self.hcruise = 914.4        # [m]           Cruise altitude
         self.rhocruise = 1.12
         self.rhotakeoff = 1.04
-        self.sigma = self.rhotakeoff/rhocruise
+        self.sigma = self.rhotakeoff/self.rhocruise
+
+        self.sto = 500
+        self.k = np.sqrt(5647.9 + 17.331 * self.sto) - 75.153
+        self.sland = 500
+
+        self.designpointfactor = 1
 
         self.fuselagelength = 9.420
         self.fuselagewidth = 1.05
@@ -37,6 +43,7 @@ class NewVariables:
         self.fuselagefrontalarea = 1.218
         self.fuselagewettedarea = 17.507
 
+        self.c = 2
         self.n_ult = 4.81 # TO BE OVERWRITTEN. ASK CASPER HOW TO IMPLEMENT THIS
 
         self.h_landinggear = 0.8
@@ -112,6 +119,8 @@ class NewVariables:
         # Requirements
         self.CL_landing = 2.0
         self.CL_takeoff = self.CL_landing/(1.1**2)
+        self.CL_climb = 1.8
+
         # Constants statistical variables
         self.kwl = 2.1
         self.dCD_landinggear = 0.15
@@ -149,12 +158,15 @@ class NewVariables:
         self.wing_CL_max = None
         self.wing_alpha_max = None
         self.CD0clean = 0.01912
-        self.CD0flap = 0.04
+        self._CD0flap = 0.04
+        self.CD0to = self.CD0flap/(1.1**2)
         if haswinglets:
             self.eclean = 0.84
         if not haswinglets:
             self.eclean = 0.79
         self.eflaps = None
+
+        self.CD_climb = self.CD0clean + self.CL_climb**2/(np.pi*self.A*self.eclean) # MAKE USED VARIABLES PRIVATE
 
         # Working variables
         self.coeff = None
@@ -462,6 +474,15 @@ class NewVariables:
     def YMAC(self, val):
         self._YMAC = val
         self.XMAC = self.YMAC * np.tan(self.sweepLE)
+
+    @property
+    def CD0flap(self):
+        return self._CD0flap
+
+    @CD0flap.setter
+    def CD0flap(self,val):
+        self._CD0flap = val
+        self.CD0to = self.CD0flap/(1.1**2)
 
 
     ###################################

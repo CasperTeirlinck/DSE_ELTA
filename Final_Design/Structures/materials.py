@@ -1,4 +1,4 @@
-from stringerclass import MatProps
+from Structures.stringerclass import MatProps
 
 def materials():
     materials = {}
