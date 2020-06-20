@@ -11,6 +11,7 @@ class NewVariables:
         self.init_fuselage()
         self.init_propulsion()
         self.init_sc()
+        self.init_weight()
 
     def init_general(self):
         self.WTO = 750
@@ -49,10 +50,9 @@ class NewVariables:
         self.h_landinggear = 0.8
         self.w_landinggear = 0.175
 
-        self.h_htail = self.h_landinggear + .5*self.fuselageheight
+        self.la = 11
 
-        self.W_wing = None
-        self.W_fgroup = 250
+        self.h_htail = self.h_landinggear + .5*self.fuselageheight
 
         self.cg_wing = 0.8         # [m]           Distance LE root chord - wing cg
         self.xwing = None
@@ -172,7 +172,7 @@ class NewVariables:
         self.coeff = None
 
     def init_fuselage(self):
-        self.Wfus_aft = 50*9.81
+        
         self.cockpitbulkhead = 2.2 # m, back of the cockpit
         self._sparsamount = 8 # [-] amount of spars behind the cockpit bulkhead in the fuselage
         self.sparlocs = [2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.sparsamount+1) for n in range(self.sparsamount+1)]
@@ -191,7 +191,19 @@ class NewVariables:
         self.batteryoffset = 0.1 # [m] battery distance behind the cockpit aft bulkhead
         self.batteryoffset2 = 0.2 # [m] distance of second attachment point of the battery from the first
 
-
+    def init_weight(self):        
+        self.W_wing    = None           # Wing weight
+        
+        self.W_batt    = None           # Battery weight in Newtons
+        self.W_motor   = 30 * 9.81      # Motor weight in Newtons
+        self.W_shaft   = 4.48 * 9.81    # Engine shaft weight in Newtons
+        self.W_prop    = 12 * 9.81      # Propeller weight in Newtons
+        
+        self.W_syscomp = 69.2*9.81         # System component weight (TE package + avionics + electronics)
+        
+        self.W_fus_fwd = None
+        self.Wfus_aft  = 50*9.81
+        self.W_fgroup = 250
 
     @property
     def n_stiff(self):
@@ -213,11 +225,7 @@ class NewVariables:
 
     def init_propulsion(self):
         # Sizing
-        self.W_batt       = None           # Battery weight in Newtons
         self.v_batt       = None           # Battery volume in liters
-        self.W_motor      = 30 * 9.80665   # Motor weight in Newtons
-        self.W_shaft      = 4.48 * 9.80665 # Engine shaft weight in Newtons
-        self.W_prop       = 12 * 9.80665   # Propeller weight in Newtons
         self.P_max        = 65 * 1000      # Maximum power produced by the engine in W
 
         # Battery characteristics
@@ -295,7 +303,7 @@ class NewVariables:
 
         self.CnB = None             # [-]           Directional stability coefficient
 
-        '''
+        
         # Flight performance parameters
         self.a_pitch = 12*pi/180    # [rad/s]       Take-off pitch angular velocity
         self.VTO = 1.05 * 25.2      # [m/s]         Take-off velocity
@@ -324,7 +332,7 @@ class NewVariables:
         # Horizontal tail aerodynamic parameters
         self.CLh_TO = None          # [-]           Horizontal tail take-off lift coefficient
         self.CLah = 4               # [/rad]        Horizontal lift curve slope
-        '''
+        
 
     @property
     def Sh(self):
