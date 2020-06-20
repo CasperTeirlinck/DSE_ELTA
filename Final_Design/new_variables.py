@@ -222,6 +222,8 @@ class NewVariables:
 
         self.W_htail = None
         self.W_vtail = None
+        
+        self.W_OEW = None
 
     @property
     def fuselage(self):
@@ -1052,3 +1054,10 @@ def sys_Aerodynamics_total(v):
     v.e_flaps = v.calcOswald(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.hasWinglets,clean_config=True)
     return v
 
+def CalcOEW(v):
+    v.W_OEW = v.W_wing + v.W_fuselage + v.W_motor + v.W_shaft + v.W_prop + v.W_syscomp + v.W_htail + v.W_vtail
+    return v
+
+def CalcMTOWnew(v):
+    v.WTO = v.W_OEW + v.WPL + W_batt
+    return v

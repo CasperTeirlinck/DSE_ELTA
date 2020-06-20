@@ -10,8 +10,7 @@ wingresolution = 100
 iterating_designpoint = True
 
 def do_subloop1(airplane):
-    sizing_htail_wingpos(v)
-    sys_Aerodynamics_total(v)
+    
     
 
 
@@ -31,11 +30,14 @@ def do_loop(v):
     v.W_htail,v.W_vtail = EmpennageEstimation(v)
 
 
+
     v = sizing_htail_wingpos(v)
     v = verticaltail_sizing(v)
-    v = elevator_sizing(v)
-    v.W_ = EmpennageEstimation(v)
+    v = elevator_sizing(v)    
+    
 
+    v = CalcOEW(v)
+    v = CalcMTOWnew(v)
 
 if __name__ == "__main__":
     v = NewVariables(False,0.)
