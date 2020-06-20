@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     """ === SHOW === """
 
-    if False:
+    if True:
         S_h = 20
         A_h = 3
         taper_h = 0.7
