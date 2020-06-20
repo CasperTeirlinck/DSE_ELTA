@@ -14,9 +14,8 @@ class NewVariables:
         self.init_weight()
 
     def init_general(self):
-        self.WTO = 750
+        self.WTO = 750*9.81
         self.Woew_classII = None
-        self.WPL = 1961.33
         self.rho0 = 1.225
         self.g0 = 9.80665
         self.R = 287.05
@@ -192,6 +191,8 @@ class NewVariables:
         self.batteryoffset2 = 0.2 # [m] distance of second attachment point of the battery from the first
 
     def init_weight(self):        
+        self.WPL = 1961.33
+        
         self.W_wing    = None           # Wing weight
         
         self.W_batt    = None           # Battery weight in Newtons
@@ -199,11 +200,14 @@ class NewVariables:
         self.W_shaft   = 4.48 * 9.81    # Engine shaft weight in Newtons
         self.W_prop    = 12 * 9.81      # Propeller weight in Newtons
         
-        self.W_syscomp = 69.2*9.81         # System component weight (TE package + avionics + electronics)
+        self.W_syscomp = 69.2*9.81      # System component weight (TE package + avionics + electronics)
         
         self.W_fus_fwd = None
         self.Wfus_aft  = 50*9.81
         self.W_fgroup = 250
+
+        self.W_htail = None
+        self.W_vtail = None
 
     @property
     def n_stiff(self):

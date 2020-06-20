@@ -27,9 +27,14 @@ def do_loop(v):
     v = power_calculation(v)
     v = main_bat(v)
 
+
+    v.W_htail,v.W_vtail = EmpennageEstimation(v)
+
+
     v = sizing_htail_wingpos(v)
     v = verticaltail_sizing(v)
     v = elevator_sizing(v)
+    v.W_ = EmpennageEstimation(v)
 
 
 if __name__ == "__main__":
