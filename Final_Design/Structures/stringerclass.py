@@ -23,14 +23,12 @@ class MatProps():
 
 class J_Stringer():
     name = "J_Stringer"
-    def __init__(self, Le, material: MatProps, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
+    def __init__(self, Le, material: MatProps, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b3=0.005, b4=0.005):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png, gray area included in 2_alt
         # Reference coordinate system is x positive to the left, y positive upwards, origin bottom right.
         self._Le = Le
         self.material = material
-
-        self.ts = ts
 
         self.t1 = t1
         self.t2 = t2
@@ -98,7 +96,7 @@ class J_Stringer():
               self.area1*(self.b2+self.t4+self.t1*0.5-self.ybar)**2 + \
               self.area2_alt * (self.area2_alt/(2*self.t2)-self.ybar)**2 + \
               self.area4*(self.t4*0.5-self.ybar)**2 + self.area3*(self.t3*0.5-self.ybar)**2
-        Iyy = (self.t1*self.b1**3+(self.b2+self.t1+self.t4)*self.t2**3+self.t4+self.b4**3+self.t3*self.b3**3) + \
+        Iyy = (self.t1*self.b1**3+(self.b2+self.t1+self.t4)*self.t2**3+self.t4*self.b4**3+self.t3*self.b3**3) + \
               self.area1*(self.b4+self.t2+self.b1*0.5-self.xbar)**2 + self.area2*(self.b4+self.t2*0.5-self.xbar)**2 + \
               self.area4*(self.b4*0.5-self.xbar)**2 + self.area3*(self.b4+self.t2+self.b3*0.5-self.xbar)**2
         Ixy = self.area1*(self.b2+self.t4+self.t1*0.5-self.ybar)*(self.b4+self.t2+self.b1*0.5-self.xbar) + \
@@ -128,8 +126,7 @@ class Z_Stringer(J_Stringer):
     def __init__(self, Le, material, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b4=0.005, t3=None, b3=None):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png without the t3 and b3 elements
-        super().__init__(Le=Le, material=material, stiff_ratio=stiff_ratio,
-                         ts=ts, t1=t1, t2=t2, t4=t4, b1=b1, b2=b2, b4=b4)
+        super().__init__(Le=Le, material=material, t1=t1, t2=t2, t4=t4, b1=b1, b2=b2, b4=b4)
 
     def calc_total_area(self):
         return self.area1 + self.area2_alt + self.area4
@@ -192,10 +189,10 @@ if __name__ == "__main__":
     print(translate_mmoi(1,2,0,0*pi/180))
     aluminium = MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, name="AA2024", alpha=0.8, n=0.6)
 
-    kwargs = {'t1':0.001, 't2':0.001, 't3':0.001, 't4':0.001, 'b1':0.005, 'b2':0.005, 'b3':0.005, 'b4':0.005}
+    kwargs = {'t1':0.001, 't2':0.001, 't3':0.001, 't4':0.001, 'b1':0.01, 'b2':0.02, 'b3':0.01, 'b4':0.01}
 
-    j = J_Stringer(Le=0.4, material=aluminium, ts=0.001, **kwargs)
-    z = Z_Stringer(Le=0.4, material=aluminium, ts=0.001, **kwargs)
+    j = J_Stringer(Le=0.4, material=aluminium, **kwargs)
+    z = Z_Stringer(Le=0.4, material=aluminium, **kwargs)
 
     stringer = Stringer(0.0, 1.0, j)
 

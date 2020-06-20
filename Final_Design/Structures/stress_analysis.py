@@ -24,6 +24,9 @@ from scipy import interpolate
 #################################################################
 ######### AERODYNAMIC STUFF HARD CODED IN VMIN AND VMAX #########
 #################################################################
+### IF STRINGER TYPE WANTS TO BE CHANGED, MUST BE DONE INSIDE ###
+###################### STIFFENED WING CLASS #####################
+#################################################################
 
 
 
@@ -46,14 +49,16 @@ class MatProps():
         if name != None:
             self.name = name
 
-
+aluminum=MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, G=28E9, name="AA2024", alpha=0.8, n=0.6)
 
 class J_Stringer:
     name = "J_Stringer"
-    def __init__(self, Le, material, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
+    def __init__(self, xpos, zpos, Le=1, material=aluminum, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b3=0.005, b4=0.005):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png, gray area included in 2_alt
         # Reference coordinate system is x positive to the left, y positive upwards, origin bottom right.
+        self.xpos = xpos
+        self.zpos = zpos
         self.Le = Le
 
         self.material = material
@@ -129,10 +134,10 @@ class J_Stringer:
 
 class Z_Stringer(J_Stringer):
     name = "Z_Stringer"
-    def __init__(self, Le, material, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
+    def __init__(self, xpos, zpos, Le=1, material=aluminum, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b4=0.005, t3=None, b3=None):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png without the t3 and b3 elements
-        super().__init__(Le=Le, material=material, stiff_ratio=stiff_ratio,
+        super().__init__(xpos=xpos, zpos=zpos, Le=Le, material=material, stiff_ratio=stiff_ratio,
                          ts=ts, t1=t1, t2=t2, t4=t4, b1=b1, b2=b2, b4=b4)
 
         self.total_area = self.area1 + self.area2_alt + self.area4
@@ -180,7 +185,7 @@ class WingPlanform:
 
 
 
-aluminum=MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, G=28E9, name="AA2024", alpha=0.8, n=0.6)
+
 
 
 class SparProp:
@@ -229,7 +234,7 @@ class Skin:
 
 
 class StiffenedWing(WingPlanform):
-    def __init__(self, n, z_stiff, j_stiff, n_string_u, n_string_l,
+    def __init__(self, n, n_string_u, n_string_l,
                  spar_le_loc, spar_te_loc, spar, skin, batt = False):
         super().__init__()
         self.stringers_u_lst = [list(zeros) for zeros in np.zeros((n, n_string_u))]
@@ -287,9 +292,9 @@ class StiffenedWing(WingPlanform):
             spars_cs[1]      = Spar(spar_x_loc_te_cs, spar_z_loc_te_cs, spar_h_te_cs)
 
             for j in range(len(stringers_u_cs)):
-                stringers_u_cs[j] = Stringer(stringers_u_x_cs[j], stringers_u_z_cs[j], j_stiff)
+                stringers_u_cs[j] = J_Stringer(stringers_u_x_cs[j], stringers_u_z_cs[j])
             for k in range(len(stringers_l_cs)):
-                stringers_l_cs[k] = Stringer(stringers_l_x_cs[k], stringers_l_z_cs[k], z_stiff)
+                stringers_l_cs[k] = Z_Stringer(stringers_l_x_cs[k], stringers_l_z_cs[k])
         
         self.x_bar           = self.calc_centroid_wb()[0]
         self.z_bar           = self.calc_centroid_wb()[1]
@@ -300,6 +305,8 @@ class StiffenedWing(WingPlanform):
         
         self.Am_lst          = self.calc_wb_A()
         self.V_wb            = self.calc_half_wing_volume()
+        
+        self.x_cg_wing       = self.calc_wing_cg()
         
         self.x_sc_cg_lst     = self.calc_sc_loc()[0]
         self.x_sc_lst        = self.calc_sc_loc()[1]
@@ -705,7 +712,7 @@ class StiffenedWing(WingPlanform):
             for j in range(len(stringers_x_u_cs)):
                 x_co   = stringers_x_u_cs[j]
                 z_co   = stringers_z_u_cs[j]
-                A_st_u = self.stringers_u_lst[i][j].properties.total_area
+                A_st_u = self.stringers_u_lst[i][j].total_area
                 xA.append(x_co*A_st_u)
                 zA.append(z_co*A_st_u)
                 A.append(A_st_u)
@@ -713,7 +720,7 @@ class StiffenedWing(WingPlanform):
             for k in range(len(stringers_x_l_cs)):
                 x_co   = stringers_x_l_cs[k]
                 z_co   = stringers_z_l_cs[k]
-                A_st_l = self.stringers_l_lst[i][k].properties.total_area
+                A_st_l = self.stringers_l_lst[i][k].total_area
                 xA.append(x_co*A_st_l)
                 zA.append(z_co*A_st_l)
                 A.append(A_st_l)
@@ -761,7 +768,7 @@ class StiffenedWing(WingPlanform):
             for j in range(len(self.stringers_u_lst[i])):
                 x = self.stringers_u_lst[i][j].xpos-self.x_bar[i]
                 z = self.stringers_u_lst[i][j].zpos-self.z_bar[i]
-                A = self.stringers_u_lst[i][j].properties.total_area
+                A = self.stringers_u_lst[i][j].total_area
                 x2A.append(x**2*A)
                 z2A.append(z**2*A)
                 xzA.append(x*z*A)
@@ -769,7 +776,7 @@ class StiffenedWing(WingPlanform):
             for k in range(len(self.stringers_l_lst[i])):
                 x = self.stringers_l_lst[i][k].xpos-self.x_bar[i]
                 z = self.stringers_l_lst[i][k].zpos-self.z_bar[i]
-                A = self.stringers_l_lst[i][k].properties.total_area
+                A = self.stringers_l_lst[i][k].total_area
                 x2A.append(x**2*A)
                 z2A.append(z**2*A)
                 xzA.append(x*z*A)
@@ -881,19 +888,19 @@ class StiffenedWing(WingPlanform):
             Ixz = self.Ixz_lst[i]
             
             for l in range(len(stringers_u_cs)-2):
-                qbi = -(Vz*Izz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[l+1].zpos*stringers_u_cs[l+1].properties.total_area + (Vz*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[l+1].xpos*stringers_u_cs[l+1].properties.total_area + qb[l]
+                qbi = -(Vz*Izz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[l+1].zpos*stringers_u_cs[l+1].total_area + (Vz*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[l+1].xpos*stringers_u_cs[l+1].total_area + qb[l]
                 qb.append(qbi)
             
             
-            qb_sp_le = -(Vz*Izz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[-1].zpos*stringers_u_cs[-1].properties.total_area + (Vz*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[-1].xpos*stringers_u_cs[-1].properties.total_area + qb[-1]
+            qb_sp_le = -(Vz*Izz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[-1].zpos*stringers_u_cs[-1].total_area + (Vz*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[-1].xpos*stringers_u_cs[-1].total_area + qb[-1]
             qb.append(qb_sp_le)
             
             
             for m in range(len(stringers_l_cs)-1):
-                qbi = -(Vz*Izz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[m+1].zpos*stringers_l_cs[m+1].properties.total_area + (Vz*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[m+1].xpos*stringers_l_cs[m+1].properties.total_area + qb[l+m+2]
+                qbi = -(Vz*Izz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[m+1].zpos*stringers_l_cs[m+1].total_area + (Vz*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[m+1].xpos*stringers_l_cs[m+1].total_area + qb[l+m+2]
                 qb.append(qbi)
             
-            qb_sp_te = -(Vz*Izz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[-1].zpos*stringers_l_cs[-1].properties.total_area + (Vz*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[-1].xpos*stringers_l_cs[-1].properties.total_area + qb[-1]
+            qb_sp_te = -(Vz*Izz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[-1].zpos*stringers_l_cs[-1].total_area + (Vz*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[-1].xpos*stringers_l_cs[-1].total_area + qb[-1]
             qb.append(qb_sp_te)
             
             qb_cs.append(qb)
@@ -1560,6 +1567,22 @@ class StiffenedWing(WingPlanform):
         if sum(A) == 0:
             return 0
     
+    def calc_wing_cg(self):
+        
+        xA = []
+        A  = []
+        
+        for i in range(len(self.cross_sections)):
+            x_bari = self.x_bar[i]
+            Ai = self.Am_lst[i]
+            
+            xA.append(x_bari*Ai)
+            A.append(Ai)
+        
+        return sum(xA)/sum(A)
+    
+        
+    
         
     
     
@@ -1590,4 +1613,4 @@ aluminium=MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, G=2
 z_stiff = Z_Stringer(1, aluminium)
 j_stiff = J_Stringer(1, aluminium)
 skin    = Skin()
-wing = StiffenedWing(100, z_stiff, j_stiff, 50, 50, 0.25, 0.75, Spar,skin)
+wing = StiffenedWing(100, 50, 50, 0.25, 0.75, Spar,skin)

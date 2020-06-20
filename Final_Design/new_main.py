@@ -35,5 +35,6 @@ def do_loop(v):
 
 if __name__ == "__main__":
     v = NewVariables(False,0.)
+    print(v.Snet)
     do_loop(v)
     print("IT WORKS!!")
