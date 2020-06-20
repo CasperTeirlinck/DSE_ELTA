@@ -268,6 +268,7 @@ class NewVariables:
         self.ih = 0                 # [rad]         Horizontal tail incidence angle
         
         self.CLh_L = -0.8           # [-]           Horizontal tail landing configuration lift coefficient
+        self.CLh_TO = None          # [-]           Horizontal tail take-off configuration lift coefficient
         
 
         # Vertical tail variables
