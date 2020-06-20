@@ -99,7 +99,6 @@ class LoadCase:
     def change_areas(self, areas, shearcentre_z, y_locs=None):
         if y_locs is None:
             y_locs = self.y_samples
-        print("In-class:", min(y_locs), max(y_locs))
         self.areas = areas
         # self.shearcentre_x = shearcentre_x
         self.shearcentre_z = shearcentre_z
@@ -151,6 +150,22 @@ class LoadCase:
             vect_r_m += np.cross(force.position-origin, force.vector)
         reactionmomentx, reactionmomenty, reactionmomentz = vect_r_m[0], vect_r_m[1], vect_r_m[2]
         return reactionmomentx, reactionmomenty, reactionmomentz
+
+    def check_equilibrium(self):
+        totalforce, totalmoment, totalforce_res, totalmoment_res = \
+            np.array([0.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0])
+        for force in self.forces:
+            totalforce += force.vector
+            totalmoment += np.cross(force.position, force.vector)
+        for force in self.reactionforces:
+            totalforce_res += force.vector
+            totalmoment_res += np.cross(force.position, force.vector)
+        for moment in self.moments:
+            totalmoment += moment.vector
+        for moment in self.reactionmoments:
+            totalmoment_res += moment.vector
+        assert(np.all(totalforce+totalforce_res<0.0000000001))
+        assert(np.all(totalmoment+totalmoment_res<0.0000000001))
 
     def _single_yout_torque_shear(self, vect_mag, position, shearcentre):
         return vect_mag*(position-shearcentre)
@@ -335,6 +350,7 @@ class LoadCase:
         self.reactionforces.append(Force(defl_z_bc["x"], defl_z_bc["y"], defl_z_bc["z"], zmag=self.solution[7]))
         self.reactionmoments.append(Moment(angle_z_bc["x"], angle_z_bc["y"], angle_z_bc["z"], ymag=self.solution[8]))
         self.reactionforces.append(Force(defl_z_bc["x"], defl_z_bc["y"], defl_z_bc["z"], ymag=self.solution[9]))
+        self.check_equilibrium()
         return
 
     def calc_coefficient(self, interpolant, y, y_application, degree_of_integration=1):
@@ -411,23 +427,7 @@ def run_tests():
     system.add_boundary_condition(y=0.0+offset, angle_x=0)
     system.add_boundary_condition(y=0.0+offset, angle_y=0)
     system.add_boundary_condition(y=0.0+offset, angle_z=0)
-    system.solve_bcs()
-
-    totalforce, totalmoment, totalforce_res, totalmoment_res = \
-        np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0]), np.array([0.0,0.0,0.0])
-    for force in system.forces:
-        totalforce += force.vector
-        totalmoment += np.cross(force.position, force.vector)
-    for force in system.reactionforces:
-        totalforce_res += force.vector
-        totalmoment_res += np.cross(force.position, force.vector)
-    for moment in system.moments:
-        totalmoment += moment.vector
-    for moment in system.reactionmoments:
-        totalmoment_res += moment.vector
-
-    assert(np.all(totalforce+totalforce_res<0.0000000001))
-    assert(np.all(totalmoment+totalmoment_res<0.0000000001))
+    system.solve_bcs()  # Includes test for equilibrium
 
     def exact_deflection(yout, length=1.0):
         factor = direction*2 - 1

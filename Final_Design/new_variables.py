@@ -2,17 +2,19 @@ import numpy as np
 from math import sqrt,cos,pi
 import matplotlib.pyplot as plt
 from numpy import linalg as la
+from Structures.materials import materials
 
 class NewVariables:
     def __init__(self,haswinglets,wingletheight):
         self.init_general()
         self.init_aerodynamics(haswinglets,wingletheight)
-        self.init_weight()
+        self.init_fuselage()
         self.init_propulsion()
         self.init_sc()
+        self.init_weight()
 
     def init_general(self):
-        self.WTO = None
+        self.WTO = 750
         self.Woew_classII = None
         self.WPL = 1961.33
         self.rho0 = 1.225
@@ -20,9 +22,21 @@ class NewVariables:
         self.R = 287.05
         self.gamma = 1.4 
         self.lmbda = -0.0065
-    
+        self.T0 = 288.15
+
         self.Vcruise = 50           # [m/s]         Cruise speed
+        self.V = self.Vcruise
+        self.Vs = 23.15    
         self.hcruise = 914.4        # [m]           Cruise altitude
+        self.rhocruise = 1.12
+        self.rhotakeoff = 1.04
+        self.sigma = self.rhotakeoff/self.rhocruise
+
+        self.sto = 500
+        self.k = np.sqrt(5647.9 + 17.331 * self.sto) - 75.153
+        self.sland = 500
+
+        self.designpointfactor = 1
 
         self.fuselagelength = 9.420
         self.fuselagewidth = 1.05
@@ -30,23 +44,30 @@ class NewVariables:
         self.fuselagefrontalarea = 1.218
         self.fuselagewettedarea = 17.507
 
-        self.h_landinggear = 2
-        self.w_landinggear = 0.5
+        self.c = 2
+        self.n_ult = 4.81 # TO BE OVERWRITTEN. ASK CASPER HOW TO IMPLEMENT THIS
 
-        self.h_htail = None
+        self.h_landinggear = 0.8
+        self.w_landinggear = 0.175
 
-        self.W_wing = None
-        self.W_fgroup = None
+        self.la = 11
 
-        self.cg_wing = None         # [m]           Distance LE root chord - wing cg
+        self.h_htail = self.h_landinggear + .5*self.fuselageheight
+
+        self.cg_wing = 0.8         # [m]           Distance LE root chord - wing cg
         self.xwing = None
 
-        self.xcg_fgroup = None
-        self.xcg_fuselage = None
-        self.xcgPL = None
-        self.xcgbat = None
+        self.xcg_fgroup = 2.5
+        self.xcg_fuselage = 2.5
+        self.xcgPL = 1.5
+        self.xcgbat = 3.2
         self.xcg_min = None
         self.xcg_max = None
+
+
+
+        self.WP = 0.121 
+        self.WS = 592 
 
     def init_aerodynamics(self,haswinglets,wingletheight):
         # Conditions
@@ -61,7 +82,6 @@ class NewVariables:
         self._gammaL = 0
 
         # Complementary wing geometry
-        self._Sh = 100              # [m2]          Minimum required horizontal tail surface
         self._b = np.sqrt(self.A * self.S)
         self._c_r = (2 * self.S) / (self.b * (1 + self.taper))
         self.c_t = self.taper * self.c_r
@@ -78,9 +98,10 @@ class NewVariables:
         self.flapaffectedarea = None
         
         # Horizontal tail geometry
+        self._Sh = 0.4*self.S
         self.A_h = 55
         self.taper_h = 0.467
-
+        self.sweeph = 0.1
         self._b_h = np.sqrt(self.A_h * self.Sh)
         self._c_r_h = (2 * self.Sh) / (self.b_h * (1 + self.taper_h))
         self.c_t_h = self.taper_h * self.c_r_h
@@ -94,11 +115,15 @@ class NewVariables:
         self.BLturbratio_wing = 0.65
         self.BLturbratio_fus = 1
         self.BLturbratio_emp = 0.65
+        
+        # Requirements
+        self.CL_landing = 2.0
+        self.CL_takeoff = self.CL_landing/(1.1**2)
+        self.CL_climb = 1.8
 
-
-        # Constants & statistical variables
+        # Constants statistical variables
         self.kwl = 2.1
-        self.dCD_landinggear = 35
+        self.dCD_landinggear = 0.15
 
         # Airfoil properties
         self.Clmax_r = 1.6
@@ -115,6 +140,7 @@ class NewVariables:
         self.CLmax_req = 2                  # [-]       Required maximum lift coefficient
         self.dClmax = 1.25 * 0.96           # [-]
         self.da0l_airfoil = -15*pi/180      # [rad]
+
         self.cfc = 0.8                      # [-]       Start of the flap as percentage of the chord
         self.d_ff = 0.05                    # [m]       Spacing between fuselage and flap
 
@@ -132,26 +158,74 @@ class NewVariables:
         self.wing_CL_max = None
         self.wing_alpha_max = None
         self.CD0clean = 0.01912
-        self.CD0flap = None
+        self._CD0flap = 0.04
+        self.CD0to = self.CD0flap/(1.1**2)
         if haswinglets:
             self.eclean = 0.84
         if not haswinglets:
             self.eclean = 0.79
         self.eflaps = None
 
+        self.CD_climb = self.CD0clean + self.CL_climb**2/(np.pi*self.A*self.eclean) # MAKE USED VARIABLES PRIVATE
+
         # Working variables
         self.coeff = None
 
-    def init_weight(self):
-        pass
+    def init_fuselage(self):
+        
+        self.cockpitbulkhead = 2.2 # m, back of the cockpit
+        self._sparsamount = 8 # [-] amount of spars behind the cockpit bulkhead in the fuselage
+        self.sparlocs = [2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.sparsamount+1) for n in range(self.sparsamount+1)]
+        self.skin_t = 2.0 # [mm] thickness of the skin
+        self.skin_t_func = None # Only change if a custom skin thickness function is required.
+        self.mats = materials()
+        self.stringermod = 1.0 # one-dimensional scaling parameter for stringers, geometry stays the same.
+        self.cricstringermod = 1.0 # one-dimensional scaling parameter for stringers in circular area, geometry stays the same.
+        self.longeronmod = 4.0 # one-dimensional scaling parameter for longerons, geometry stays the same.
+        self._n_stiff = 5 # Amount of stiffeners per panel
+        self.n_stiff_circ = 6 # Amount of stringers total for circular section
+        self.n_longs = 4 # Can't change, only to 0 if longerons should be disabled
+        self.n_stringers = np.ones(8) * self.n_stiff
+        self.material_regular = self.mats['alu7075']
+        self.material_circular = self.mats['carbonfibre']
+        self.batteryoffset = 0.1 # [m] battery distance behind the cockpit aft bulkhead
+        self.batteryoffset2 = 0.2 # [m] distance of second attachment point of the battery from the first
+
+    def init_weight(self):        
+        self.W_wing    = None           # Wing weight
+        
+        self.W_batt    = None           # Battery weight in Newtons
+        self.W_motor   = 30 * 9.81      # Motor weight in Newtons
+        self.W_shaft   = 4.48 * 9.81    # Engine shaft weight in Newtons
+        self.W_prop    = 12 * 9.81      # Propeller weight in Newtons
+        
+        self.W_syscomp = 69.2*9.81         # System component weight (TE package + avionics + electronics)
+        
+        self.W_fus_fwd = None
+        self.Wfus_aft  = 50*9.81
+        self.W_fgroup = 250
+
+    @property
+    def n_stiff(self):
+        return self._n_stiff
+
+    @n_stiff.setter
+    def n_stiff(self, val):
+        self._n_stiff = val
+        self.n_stringers = np.ones(8)*val
+
+    @property
+    def sparsamount(self):
+        return self._sparsamount
+
+    @sparsamount.setter
+    def sparsamount(self, val):
+        self._sparsamount = val
+        self.sparlocs = [2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.sparsamount+1) for n in range(self.sparsamount+1)]
 
     def init_propulsion(self):
         # Sizing
-        self.W_batt       = None           # Battery weight in Newtons
         self.v_batt       = None           # Battery volume in liters
-        self.W_motor      = 30 * 9.80665   # Motor weight in Newtons
-        self.W_shaft      = 4.48 * 9.80665 # Engine shaft weight in Newtons
-        self.W_prop       = 12 * 9.80665   # Propeller weight in Newtons
         self.P_max        = 65 * 1000      # Maximum power produced by the engine in W
 
         # Battery characteristics
@@ -163,7 +237,7 @@ class NewVariables:
         self.eff_prop     = 0.85           # Propeller efficiency
         self.eff_tot_prop = 0.95 * 0.88    # Total propulsive efficiency
         self.V_req_batt   = 400            # Required voltage in Volts
-        self.I_req_batt   = 189.75         # Required current in Amps
+        self.I_req_batt   = 0.0 #189.75         # Required current in Amps UPDATE THIS
         self.DoD          = 90             # Depth of discharge of the battery
 
         # Requirements
@@ -204,7 +278,6 @@ class NewVariables:
 
         # Wing variables
         self.xlemac = None          # [m]           Distance nose - leading edge mean aerodynamic chord
-        self.Snet = None            # [m2]          Net wing surface area
 
         self.VhV = sqrt(0.85)       # [-]           Tail/wing speed ratio
         self.eta = 0.95             # [-]           Airfoil efficiency coefficient
@@ -217,13 +290,11 @@ class NewVariables:
 
         # Horizontal tail variables
         self.lh = 6.9               # [m]           Horizontal tail arm
-        self.bh = None              # [m]           Horizontal tail span
-        self.Ah = None              # [-]           Horizontal tail aspect ratio
-        self.sweeph = 0             # [rad]         Horizontal tail half chord sweep
         self.ch_r = None            # [m]           Horizontal tail root chord
         self.ih = 0                 # [rad]         Horizontal tail incidence angle
         
         self.CLh_L = -0.8           # [-]           Horizontal tail landing configuration lift coefficient
+        self.CLh_TO = None          # [-]           Horizontal tail take-off configuration lift coefficient
         
 
         # Vertical tail variables
@@ -232,7 +303,7 @@ class NewVariables:
 
         self.CnB = None             # [-]           Directional stability coefficient
 
-        '''
+        
         # Flight performance parameters
         self.a_pitch = 12*pi/180    # [rad/s]       Take-off pitch angular velocity
         self.VTO = 1.05 * 25.2      # [m/s]         Take-off velocity
@@ -261,7 +332,7 @@ class NewVariables:
         # Horizontal tail aerodynamic parameters
         self.CLh_TO = None          # [-]           Horizontal tail take-off lift coefficient
         self.CLah = 4               # [/rad]        Horizontal lift curve slope
-        '''
+        
 
     @property
     def Sh(self):
@@ -348,7 +419,7 @@ class NewVariables:
         self._b = val
         self.c_r = (2 * self.S) / (self.b * (1 + self.taper))
         self.YMAC = self.b / 6 * (1 + 2 * self.taper) / (1 + self.taper)
-        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*w_fuselage,self.b),self.taper,self.S,self.b)*w_fuselage
+        self.Snet = self.S - self.calculateChord(self.transformSpan(.25*self.fuselagewidth,self.b),self.taper,self.S,self.b)*self.fuselagewidth
         # self.calcCoefficients()       # Maybe enable? Disabled for performance reasons.
 
     @property
@@ -411,6 +482,15 @@ class NewVariables:
     def YMAC(self, val):
         self._YMAC = val
         self.XMAC = self.YMAC * np.tan(self.sweepLE)
+
+    @property
+    def CD0flap(self):
+        return self._CD0flap
+
+    @CD0flap.setter
+    def CD0flap(self,val):
+        self._CD0flap = val
+        self.CD0to = self.CD0flap/(1.1**2)
 
 
     ###################################
@@ -559,7 +639,7 @@ class NewVariables:
         return Cl_distr, yPnts
 
     def calcCLa(self):
-        self.CL_alpha_wing = np.pi * self.A * self.coeff[0][0]
+        self.wing_CL_alpha= np.pi * self.A * self.coeff[0][0]
 
     def calcCLmax(self, plotProgression=False, printMaxLoc=False):
 
@@ -684,7 +764,7 @@ class NewVariables:
 
         return alphai_distr, yPnts
 
-    def calcCD0(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,l_gear,w_gear,dCD_gear,MAC,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5):
+    def calcCD0(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,l_gear,w_gear,dCD_gear,MAC,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.12,clean_config=True,visc=1.8e-5):
         
         def _CfLaminar(rho,V,L,visc):
             Re = rho*V*L/visc
@@ -722,7 +802,7 @@ class NewVariables:
         if not clean_config:
             return 1.05*(CDS_wet_fus + CDS_wet_wing + CDS_wet_emp + CDS_ref_gear)/self.S + dCD_flap
 
-    def calcOswald(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp, l_gear,w_gear,dCD_gear,MAC,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.04,clean_config=True,visc=1.8e-5,hasWinglets=False):
+    def calcOswald(self,S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp, l_gear,w_gear,dCD_gear,MAC,flap_area_ratio,tc_airfoil=0.15,xc_airfoil=0.3,tc_emp=0.12,xc_emp=0.3,V_stall=23.15,rho_cruise=1.12,clean_config=True,visc=1.8e-5,hasWinglets=False):
         k_fuselage = 1-2*(w_fuselage/self.b)**2
         Q = 1/(self.calcespan()*k_fuselage)
         P = 0.38*self.calcCD0(S_wet_fus,l_fus,fus_A_max,w_fuselage,S_h,S_v,MAC_emp,BLturbratio_fus, BLturbratio_wing, BLturbratio_emp,l_gear,w_gear,dCD_gear,flap_area_ratio,tc_airfoil,xc_airfoil,MAC,tc_emp,xc_emp,V_stall,rho_cruise,clean_config,visc)
@@ -928,7 +1008,9 @@ def sys_Aerodynamics_wing(v,resolution):
     v.calcCoefficients(resolution,0.7)
     v.calcCLa()
     v.calcCLmax()
+    v.CL0clean= v.calcCL(0)
     v.flap_sizing()
+    v.CL0flap = v.CL0clean + (2.0 - v.wing_CL_max)
     return v
 
 def sys_Aerodynamics_total(v):    
