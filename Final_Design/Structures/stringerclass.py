@@ -1,11 +1,8 @@
-
-
 from math import pi, sqrt, sin, cos
 import copy
 
-
 class MatProps():
-    def __init__(self, sigma_y, E, poisson, rho, sigma_comp=None, name=None, alpha=0.8, n=0.6):
+    def __init__(self, sigma_y, E, poisson, rho, cost, sigma_comp=None, name=None, alpha=0.8, n=0.6):
         # Density (rho) in g/cc, NOT kg/m3!
         self.sigma_y = sigma_y
         if sigma_comp == None:
@@ -19,6 +16,7 @@ class MatProps():
         self.n = n
         if name != None:
             self.name = name
+        self.cost = cost
 
 
 class J_Stringer():
@@ -57,6 +55,8 @@ class J_Stringer():
 
         self.mass = self.calc_mass()
 
+        self.cost = self.calc_cost()
+
     @property
     def Le(self):
         return self._Le
@@ -66,9 +66,13 @@ class J_Stringer():
         self._Le = val
         self.sigma_cr = self.calc_critical_stress(self._Le)
         self.mass = self.calc_mass()
+        self.cost = self.calc_cost()
 
     def calc_mass(self):
         return self._Le*self.total_area*self.material.rho
+
+    def calc_cost(self):
+        return self.mass*self.material.cost
 
     def calc_total_area(self):
         return self.area1 + self.area2_alt + self.area3 + self.area4

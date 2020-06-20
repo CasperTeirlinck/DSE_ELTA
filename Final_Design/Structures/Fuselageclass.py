@@ -1,6 +1,11 @@
-from plateclass import *
-from stringerclass import *
-from loadinfo import *
+try:
+    from plateclass import *
+    from stringerclass import *
+    from loadinfo import *
+except:
+    from Structures.plateclass import *
+    from Structures.stringerclass import *
+    from Structures.loadinfo import *
 import copy
 from scipy.interpolate import interp1d
 from numpy import pi
@@ -47,6 +52,7 @@ class CircCrossSection:
         self.Ixx, self.Iyy, self.Ixy = self.momentofinertia()
         self.E = self.youngsmodulus()
         self.calc_mass()
+        self.calc_cost()
 
     def calc_total_area(self):
         self.total_area = 2*pi*self.radius*self.thickness
@@ -81,6 +87,12 @@ class CircCrossSection:
         for stiff in self.stiffeners:
             self.mass += stiff.properties.mass
         return self.mass
+
+    def calc_cost(self):
+        self.cost = self.radius*2*pi*self.thickness*self.l*self.material.rho*self.material.cost
+        for stiff in self.stiffeners:
+            self.cost += stiff.properties.cost
+        return self.cost
 
     def plot_section(self, show=True):
         fig, ax = plt.subplots(1)
@@ -170,12 +182,21 @@ class CrossSection:
             self.mass += plate.properties.mass
         return self.mass
 
+    def calc_cost(self):
+        self.cost = 0
+        for stiff in self.stiffeners:
+            self.cost += stiff.properties.cost
+        for plate in self.plates:
+            self.cost += plate.properties.cost
+        return self.cost
+
     def recalculate_component_effects(self):
         self.calc_total_area()
         self.xbar, self.ybar = self.calc_centroid()
         self.Ixx, self.Iyy, self.Ixy = self.momentofinertia()
         self.E = self.youngsmodulus()
         self.calc_mass()
+        self.calc_cost()
         self.calc_Qs()
 
     def calc_centroid(self):
@@ -277,8 +298,10 @@ class FuselageSection:
 
 
 class Fuselage:
-    def __init__(self):
+    def __init__(self, framelocs):
         self.sections = []
+
+        self.framelocs = framelocs
 
         self.ys = []
         self.El = []
@@ -287,8 +310,11 @@ class Fuselage:
         self.Ixz = []
         self.xbars = []
         self.zbars = []
+        self.xbar, self.ybar, self.zbar = None, None, None
 
         self.mass = None
+
+        self.cost = None
 
     def addSection(self, section: FuselageSection):
         self.sections.append(section)
@@ -298,6 +324,23 @@ class Fuselage:
         for section in self.sections:
             self.mass += section.properties.mass
         return self.mass
+
+    def calc_total_cost(self):
+        self.cost = 0
+        for section in self.sections:
+            self.cost += section.properties.cost
+        return self.cost
+
+    def calc_cg(self):
+        self.Qyy = 0
+        self.Qz = 0
+        self.Qx = 0
+        for section, y in zip(self.sections, self.framelocs):
+            self.Qyy += section.properties.mass * (y - section.properties.l)
+            self.Qz += section.properties.mass * section.xbar_global
+            self.Qx += section.properties.mass * section.zbar_global
+        self.ybar = self.Qyy/self.mass
+        self.xbar, self.zbar = self.Qz/self.mass, self.Qx/self.mass
 
     def recalculate_lists(self):
         self.ys = []
@@ -323,3 +366,5 @@ class Fuselage:
         self.xbars, self.zbars = np.asarray(self.xbars), np.asarray(self.zbars)
         self.areas = np.asarray(self.areas)
         self.calc_total_mass()
+        self.calc_total_cost()
+        self.calc_cg()
