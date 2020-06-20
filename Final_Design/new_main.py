@@ -4,7 +4,7 @@ from Stability_and_Control.horizontaltail_design import *
 from Stability_and_Control.verticaltail_design import *
 from Stability_and_Control.empennagecontrol_design import *
 from Power_and_Propulsion.battery_main import *
-from ClassIIWeightEstimation import *
+from ClassIIWeightEstimationnew import *
 
 wingresolution = 100
 iterating_designpoint = True
@@ -30,7 +30,6 @@ def do_loop(v):
     v = sizing_htail_wingpos(v)
     v = verticaltail_sizing(v)
     v = elevator_sizing(v)
-
 
 
 if __name__ == "__main__":
