@@ -54,6 +54,7 @@ class NewVariables:
 
         self.la = 11
 
+        self.xtail = 9
         self.h_htail = self.h_landinggear + .5*self.fuselageheight
 
         self.cg_wing = 0.8         # [m]           Distance LE root chord - wing cg
