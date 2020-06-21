@@ -9,7 +9,7 @@ from ClassIIWeightEstimationnew import *
 wingresolution = 100
 iterating_designpoint = True
 
-def do_subloop1(airplane):
+# def do_subloop1(airplane):
     
     
 
