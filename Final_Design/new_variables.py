@@ -18,7 +18,6 @@ class NewVariables:
 
     def init_general(self):
         self.WTO = 750*9.81
-        self.Woew_classII = None
         self.rho0 = 1.225
         self.g0 = 9.80665
         self.R = 287.05
@@ -176,14 +175,14 @@ class NewVariables:
         self.coeff = None
 
     def init_fuselage(self):
-        self._max_fuselage_iterations = 1 # Don't change without contacting Max
-        self.Wfus_aft = None # weight of the aft section of the fuselage
+        self._max_fuselage_iterations = None # Don't change without contacting Max
+        self._Wfus_aft = 50 # weight of the aft section of the fuselage
         self.Wfus_aft_xbar = None # centroid of the aft section of the fuselage
         self.Wfus_aft_ybar = None # centroid of the aft section of the fuselage
         self.Wfus_aft_zbar = None # centroid of the aft section of the fuselage
         self.cockpitbulkhead = 2.2 # m, back of the cockpit
         self._framesamount = 8 # [-] amount of spars behind the cockpit bulkhead in the fuselage
-        self.framelocs = [2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)]
+        self.framelocs = np.array([2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)])[::-1]
         self.skin_t = 2.0 # [mm] thickness of the skin
         self.skin_t_func = None # Only change if a custom skin thickness function is required. Two arguments: First is skin_t, second is y position where the thickness should be taken.
         self.mats = materials()
@@ -205,6 +204,7 @@ class NewVariables:
         self.batterywidth = 0.2 # [m] distance of second attachment point of the battery from the first
         self.yout = None
         self._fuselage = None # Fuselage object, don't change without contacting Max
+        self.loads = None # Loads acting on the fuselage
 
     def init_weight(self):        
         self.WPL = 1961.33
@@ -217,10 +217,8 @@ class NewVariables:
         self.W_prop    = 12 * 9.81      # Propeller weight in Newtons
         
         self.W_syscomp = 69.2*9.81      # System component weight (TE package + avionics + electronics)
-        
-        
-        self.Wfus_aft  = 50*9.81
-        self.Wfus_fwd = 2.*self.Wfus_aft
+
+        self.Wfus_fwd = self._Wfus_aft
         self.W_fgroup = None
 
         self.W_htail = None
@@ -234,6 +232,14 @@ class NewVariables:
         self.xmotor = 0.3
         self.xshaft = 0.225
 
+    @property
+    def Wfus_aft(self):
+        return self._Wfus_aft
+
+    @Wfus_aft.setter
+    def Wfus_aft(self, val):
+        self._Wfus_aft = val
+        self.Wfus_fwd = val
 
     @property
     def fuselage(self):
@@ -265,7 +271,7 @@ class NewVariables:
     @framesamount.setter
     def framesamount(self, val):
         self._framessamount = val
-        self.framelocs = [2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)]
+        self.framelocs = np.array([2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)])[::-1]
 
     def init_propulsion(self):
         # Sizing

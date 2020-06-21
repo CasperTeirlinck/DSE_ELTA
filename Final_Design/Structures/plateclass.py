@@ -85,15 +85,15 @@ class Sheet:
         self.recalculate_stringer_effects()
 
     def recalculate_stringer_effects(self):
-        self.calc_we()
-        self.calc_stringerpitch()
-        self.sigma_cr = self.calc_critical_stress(mode=self.mode)
         self.calc_total_area()
-        self.calc_sigma_ult_tensile()
         self.xbar, self.ybar = self.calc_centroid()
         self.Ixx, self.Iyy, self.Ixy = self.momentofinertia()
         self.mass = self.get_mass()
         self.cost = self.get_cost()
+        self.calc_we()
+        self.calc_stringerpitch()
+        self.sigma_cr = self.calc_critical_stress(mode=self.mode)
+        self.calc_sigma_ult_tensile()
         self.idealize()
 
     def calc_we(self):
@@ -122,8 +122,8 @@ class Sheet:
         aoverb = self._a/self.b
         # if aoverb < 3:
         if aoverb < 0:
-            C = input("Manual input required because a/b < 3, look at https://puu.sh/FSyYi/82a36e2870.png for data. "
-                      "a/b = {}".format(aoverb))
+            C = input("Manual input required because a/b < 0, there is an error!")#look at https://puu.sh/FSyYi/82a36e2870.png for data. "
+                    #  "a/b = {}".format(aoverb))
         else:
             if mode == 1 or mode == 2:
                 C = 4.0
