@@ -150,7 +150,7 @@ def EmptyWeight(variables):
     #W_b is not included as it is part of the payload
     return OEW
 
-def CalculateClassII(variables):
+def CalculateClassIInew(variables):
     variables.Wwing = MainWingEstimation(variables)
     variables.W_htail = EmpennageEstimation(variables)[0]
     variables.W_vtail = EmpennageEstimation(variables)[1]
@@ -169,8 +169,6 @@ def CalculateClassII(variables):
 ## TEST
 if __name__ == "__main__":
     variables = CurrentVariables()
-    variables.Sh = 2
-    variables.Sv = 2
     print(MainWingEstimation(variables))
     print(EmpennageEstimation(variables))
     print(FuselageEstimation(variables))

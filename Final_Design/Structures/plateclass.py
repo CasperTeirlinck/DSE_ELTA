@@ -2,7 +2,10 @@ import numpy as np
 from math import pi, sqrt, cos, sin
 import itertools
 from matplotlib import pyplot as plt
-from stringerclass import *
+try:
+    from stringerclass import *
+except ModuleNotFoundError:
+    from Structures.stringerclass import *
 import copy
 
 
@@ -90,6 +93,7 @@ class Sheet:
         self.xbar, self.ybar = self.calc_centroid()
         self.Ixx, self.Iyy, self.Ixy = self.momentofinertia()
         self.mass = self.get_mass()
+        self.cost = self.get_cost()
         self.idealize()
 
     def calc_we(self):
@@ -197,11 +201,17 @@ class Sheet:
             self.ultimatestress = np.min(ult_stresses)
             self.tresca_yield = self.ultimatestress*self.ultimatestress / 3
 
-    def get_mass(self) -> float:
+    def get_mass(self):
         mass = self.ts * self._a * self.b * self.material.rho
         for stringer in self.stringers:
             mass += stringer.properties.mass
         return mass
+
+    def get_cost(self):
+        cost = self.ts * self._a * self.b * self.material.rho * self.material.cost
+        for stringer in self.stringers:
+            cost += stringer.properties.cost
+        return cost
 
     def calc_centroid(self):
         if self.total_area is None:
