@@ -852,10 +852,10 @@ class NewVariables:
         k_winglet = (1+2*self.hwl/(self.kwl*self.b))**2
         
         if not self.hasWinglets:
-            self.e = 1/(Q+P*np.pi*self.A)
+            return 1/(Q+P*np.pi*self.A)
 
         else:
-            self.e = k_winglet/(Q+P*np.pi*self.A)
+            return k_winglet/(Q+P*np.pi*self.A)
 
     def flap_sizing(self):
         # Inputs
@@ -1059,13 +1059,20 @@ def sys_Aerodynamics_wing(v,resolution):
 def sys_Aerodynamics_total(v):    
     v.CD0clean = v.calcCD0(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea)
     v.CD0flaps = v.calcCD0(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,clean_config = False)
-    v.e_clean = v.calcOswald(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.hasWinglets)
-    v.e_flaps = v.calcOswald(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.hasWinglets,clean_config=True)
+    v.eclean = v.calcOswald(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.hasWinglets)
+    v.eflaps = v.calcOswald(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.hasWinglets,clean_config=False)
     return v
+
+
 
 def calcFusgroup(v):
     Wlist = np.array([v.Wfus_fwd,v.Wfus_aft,v.W_htail,v.W_vtail,v.W_prop,v.W_shaft,v.W_motor,v.W_syscomp])
     Xlist = np.array([v.xcg_fus_fwd,v.xcg_fus_aft,v.xtail,v.xtail,v.xprop,v.xshaft,v.xmotor,v.xcg_fus_fwd])
+
+    Wlistreduced = np.array([v.Wfus_fwd,v.Wfus_aft,v.W_shaft,v.W_motor,v.W_syscomp])
+    Xlistreduced = np.array([v.xcg_fus_fwd,v.xcg_fus_aft,v.xshaft,v.xmotor,v.xcg_fus_fwd])
+
+    v.xcg_fuselage = np.sum(Wlistreduced*Xlistreduced)/np.sum(Wlistreduced)
 
     v.xcg_fgroup = np.sum(Wlist*Xlist)/np.sum(Wlist)
     v.W_fgroup = np.sum(Wlist)
@@ -1083,7 +1090,7 @@ def CalcMTOWnew(v):
 def CalcTTO(v):
     s           = 250                           #[m] assumed take-off roll (NOT 500!!!! Need to climb to 50 ft!)
     V_lof       = 45*1.05*1.851/3.6      #[m/s] lift of speed
-    rho_sea     = v.rho_sea                        #[kg/m3] air density at sea level
+    rho_sea     = v.rho0                        #[kg/m3] air density at sea level
     S_wing      = v.S                           #[m2] wing surface
     W           = v.WTO
     CD_to       = 0.0414                        #[-] DO NOT CHANGE THIS VARIABLE!!!
@@ -1103,3 +1110,9 @@ def CalcTTO(v):
     
     return v
      #[N]
+
+if __name__ == "__main__":
+    v = NewVariables(False,0)
+    sys_Aerodynamics_wing(v,10)
+    sys_Aerodynamics_total(v)
+    print(v.eclean)

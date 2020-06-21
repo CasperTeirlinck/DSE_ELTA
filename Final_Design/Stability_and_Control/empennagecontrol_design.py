@@ -23,10 +23,10 @@ def elevator_sizing(variables):
     zT = variables.zT               # [m]           Thrust vector height
     zD = variables.zD               # [m]           Drag vector height
 
-    Sw = variables.Sw               # [m2]          Wing surface area
+    Sw = variables.S               # [m2]          Wing surface area
     MAC = variables.MAC             # [m]           Mean aerodynamic chord
-    CLTO = variables.CLTO           # [-]           Take-off lift coefficient
-    CDTO = variables.CDTO           # [-]           Take-off drag coefficient
+    CLTO = variables.CL_takeoff           # [-]           Take-off lift coefficient
+    CDTO = variables.CD0to + CLTO/(pi*variables.A*variables.eflaps)          # [-]           Take-off drag coefficient
     Cmacwf = variables.Cmacwf       # [-]           Wing-fuselage pitching moment coefficient around the aerodynamic centre
     deda = variables.deda           # [-]           Downwash gradient
     a0 = variables.a0               # [rad]         Zero lift angle of attack
