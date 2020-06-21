@@ -102,7 +102,7 @@ class NewVariables:
         
         # Horizontal tail geometry
         self._Sh = 0.4*self.S
-        self.A_h = 55
+        self.A_h = 3
         self.taper_h = 0.467
         self.sweeph = 0.1
         self._b_h = np.sqrt(self.A_h * self.Sh)
@@ -1078,7 +1078,7 @@ def calcFusgroup(v):
 
 
 def CalcOEW(v):
-    v.W_OEW = v.W_wing + v.W_fuselage + v.W_motor + v.W_shaft + v.W_prop + v.W_syscomp + v.W_htail + v.W_vtail
+    v.W_OEW = v.W_wing + v.W_fgroup #v.W_fuselage + v.W_motor + v.W_shaft + v.W_prop + v.W_syscomp + v.W_htail + v.W_vtail
     return v
 
 def CalcMTOWnew(v):

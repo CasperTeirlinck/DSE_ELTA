@@ -1,5 +1,6 @@
 from math import pi,cos,tan,sqrt
 from Stability_and_Control.wing_properties import sweep
+import numpy as np
 
 def elevator_sizing(variables):
     g = variables.g0
@@ -34,8 +35,8 @@ def elevator_sizing(variables):
     sweepw = 0
     bf = variables.fuselagewidth
     lf = variables.fuselagelength
-    hf = variables.fuselageheigth
-    dClmax = 0.9*variables.deClmax
+    hf = variables.fuselageheight
+    dClmax = 0.9*variables.dClmax
     CL0 = variables.CL0flap
     CLaw = variables.wing_CL_alpha
     bw = variables.b
@@ -55,11 +56,11 @@ def elevator_sizing(variables):
     Cmacwf = Cmacw + dfCmac + dfusCmac + dnacCmac
 
     deda = variables.deda           # [-]           Downwash gradient
-    a0 = variables.a0               # [rad]         Zero lift angle of attack
+    a0 = -np.radians(7.4)              # [rad]         Zero lift angle of attack
 
     Sh = variables.Sh               # [m2]          Horizontal tail surface area
     ih = variables.ih               # [rad]         Horizontal tail incidence angle
-    bh = variables.bh               # [m]           Horizontal tail surface area
+    bh = variables.b_h               # [m]           Horizontal tail surface area
     chr = variables.c_r_h             # [m]           Horizontal tail root chord
     VhV = variables.VhV
     Vcruise = variables.Vcruise         # [m/s]     Cruise speed
@@ -69,7 +70,7 @@ def elevator_sizing(variables):
     gamma = variables.gamma             # [-]       Heat capacity ratio
     lmbda = variables.lmbda             # [degC/m]  Lapse rate
     sweeph = variables.sweeph
-    taperh = variables.taperh
+    taperh = variables.taper_h
     Ah = variables.A_h
     eta = variables.eta                 # [-]       Airfoil efficiency coefficient
     Vh = VhV*Vcruise
@@ -122,7 +123,7 @@ def elevator_sizing(variables):
     print('Elevator angle of attack effectiveness =',round(tau_e,2))
 
     # Elevator-to-tail chord ratio
-    cech = float(input('CE/Ch = '))
+    cech = 0.4 #float(input('CE/Ch = '))
 
     # Elevator size
     be = bebh*bh

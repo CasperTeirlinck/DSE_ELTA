@@ -6,7 +6,7 @@ from Stability_and_Control.empennagecontrol_design import *
 from Power_and_Propulsion.battery_main import *
 from ClassIIWeightEstimationnew import *
 from Midterm_Design.cg_determination import *
-
+ 
 wingresolution = 100
 iterating_designpoint = True
 
@@ -43,8 +43,8 @@ def do_loop(v):
 if __name__ == "__main__":
     v = NewVariables(False,0.)
     print(v.Snet)
-    for i in range(20):
+    for i in range(5):
         do_loop(v)
-        print(v.WTO)
+        print(v.WTO/9.81)
 
     print("IT WORKS!!")
