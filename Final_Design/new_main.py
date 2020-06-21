@@ -11,7 +11,7 @@ from Midterm_Design.cg_determination import *
 from Structures.fuselagedesign import *
 
 wingresolution = 100
-iterating_designpoint = True
+iterating_designpoint = False
 
 
 def subloop(v):
