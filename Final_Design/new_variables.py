@@ -78,9 +78,9 @@ class NewVariables:
     @WP.setter
     def WP(self, val):
         self._WP = val
-        P1 = 65 * 1000      # Maximum power produced by the engine in W
-        P2 = self.WTO/val
-        self.P_max = max(P1, P2)
+        # P1 = 65 * 1000      # Maximum power produced by the engine in W
+        # P2 = self.WTO/val
+        # self.P_max = max(P1, P2)
 
     @property
     def WS(self):
@@ -563,9 +563,9 @@ class NewVariables:
     def update_WTO(self):
         self.WTO = self.W_OEW + self.WPL + self.W_batt
         self.S = self.WTO/self.WS
-        P1 = 65 * 1000      # Maximum power produced by the engine in W
-        P2 = self.WTO/self.WP
-        self.P_max = max(P1, P2)
+        # P1 = 65 * 1000      # Maximum power produced by the engine in W
+        # P2 = self.WTO/self.WP
+        # self.P_max = max(P1, P2)
 
     def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, deltaAlphaStall_r=0,
                     deltaAlphaStall_t=0):
