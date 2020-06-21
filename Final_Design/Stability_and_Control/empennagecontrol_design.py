@@ -1,4 +1,5 @@
-from math import pi,cos,tan
+from math import pi,cos,tan,sqrt
+from Stability_and_Control.wing_properties import sweep
 
 def elevator_sizing(variables):
     g = variables.g0
@@ -34,7 +35,6 @@ def elevator_sizing(variables):
     bf = variables.fuselagewidth
     lf = variables.fuselagelength
     hf = variables.fuselageheigth
-    mu1 = variables.mu1
     dClmax = 0.9*variables.deClmax
     CL0 = variables.CL0flap
     CLaw = variables.wing_CL_alpha
@@ -60,8 +60,25 @@ def elevator_sizing(variables):
     Sh = variables.Sh               # [m2]          Horizontal tail surface area
     ih = variables.ih               # [rad]         Horizontal tail incidence angle
     bh = variables.bh               # [m]           Horizontal tail surface area
-    chr = variables.chr             # [m]           Horizontal tail root chord
-    CLah = variables.CLah           # [/rad]        Horizontal lift curve slope
+    chr = variables.ch_r             # [m]           Horizontal tail root chord
+    VhV = variables.VhV
+    Vcruise = variables.Vcruise         # [m/s]     Cruise speed
+    hcruise = variables.hcruise         # [m]       Cruise altitude
+    T0 = variables.T0
+    R = variables.R                     # [J/kg K]  Gas constant
+    gamma = variables.gamma             # [-]       Heat capacity ratio
+    lmbda = variables.lmbda             # [degC/m]  Lapse rate
+    sweeph = variables.sweeph
+    taperh = variables.taperh
+    Ah = variables.A_h
+    eta = variables.eta                 # [-]       Airfoil efficiency coefficient
+    Vh = VhV*Vcruise
+    Tcruise = T0 + lmbda*hcruise
+    a = sqrt(gamma*R*Tcruise)
+    Mh = Vh/a
+    betah = sqrt(1 - Mh**2)
+    sweepc2h = sweep(0.5,bh,sweeph,taperh,chr)
+    CLah = 2*pi*Ah/(2 + sqrt(4 + (Ah*betah/eta)**2 * (1 + tan(sweepc2h)**2/(betah**2))))
 
     bebh = variables.bebh           # [-]           Elevator span
     de_max = variables.de_max       # [rad]         Maximum elevator deflection

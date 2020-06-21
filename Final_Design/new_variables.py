@@ -374,7 +374,6 @@ class NewVariables:
         
         # Horizontal tail aerodynamic parameters
         self.CLh_TO = None          # [-]           Horizontal tail take-off lift coefficient
-        self.CLah = 4               # [/rad]        Horizontal lift curve slope
 
 
     @property
