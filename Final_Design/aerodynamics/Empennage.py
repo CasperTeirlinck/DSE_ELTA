@@ -49,10 +49,11 @@ if __name__ == "__main__":
 
     x_raymer1215 = x_raymer1215(A, sweepLE, C2(taper))
     line_raymer1215 = line_raymer1215(A, sweepLE, taper)
-    print( f'raymer Fig 12.15: x: {round(x_raymer1215, 1)}, line: {round(line_raymer1215, 1)}' )
+    print( f'amax raymer Fig 12.15: x: {round(x_raymer1215, 1)}, line: {round(line_raymer1215, 1)}' )
 
 
-
+    print(f'CLmax base raymer Fig 12.12: x: {round(x_amaxBase, 2)}')
+    print(f'CLmax delta raymer Fig: x: {round(x_raymer1215, 1)}')
 
 
 

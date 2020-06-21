@@ -10,7 +10,6 @@ from Midterm_Design.cg_determination import *
 wingresolution = 100
 iterating_designpoint = True
 
-
     
 
 
@@ -36,7 +35,7 @@ def do_loop(v):
     v = verticaltail_sizing(v)
     #v = elevator_sizing(v)    
     
-    
+
 
 
     v = CalcOEW(v)

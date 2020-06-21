@@ -79,8 +79,8 @@ class NewVariables:
         # General wing geometry
         self._S = 16.5
         self._A = 10.1
-        self._taper = 0.467
-        self._twist = np.radians(6)
+        self._taper = 0.45
+        self._twist = np.radians(5)
         self._gammaL = 0
 
         # Complementary wing geometry
@@ -108,7 +108,7 @@ class NewVariables:
         self._c_r_h = (2 * self.Sh) / (self.b_h * (1 + self.taper_h))
         self.c_t_h = self.taper_h * self.c_r_h
         self.MAC_h = (2 / 3) * self.c_r_h * ((1 + self.taper_h + self.taper_h ** 2) / (1 + self.taper_h))
-        self._sweepLE_h = np.arctan(-self.c_r_h / (2 * self.b_h) * (self.taper_h - 1))
+        self._sweepLE_h = np.arctan( 4/self.A_h * (1-self.taper_h)/(1+self.taper_h) )
         self._YMAC_h = self.b / 6 * (1 + 2 * self.taper_h) / (1 + self.taper_h)
         self.XMAC_h = self.YMAC_h * np.tan(self.sweepLE_h)        
 
