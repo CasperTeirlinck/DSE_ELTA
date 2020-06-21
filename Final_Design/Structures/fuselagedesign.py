@@ -20,7 +20,7 @@ import numpy as np
 from math import sqrt, cos, sin
 from matplotlib import pyplot as plt
 from functools import partial
-from itertools import product
+import os
 
 
 def calc_tresca(normal, shear):
@@ -159,7 +159,9 @@ def generate_fuselage(data, framelocs, zshift, ts, base_material, circ_material=
     return fus
 
 def make_fuselage(skint, stringerlist=[], stringerargs=None, materials=None, framelocs=None, n_stiff_circ=0, circstringerargs=None, n_longs=0, longargs=None):
-    data = np.genfromtxt("fuselage_data.csv", delimiter=",", skip_header=1)
+    bin_path = os.path.dirname(os.path.realpath(__file__)) # Script path
+    data_path = os.path.join(*[bin_path, 'fuselage_data.csv'])
+    data = np.genfromtxt(data_path, delimiter=",", skip_header=1)
     data *= 0.001
     if materials is None:
         aluminium = MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, name="AA2024", alpha=0.8,
