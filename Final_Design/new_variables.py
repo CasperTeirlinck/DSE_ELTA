@@ -1056,7 +1056,8 @@ def sys_Aerodynamics_total(v):
     return v
 
 def calcXcg_fusgroup(v):
-    Wlist = np.array([W_,v.W_prop,v.W_shaft,v.W_motor])
+    Wlist = np.array([v.Wfus_fwd,v.Wfus_aft,v.W_htail,v.W_vtail,v.W_prop,v.W_shaft,v.W_motor])
+    Xlist = np.array([v.])
 
 
         # self.WPL = 1961.33
