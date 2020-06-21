@@ -90,7 +90,7 @@ def power_calculation(variables):
     # print(P_req_cruise/private_V_TAS)
 
     # Checking if power loading is achieved
-    if variables.WP < (variables.WTO/(max(P_req_cruise, P_req_sea))):
+    if variables.WP > (variables.WTO/(max(P_req_cruise, P_req_sea))):
         print("POWER DOES NOT MEET W/P, ask Matthijs")
 
     variables.P_max = max(P_req_cruise, P_req_sea)
