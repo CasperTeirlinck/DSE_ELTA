@@ -218,8 +218,9 @@ class NewVariables:
         
         self.W_syscomp = 69.2*9.81      # System component weight (TE package + avionics + electronics)
         
-        self.Wfus_fwd = None
+        
         self.Wfus_aft  = 50*9.81
+        self.Wfus_fwd = 2.*self.Wfus_aft
         self.W_fgroup = None
 
         self.W_htail = None
@@ -227,8 +228,12 @@ class NewVariables:
         
         self.W_OEW = None
 
-        self.xcg_fus_fwd = None
-        self.xcg_fus_aft = None
+        self.xcg_fus_fwd = 1.811
+        self.xcg_fus_aft = 4.5
+        self.xprop = 0.15
+        self.xmotor = 0.3
+        self.xshaft = 0.225
+
 
     @property
     def fuselage(self):
@@ -1058,11 +1063,12 @@ def sys_Aerodynamics_total(v):
     v.e_flaps = v.calcOswald(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.hasWinglets,clean_config=True)
     return v
 
-def calcXcg_fusgroup(v):
+def calcFusgroup(v):
     Wlist = np.array([v.Wfus_fwd,v.Wfus_aft,v.W_htail,v.W_vtail,v.W_prop,v.W_shaft,v.W_motor,v.W_syscomp])
     Xlist = np.array([v.xcg_fus_fwd,v.xcg_fus_aft,v.xtail,v.xtail,v.xprop,v.xshaft,v.xmotor,v.xcg_fus_fwd])
 
     v.xcg_fgroup = np.sum(Wlist*Xlist)/np.sum(Wlist)
+    v.W_fgroup = np.sum(Wlist)
     return v
 
 

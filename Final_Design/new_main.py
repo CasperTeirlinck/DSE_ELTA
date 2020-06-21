@@ -26,7 +26,7 @@ def do_loop(v):
     v = main_bat(v)
 
     v.W_htail,v.W_vtail = EmpennageEstimation(v)
-    v = calcXcg_fusgroup(v)
+    v = calcFusgroup(v)
 
 
     v = sizing_htail_wingpos(v)
