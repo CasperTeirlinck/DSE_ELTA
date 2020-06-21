@@ -1,4 +1,4 @@
-from math import pi
+from math import pi,cos,tan
 
 def elevator_sizing(variables):
     g = variables.g0
@@ -23,11 +23,37 @@ def elevator_sizing(variables):
     zT = variables.zT               # [m]           Thrust vector height
     zD = variables.zD               # [m]           Drag vector height
 
-    Sw = variables.S               # [m2]          Wing surface area
+    Sw = variables.S                # [m2]          Wing surface area
     MAC = variables.MAC             # [m]           Mean aerodynamic chord
-    CLTO = variables.CL_takeoff           # [-]           Take-off lift coefficient
-    CDTO = variables.CD0to + CLTO/(pi*variables.A*variables.eflaps)          # [-]           Take-off drag coefficient
-    Cmacwf = variables.Cmacwf       # [-]           Wing-fuselage pitching moment coefficient around the aerodynamic centre
+    CLTO = variables.CL_takeoff     # [-]           Take-off lift coefficient
+    CDTO = variables.CD0to + CLTO/(pi*variables.A*variables.eflaps)
+                                    # [-]           Take-off drag coefficient
+    Cm0af = variables.Cm0af
+    Aw = variables.A
+    sweepw = 0
+    bf = variables.fuselagewidth
+    lf = variables.fuselagelength
+    hf = variables.fuselageheigth
+    mu1 = variables.mu1
+    dClmax = 0.9*variables.deClmax
+    CL0 = variables.CL0flap
+    CLaw = variables.wing_CL_alpha
+    bw = variables.b
+    Snet = variables.Snet
+    cc = variables.cc
+    Swf = variables.flapaffectedarea
+    bfl = variables.flapspan            # [m]       Flap span
+    mu1 = variables.mu1                 # [-]       Flap coefficient 1
+    mu2 = 1.2*(bfl/bw)+0.13             # [-]       Flap coefficient 2
+    mu3 = 0.06*(bfl/bw)+0.0335          # [-]       Flap coefficient 3
+    CLaA_h = CLaw * (1 + 2.15*bf/bw) * Snet/Sw + pi/2*bf**2/Sw
+    Cmacw = Cm0af*(Aw*cos(sweepw)**2/(Aw + 2*cos(sweepw)))
+    dfusCmac = -1.8*(1-2.5*bf/lf) * pi*bf*hf*lf/(4*Sw*MAC) * CL0/CLaA_h
+    dfCmac = mu2*(-mu1*dClmax*cc-(CLTO+dClmax*(1-Swf/Sw))*(1/8)*cc*(cc-1))\
+             + 0.7*Aw/(1+2/Aw)*mu3*dClmax*tan(sweepw)
+    dnacCmac = 0
+    Cmacwf = Cmacw + dfCmac + dfusCmac + dnacCmac
+
     deda = variables.deda           # [-]           Downwash gradient
     a0 = variables.a0               # [rad]         Zero lift angle of attack
 
