@@ -23,8 +23,9 @@ def subloop(v):
     return v
 
 def dosubloop(v):
-    for i in range(2):
+    for i in range(5):
         v = subloop(v)
+    return v
 
 def loop(v):
     if iterating_designpoint:
