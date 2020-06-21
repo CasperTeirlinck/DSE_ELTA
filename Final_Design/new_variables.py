@@ -123,9 +123,10 @@ class NewVariables:
         self.CL_takeoff = self.CL_landing/(1.1**2)
         self.CL_climb = 1.8
 
-        # Constants statistical variables
+        # Constants & statistical variables
         self.kwl = 2.1
         self.dCD_landinggear = 0.15
+        self.going_mad = True
 
         # Airfoil properties
         self.Clmax_r = 1.6
@@ -216,9 +217,9 @@ class NewVariables:
         
         self.W_syscomp = 69.2*9.81      # System component weight (TE package + avionics + electronics)
         
-        self.W_fus_fwd = None
+        self.Wfus_fwd = None
         self.Wfus_aft  = 50*9.81
-        self.W_fgroup = 250
+        self.W_fgroup = None
 
         self.W_htail = None
         self.W_vtail = None
@@ -351,7 +352,7 @@ class NewVariables:
 
         # Component locations
         self.xmg = 2                # [m]           Main gear location
-        self.xacw = 1               # [m]           Wing/fuselage aerodynamic centre location
+        self.xacw = 1                 # [m]           Wing/fuselage aerodynamic centre location
         self.xach = 6               # [m]           Horizontal tail aerodynamic centre location
 
         self.zmg = 0                # [m]           Main gear height
@@ -1054,10 +1055,35 @@ def sys_Aerodynamics_total(v):
     v.e_flaps = v.calcOswald(v.fuselagewettedarea,v.fuselagelength,v.fuselagefrontalarea,v.fuselagewidth,v.Sh,v.Sv,v.MAC_h,v.BLturbratio_fus,v.BLturbratio_wing,v.BLturbratio_emp,v.h_landinggear,v.w_landinggear,v.dCD_landinggear,v.MAC,v.flapaffectedarea,hasWinglets=v.hasWinglets,clean_config=True)
     return v
 
+def calcXcg_fusgroup(v):
+    Wlist = np.array([W_,v.W_prop,v.W_shaft,v.W_motor])
+
+
+        # self.WPL = 1961.33
+        
+        # self.W_wing    = None           # Wing weight
+
+        # self.W_batt    = None           # Battery weight in Newtons
+        # self.W_motor   = 30 * 9.81      # Motor weight in Newtons
+        # self.W_shaft   = 4.48 * 9.81    # Engine shaft weight in Newtons
+        # self.W_prop    = 12 * 9.81      # Propeller weight in Newtons
+        
+        # self.W_syscomp = 69.2*9.81      # System component weight (TE package + avionics + electronics)
+        
+        # self.Wfus_fwd = None
+        # self.Wfus_aft  = 50*9.81
+        # self.W_fgroup = 250
+
+        # self.W_htail = None
+        # self.W_vtail = None
+        
+        # self.W_OEW = None
+
 def CalcOEW(v):
     v.W_OEW = v.W_wing + v.W_fuselage + v.W_motor + v.W_shaft + v.W_prop + v.W_syscomp + v.W_htail + v.W_vtail
     return v
 
 def CalcMTOWnew(v):
-    v.WTO = v.W_OEW + v.WPL + W_batt
+    v.WTO = v.W_OEW + v.WPL + v.W_batt
     return v
+

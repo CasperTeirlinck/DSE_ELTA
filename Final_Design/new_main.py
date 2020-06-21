@@ -5,12 +5,12 @@ from Stability_and_Control.verticaltail_design import *
 from Stability_and_Control.empennagecontrol_design import *
 from Power_and_Propulsion.battery_main import *
 from ClassIIWeightEstimationnew import *
+from Midterm_Design.cg_determination import *
 
 wingresolution = 100
 iterating_designpoint = True
 
-def do_subloop1(airplane):
-    
+
     
 
 
@@ -27,14 +27,17 @@ def do_loop(v):
     v = main_bat(v)
 
 
+
     v.W_htail,v.W_vtail = EmpennageEstimation(v)
 
 
 
     v = sizing_htail_wingpos(v)
     v = verticaltail_sizing(v)
-    v = elevator_sizing(v)    
+    #v = elevator_sizing(v)    
     
+    
+
 
     v = CalcOEW(v)
     v = CalcMTOWnew(v)
@@ -42,5 +45,8 @@ def do_loop(v):
 if __name__ == "__main__":
     v = NewVariables(False,0.)
     print(v.Snet)
-    do_loop(v)
+    for i in range(20):
+        do_loop(v)
+        print(v.WTO)
+
     print("IT WORKS!!")

@@ -89,11 +89,11 @@ def MainWingEstimationNew(variables,tc_airfoil = 0.15): #W_to,S_w,n_ult,A_w,Stru
     return W_w/Nlbf
 
 def EmpennageEstimation(variables):
-    tr_h = variables.tcr_h*np.sqrt(variables.Sh/variables.A_h)
-    tr_v = variables.tcr_v*np.sqrt(variables.Sv/variables.A_v)
+    tr_h = 0.12*np.sqrt(variables.Sh/variables.A_h)
+    tr_v = 0.12*np.sqrt(variables.Sv/variables.A_h)
 
     W_h = (3.183*(variables.WTO*Nlbs)**0.887*(variables.Sh*mft**2)**0.101*variables.A_h**0.138)/(174.04*(tr_h*mft)**0.223)
-    W_v = (1.68*(variables.WTO*Nlbs)**0.567*(variables.Sv*mft**2)**1.249*variables.A_v**0.482)/(639.95*(tr_v*mft)**0.747*np.cos(variables.sweep_v/180*np.pi)**0.882)
+    W_v = (1.68*(variables.WTO*Nlbs)**0.567*(variables.Sv*mft**2)**1.249*variables.A_h**0.482)/(639.95*(tr_v*mft)**0.747*np.cos(20/180*np.pi)**0.882)
     return W_h/Nlbs, W_v/Nlbs
 
 def FuselageEstimation(variables):
