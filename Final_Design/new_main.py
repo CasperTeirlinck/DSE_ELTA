@@ -37,7 +37,7 @@ def loop(v):
     v = design_fuselage(v)
 
     v = CalcOEW(v)
-    v = CalcMTOWnew(v)
+    v.update_WTO()
     return v
 
 def do_loop(v, difference=0.1, maxiterations=500):
@@ -54,15 +54,12 @@ def do_loop(v, difference=0.1, maxiterations=500):
         return v, WTOS, iteration
 
 if __name__ == "__main__":
-    v = NewVariables(False,0.)
+    v = NewVariables(True,0.3)
     # for i in range(5):
     v, wtos, i = do_loop(v)
     wtos = np.array(wtos)
     v_dict = vars(v)
     print(v_dict)
-    with open('finaldesign.csv', 'w') as file:
-        for key in v_dict.keys():
-            file.write("%s, %s\n" % (key, v_dict[key]))
     print("Final mass = {}, b={}, S={}, WS={}, WP={}".format(v.WTO/9.81, v.b, v.S, v.WS, v.WP))
 
     print("Iteration ", i + 1, " results:")
@@ -71,5 +68,10 @@ if __name__ == "__main__":
     print("Horizontal tail: ", v.W_htail / 9.81)
     print("Vertical tail: ", v.W_vtail / 9.81)
     print("Wing: ", v.W_wing / 9.81)
+    print("Fuselage aft: ", v.Wfus_aft / 9.81)
     print("Take-off weight history: ", wtos)
     print("_______________")
+
+    with open('finaldesign.csv', 'w') as file:
+        for key in v_dict.keys():
+            file.write("%s, %s\n" % (key, v_dict[key]))

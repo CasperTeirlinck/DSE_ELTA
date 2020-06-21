@@ -541,7 +541,7 @@ class NewVariables:
     ###################################
 
     def update_WTO(self):
-        self.WTO = self.Woew_classII + self.Wbat + self.WPL
+        self.WTO = self.WTO = self.W_OEW + self.WPL + self.W_batt
 
     def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, deltaAlphaStall_r=0,
                     deltaAlphaStall_t=0):
