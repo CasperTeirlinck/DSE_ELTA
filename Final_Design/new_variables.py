@@ -334,7 +334,6 @@ class NewVariables:
 
         # Horizontal tail variables
         self.lh = 6.9               # [m]           Horizontal tail arm
-        self.ch_r = None            # [m]           Horizontal tail root chord
         self.ih = 0                 # [rad]         Horizontal tail incidence angle
         
         self.CLh_L = -0.8           # [-]           Horizontal tail landing configuration lift coefficient

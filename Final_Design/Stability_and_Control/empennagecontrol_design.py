@@ -60,7 +60,7 @@ def elevator_sizing(variables):
     Sh = variables.Sh               # [m2]          Horizontal tail surface area
     ih = variables.ih               # [rad]         Horizontal tail incidence angle
     bh = variables.bh               # [m]           Horizontal tail surface area
-    chr = variables.ch_r             # [m]           Horizontal tail root chord
+    chr = variables.c_r_h             # [m]           Horizontal tail root chord
     VhV = variables.VhV
     Vcruise = variables.Vcruise         # [m/s]     Cruise speed
     hcruise = variables.hcruise         # [m]       Cruise altitude
