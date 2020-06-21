@@ -189,11 +189,11 @@ def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
 
     lh = variables.lh                   # [m]       Tail arm
     zh = variables.h_htail              # [m]       Height horizontal tail from ground
-    Ah = variables.A_h                   # [-]       Horizontal tail aspect ratio
-    bh = variables.b_h                   # [m]       Horizontal tail span
-    taperh = variables.taper_h           # [-]       Horizontal tail taper ratio
+    Ah = variables.A_h                  # [-]       Horizontal tail aspect ratio
+    bh = variables.b_h                  # [m]       Horizontal tail span
+    taperh = variables.taper_h          # [-]       Horizontal tail taper ratio
     sweeph = variables.sweeph           # [rad]     Horizontal tail quarter chord sweep angle
-    crh = variables.c_r_h                # [m]       Horizontal tail root chord
+    crh = variables.c_r_h               # [m]       Horizontal tail root chord
 
     VhV = variables.VhV                 # [-]       Tail/wing speed ratio
 
@@ -201,7 +201,7 @@ def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
     hcruise = variables.hcruise         # [m]       Cruise altitude
 
     eta = variables.eta                 # [-]       Airfoil efficiency coefficient
-    CLaw = variables.wing_CL_alpha         # [/rad]    Wing lift rate coefficient
+    CLaw = variables.wing_CL_alpha      # [/rad]    Wing lift rate coefficient
     Cm0af = variables.Cm0af             # [-]       Airfoil zero lift pitching moment coefficient
     mu1 = variables.mu1                 # [-]       Flap coefficient 1
     mu2 = 1.2*(bfl/bw)+0.13             # [-]       Flap coefficient 2
@@ -211,7 +211,7 @@ def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
     CL_landing = variables.CL_landing   # [-]       Wing lift coefficient at landing (all flaps deployed)
     Swf = variables.flapaffectedarea    # [m2]      Reference wing flapped surface area
     CL0 = variables.CL0flap             # [-]       Flapped wing lift coefficient at zero angle of attack
-    CLA_h = CL_landing            # [-]       Aircraft less tail lift coefficient
+    CLA_h = CL_landing                  # [-]       Aircraft less tail lift coefficient
     CLh = variables.CLh_L               # [-]       Horizontal tail landing configuration lift coefficient
 
     sm_free = 0.05                      # [-]       Fraction neutral point shift for stick-free stability
@@ -383,9 +383,11 @@ def sizing_htail_wingpos(variables,plot=False):
     xlemacw = xlemaclf*lf
     xwing = xlemacw - xmac
     xcg_wing = xwing + cg_wing
+    xnp = xcg_max + 0.05
 
     # Update values in variables class
     variables.xwing = xwing
+    variables.xtail = variables.lh + xnp
     variables.xlemac = xlemacw
     variables.xcg_min = xcg_min*MAC
     variables.xcg_max = xcg_max*MAC
