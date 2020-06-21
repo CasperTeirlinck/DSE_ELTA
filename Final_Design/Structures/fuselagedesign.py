@@ -8,6 +8,10 @@ except ModuleNotFoundError:
     from Structures.stringerclass import *
     from Structures.loadinfo import *
     from Structures.Fuselageclass import *
+try:
+    from new_variables import NewVariables
+except ModuleNotFoundError:
+    from Final_Design.new_variables import NewVariables
 
 import copy
 from scipy.interpolate import interp1d
@@ -17,7 +21,6 @@ from math import sqrt, cos, sin
 from matplotlib import pyplot as plt
 from functools import partial
 from itertools import product
-from Final_Design.new_variables import NewVariables
 
 
 def calc_tresca(normal, shear):
