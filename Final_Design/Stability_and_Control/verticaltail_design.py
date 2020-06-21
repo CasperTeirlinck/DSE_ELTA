@@ -38,7 +38,9 @@ def verticaltail_sizing(variables):
     Sw = variables.S                    # [m2]      Wing surface area
     bw = variables.b                    # [m]       Wing span
     CnBi = variables.CnBi               # [-]       Wing configuration stability component
-    lv = variables.lv                   # [m]       Vertical tail arm
+    xcg = variables.xcg_max             # [m]       Centre of gravity location
+    xtail = variables.xtail             # [m]       Tail location
+    lv = xtail - xcg                    # [m]       Vertical tail arm
 
     CnB = directional_stability(lcg,lf,hfmax,Sfs,Sw,bw,hf1,hf2,bf1,bf2,lp1,lp2,Dp1,Dp2,Bp,CnBi)
     print('---- Vertical tail sizing -----')

@@ -337,7 +337,6 @@ class NewVariables:
         
 
         # Vertical tail variables
-        self.lv = 6.9               # [m]           Vertical tail arm
         self._Sv = 100              # [m2]          Vertical tail surface
 
         self.CnB = None             # [-]           Directional stability coefficient
