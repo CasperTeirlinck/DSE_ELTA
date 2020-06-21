@@ -90,7 +90,7 @@ def elevator_sizing(variables):
     variables.be = be
     variables.ce = ce
     variables.Se = Se
-    variables.CLh_TO = CLh_TO
+    variables.CLh_TO = CLh
 
     return variables
 '''
