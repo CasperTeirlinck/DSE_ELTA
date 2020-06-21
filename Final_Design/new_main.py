@@ -14,6 +14,18 @@ wingresolution = 100
 iterating_designpoint = True
 
 
+def subloop(v):
+    v.W_htail,v.W_vtail = EmpennageEstimation(v)
+    v = calcFusgroup(v)
+
+    v = sizing_htail_wingpos(v)
+    v = verticaltail_sizing(v)
+    return v
+
+def dosubloop(v):
+    for i in range(5):
+        v = subloop(v)
+
 def loop(v):
     if iterating_designpoint:
         get_design_point(v)
@@ -25,15 +37,11 @@ def loop(v):
     v = power_calculation(v)
     v = main_bat(v)
 
-    v.W_htail,v.W_vtail = EmpennageEstimation(v)
-    v = calcFusgroup(v)
+    v = dosubloop(v)
 
-
-    v = sizing_htail_wingpos(v)
-    v = verticaltail_sizing(v)
     v = CalcTTO(v)
     v = elevator_sizing(v)
-
+    
     v = design_fuselage(v)
 
     v = CalcOEW(v)
