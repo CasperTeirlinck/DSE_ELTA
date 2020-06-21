@@ -68,8 +68,28 @@ class NewVariables:
 
 
 
-        self.WP = 0.121 
-        self.WS = 592 
+        self._WP = 0.121
+        self._WS = 592
+
+    @property
+    def WP(self):
+        return self._WP
+
+    @WP.setter
+    def WP(self, val):
+        self._WP = val
+        P1 = 65 * 1000      # Maximum power produced by the engine in W
+        P2 = self.WTO/val
+        self.P_max = max(P1, P2)
+
+    @property
+    def WS(self):
+        return self._WS
+
+    @WS.setter
+    def WS(self, val):
+        self._WS = val
+        self.S = self.WTO/val
 
     def init_aerodynamics(self,haswinglets,wingletheight):
         # Conditions
@@ -541,7 +561,11 @@ class NewVariables:
     ###################################
 
     def update_WTO(self):
-        self.WTO = self.WTO = self.W_OEW + self.WPL + self.W_batt
+        self.WTO = self.W_OEW + self.WPL + self.W_batt
+        self.S = self.WTO/self.WS
+        P1 = 65 * 1000      # Maximum power produced by the engine in W
+        P2 = self.WTO/self.WP
+        self.P_max = max(P1, P2)
 
     def setAirfoils(self, Clmax_r, Clmax_t, Cla_r, Cla_t, a0_r, a0_t, deltaAlphaStall_r=0,
                     deltaAlphaStall_t=0):
