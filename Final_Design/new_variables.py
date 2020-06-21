@@ -60,7 +60,7 @@ class NewVariables:
         self.xwing = None
 
         self.xcg_fgroup = 2.5
-        self.xcg_fuselage = 2.5
+
         self.xcgPL = 1.5
         self.xcgbat = 3.2
         self.xcg_min = None
@@ -225,6 +225,9 @@ class NewVariables:
         self.W_vtail = None
         
         self.W_OEW = None
+
+        self.xcg_fus_fwd = None
+        self.xcg_fus_aft = None
 
     @property
     def fuselage(self):
@@ -1056,8 +1059,11 @@ def sys_Aerodynamics_total(v):
     return v
 
 def calcXcg_fusgroup(v):
-    Wlist = np.array([v.Wfus_fwd,v.Wfus_aft,v.W_htail,v.W_vtail,v.W_prop,v.W_shaft,v.W_motor])
-    Xlist = np.array([v.])
+    Wlist = np.array([v.Wfus_fwd,v.Wfus_aft,v.W_htail,v.W_vtail,v.W_prop,v.W_shaft,v.W_motor,v.W_syscomp])
+    Xlist = np.array([v.xcg_fus_fwd,v.xcg_fus_aft,v.xtail,v.xtail,v.xprop,v.xshaft,v.xmotor,v.xcg_fus_fwd])
+
+    v.xcg_fgroup = np.sum(Wlist*Xlist)/np.sum(Wlist)
+    return v
 
 
         # self.WPL = 1961.33

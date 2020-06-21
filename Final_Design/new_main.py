@@ -25,7 +25,7 @@ def do_loop(v):
     v = power_calculation(v)
     v = main_bat(v)
 
-
+    v = calcXcg_fusgroup(v)
 
     v.W_htail,v.W_vtail = EmpennageEstimation(v)
 
