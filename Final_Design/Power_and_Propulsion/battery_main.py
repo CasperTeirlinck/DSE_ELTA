@@ -16,8 +16,8 @@ def main_bat(variables):
     E_avionics = ppe.energy_avionics(variables) # Energy for avionics in [J]
 
     # Just for information which requirement requires the most energy
-    if E_engine == E_engine_endur: print("Enudance uses most energy")
-    else: print("Range uses most energy")
+    #if E_engine == E_engine_endur: print("Enudance uses most energy")
+    #else: print("Range uses most energy")
 
     # Total energy required from the batteries
     E_total = E_engine + E_avionics
