@@ -23,7 +23,7 @@ def subloop(v):
     return v
 
 def dosubloop(v):
-    for i in range(5):
+    for i in range(2):
         v = subloop(v)
 
 def loop(v):
@@ -38,10 +38,9 @@ def loop(v):
     v = main_bat(v)
 
     v = dosubloop(v)
-
     v = CalcTTO(v)
     v = elevator_sizing(v)
-    
+
     v = design_fuselage(v)
 
     v = CalcOEW(v)
