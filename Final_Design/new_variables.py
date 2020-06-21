@@ -314,10 +314,10 @@ class NewVariables:
 
         # Propeller geometry parameters
         self.Bp = 2.5               # [-]           Number of blades per propeller
-        self.xp1 = 2                # [m]           1st propeller location
-        self.xp2 = 2                # [m]           2nd propeller location
-        self.Dp1 = 2                # [m2]          1st propeller disk diameter
-        self.Dp2 = 2                # [m2]          2nd propeller disk diameter
+        self.xp1 = 0.2              # [m]           1st propeller location TODO check value
+        self.xp2 = 0.4              # [m]           2nd propeller location TODO check value
+        self.Dp1 = 2                # [m]          1st propeller disk diameter TODO check value
+        self.Dp2 = 2                # [m]          2nd propeller disk diameter TODO check value
 
 
         # Wing variables
@@ -341,7 +341,7 @@ class NewVariables:
         
 
         # Vertical tail variables
-        self._Sv = 100              # [m2]          Vertical tail surface
+        self._Sv = 3               # [m2]          Vertical tail surface
 
         self.CnB = None             # [-]           Directional stability coefficient
 
@@ -349,22 +349,20 @@ class NewVariables:
         # Flight performance parameters
         self.a_pitch = 12*pi/180    # [rad/s]       Take-off pitch angular velocity
         self.VTO = 1.05 * 25.2      # [m/s]         Take-off velocity
-        self.rhoTO = 1.225          # [kg/m3]       Take-off density
+        self.rhoTO = 1.04           # [kg/m3]       Take-off density
         self.VL = 1.1 * 25.2
         self.mu = 0.05              # [-]           Take-off friction factor
 
         # Centre of gravity
-        self.zcg = 1                # [m]           Centre of gravity height
-        self.xcg_f = 2.3            # [m]           Fuselage centre of gravity location
+        self.zcg = 1                # [m]           Centre of gravity height TODO Check
+        self.xcg_f = 2.3            # [m]           Fuselage centre of gravity location TODO Check
 
         # Component locations
-        self.xmg = 2                # [m]           Main gear location
-        self.xacw = 1                 # [m]           Wing/fuselage aerodynamic centre location
-        self.xach = 6               # [m]           Horizontal tail aerodynamic centre location
+        self.xmg = 2                # [m]           Main gear location TODO Check
 
-        self.zmg = 0                # [m]           Main gear height
-        self.zT = 1                 # [m]           Thrust vector height
-        self.zD = 0.5               # [m]           Drag vector heigh
+        self.zmg = 0                # [m]           Main gear height TODO Check
+        self.zT = 1                 # [m]           Thrust vector height TODO Check
+        self.zD = 0.5               # [m]           Drag vector height TODO Check
 
         # Elevator geometry parameters
         self.bebh = 1               # [-]           Elevator span
