@@ -25,15 +25,14 @@ def do_loop(v):
     v = power_calculation(v)
     v = main_bat(v)
 
-    v = calcXcg_fusgroup(v)
-
     v.W_htail,v.W_vtail = EmpennageEstimation(v)
-
+    v = calcXcg_fusgroup(v)
 
 
     v = sizing_htail_wingpos(v)
     v = verticaltail_sizing(v)
-    #v = elevator_sizing(v)    
+    v = CalcTTO(v)
+    v = elevator_sizing(v)    
     
 
 

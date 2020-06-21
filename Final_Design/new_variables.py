@@ -1066,26 +1066,6 @@ def calcXcg_fusgroup(v):
     return v
 
 
-        # self.WPL = 1961.33
-        
-        # self.W_wing    = None           # Wing weight
-
-        # self.W_batt    = None           # Battery weight in Newtons
-        # self.W_motor   = 30 * 9.81      # Motor weight in Newtons
-        # self.W_shaft   = 4.48 * 9.81    # Engine shaft weight in Newtons
-        # self.W_prop    = 12 * 9.81      # Propeller weight in Newtons
-        
-        # self.W_syscomp = 69.2*9.81      # System component weight (TE package + avionics + electronics)
-        
-        # self.Wfus_fwd = None
-        # self.Wfus_aft  = 50*9.81
-        # self.W_fgroup = 250
-
-        # self.W_htail = None
-        # self.W_vtail = None
-        
-        # self.W_OEW = None
-
 def CalcOEW(v):
     v.W_OEW = v.W_wing + v.W_fuselage + v.W_motor + v.W_shaft + v.W_prop + v.W_syscomp + v.W_htail + v.W_vtail
     return v
@@ -1094,3 +1074,26 @@ def CalcMTOWnew(v):
     v.WTO = v.W_OEW + v.WPL + v.W_batt
     return v
 
+def CalcTTO(v):
+    s           = 250                           #[m] assumed take-off roll (NOT 500!!!! Need to climb to 50 ft!)
+    V_lof       = 45*1.05*1.851/3.6      #[m/s] lift of speed
+    rho_sea     = v.rho_sea                        #[kg/m3] air density at sea level
+    S_wing      = v.S                           #[m2] wing surface
+    W           = v.WTO
+    CD_to       = 0.0414                        #[-] DO NOT CHANGE THIS VARIABLE!!!
+    CL_to       = 0.628                         #[-] DO NOT CHANGE THIS VARIABLE!!!
+    mu          = 0.05                          #[-] DO NOT CHANGE THIS VARIABLE!!!
+
+    a_avg = V_lof*2/(2*s)  #[m/s*2] average acceleration
+    
+    V_avg = V_lof/np.sqrt(2) #[m/s] average velocity
+    
+    D_avg = 0.5*rho_sea*V_avg**2*S_wing*CD_to #[N] average Drag
+    
+    L_avg = 0.5*rho_sea*V_avg**2*S_wing*CL_to #[N] average Lift
+    
+    
+    v.TTO = a_avg*W/9.80665 + mu*(W-L_avg) + D_avg #[N] average Take off thrust
+    
+    return v
+     #[N]
