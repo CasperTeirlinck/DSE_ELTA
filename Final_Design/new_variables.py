@@ -103,8 +103,8 @@ class NewVariables:
         # Horizontal tail geometry
         self._Sh = 0.4*self.S
         self.A_h = 3
-        self.taper_h = 0.467
-        self.sweeph = 0.1
+        self.taper_h = 0.7
+        self.sweeph = np.radians(10)
         self._b_h = np.sqrt(self.A_h * self.Sh)
         self._c_r_h = (2 * self.Sh) / (self.b_h * (1 + self.taper_h))
         self.c_t_h = self.taper_h * self.c_r_h
