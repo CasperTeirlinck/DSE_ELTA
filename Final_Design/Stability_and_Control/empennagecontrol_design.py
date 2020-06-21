@@ -124,8 +124,10 @@ def elevator_sizing(variables):
     print('Elevator angle of attack effectiveness =',round(tau_e,2))
 
     # Elevator-to-tail chord ratio
-    cech = 0.4 #float(input('CE/Ch = '))
-
+    if tau_e > 1:
+        print("WARNING: ELEVATOR INTERPOLATION OUT OF RANGE")
+    cech = 0.2872*tau_e + 0.2424*tau_e**2 + 0.2300*tau_e**3 - 1.3548*tau_e**4 - 1.09131*tau_e**4 #float(input('CE/Ch = '))
+    
     # Elevator size
     be = bebh*bh
     ce = cech*chr

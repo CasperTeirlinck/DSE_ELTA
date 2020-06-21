@@ -41,10 +41,17 @@ def do_loop(v):
     v = CalcMTOWnew(v)
 
 if __name__ == "__main__":
-    v = NewVariables(False,0.)
-    print(v.Snet)
-    for i in range(5):
+    v = NewVariables(True,0.7)
+    
+    while abs(WTO_old-v.WTO):
+        #WTO_old = v.WTO
         do_loop(v)
-        print(v.WTO/9.81)
 
-    print("IT WORKS!!")
+        # Print statements
+        print("Iteration ",i+1," results:")
+        print("Take-off: ", v.WTO/9.81)
+        print("Battery: ", v.W_batt/9.81)
+        print("Horizontal tail: ",v.W_htail/9.81)
+        print("Vertical tail: ",v.W_vtail/9.81)
+        print("Wing: ",v.W_wing/9.81)
+        print("_______________")
