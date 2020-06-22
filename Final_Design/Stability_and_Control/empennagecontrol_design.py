@@ -29,7 +29,7 @@ def elevator_sizing(variables):
     Sw = variables.S                # [m2]          Wing surface area
     MAC = variables.MAC             # [m]           Mean aerodynamic chord
     CLTO = variables.CL_takeoff     # [-]           Take-off lift coefficient
-    CDTO = variables.CD0to + CLTO/(pi*variables.A*variables.eflaps)
+    CDTO = variables.CD0to + CLTO**2/(pi*variables.A*variables.eflaps)
                                     # [-]           Take-off drag coefficient
     Cm0af = variables.Cm0af
     Aw = variables.A

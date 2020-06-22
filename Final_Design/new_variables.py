@@ -992,7 +992,7 @@ class NewVariables:
         b = self.b                  # [m]       Wing span
         taper = self.taper          # [-]       Wing taper ratio
         cr = self.c_r               # [m]       Wing root chord
-        cla = self.calcCLa()        # [/rad]    Take-off configuration lift curve slope
+        cla = self.wing_CL_alpha    # [/rad]    Take-off configuration lift curve slope
         cd0_TO = self.CD0clean      # [-]       Take-off configuration zero lift drag coefficient
         cd0_L = self.CD0flap        # [-]       Landing configuration zero lift drag coefficient
 
