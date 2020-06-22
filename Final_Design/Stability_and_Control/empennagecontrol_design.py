@@ -126,7 +126,7 @@ def elevator_sizing(variables):
     # Elevator-to-tail chord ratio
     if tau_e > 1:
         print("WARNING: ELEVATOR INTERPOLATION OUT OF RANGE")
-    cech = 0.2872*tau_e + 0.2424*tau_e**2 + 0.2300*tau_e**3 - 1.3548*tau_e**4 - 1.09131*tau_e**4 #float(input('CE/Ch = '))
+    cech = 0.2872*tau_e + 0.2424*tau_e**2 + 0.2300*tau_e**3 + 1.3548*tau_e**4 - 1.09131*tau_e**5 #float(input('CE/Ch = '))
     
     # Elevator size
     be = bebh*bh
