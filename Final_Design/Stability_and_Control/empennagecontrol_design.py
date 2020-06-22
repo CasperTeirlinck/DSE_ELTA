@@ -1,4 +1,6 @@
-from math import pi
+from math import pi,cos,tan,sqrt
+from Stability_and_Control.wing_properties import sweep
+import numpy as np
 
 def elevator_sizing(variables):
     g = variables.g0
@@ -15,27 +17,70 @@ def elevator_sizing(variables):
 
     xcg = variables.xcg_min         # [m]           Most forward centre of gravity
     xmg = variables.xmg             # [m]           Main gear location
-    xacw = variables.xacw           # [m]           Wing/fuselage aerodynamic centre location
-    xach = variables.xach           # [m]           Horizontal tail aerodynamic centre location
+    MAC = variables.MAC
+    xacw = variables.xwing+0.25*MAC # [m]           Wing/fuselage aerodynamic centre location
+    xach = variables.xtail           # [m]           Horizontal tail aerodynamic centre location
 
     zcg = variables.zcg             # [m]           Centre of gravity height
     zmg = variables.zmg             # [m]           Main gear height
     zT = variables.zT               # [m]           Thrust vector height
     zD = variables.zD               # [m]           Drag vector height
 
-    Sw = variables.Sw               # [m2]          Wing surface area
+    Sw = variables.S                # [m2]          Wing surface area
     MAC = variables.MAC             # [m]           Mean aerodynamic chord
-    CLTO = variables.CLTO           # [-]           Take-off lift coefficient
-    CDTO = variables.CDTO           # [-]           Take-off drag coefficient
-    Cmacwf = variables.Cmacwf       # [-]           Wing-fuselage pitching moment coefficient around the aerodynamic centre
+    CLTO = variables.CL_takeoff     # [-]           Take-off lift coefficient
+    CDTO = variables.CD0to + CLTO/(pi*variables.A*variables.eflaps)
+                                    # [-]           Take-off drag coefficient
+    Cm0af = variables.Cm0af
+    Aw = variables.A
+    sweepw = 0
+    bf = variables.fuselagewidth
+    lf = variables.fuselagelength
+    hf = variables.fuselageheight
+    dClmax = 0.9*variables.dClmax
+    CL0 = variables.CL0flap
+    CLaw = variables.wing_CL_alpha
+    bw = variables.b
+    Snet = variables.Snet
+    cc = variables.cc
+    Swf = variables.flapaffectedarea
+    bfl = variables.flapspan            # [m]       Flap span
+    mu1 = variables.mu1                 # [-]       Flap coefficient 1
+    mu2 = 1.2*(bfl/bw)+0.13             # [-]       Flap coefficient 2
+    mu3 = 0.06*(bfl/bw)+0.0335          # [-]       Flap coefficient 3
+    CLaA_h = CLaw * (1 + 2.15*bf/bw) * Snet/Sw + pi/2*bf**2/Sw
+    Cmacw = Cm0af*(Aw*cos(sweepw)**2/(Aw + 2*cos(sweepw)))
+    dfusCmac = -1.8*(1-2.5*bf/lf) * pi*bf*hf*lf/(4*Sw*MAC) * CL0/CLaA_h
+    dfCmac = mu2*(-mu1*dClmax*cc-(CLTO+dClmax*(1-Swf/Sw))*(1/8)*cc*(cc-1))\
+             + 0.7*Aw/(1+2/Aw)*mu3*dClmax*tan(sweepw)
+    dnacCmac = 0
+    Cmacwf = Cmacw + dfCmac + dfusCmac + dnacCmac
+
     deda = variables.deda           # [-]           Downwash gradient
-    a0 = variables.a0               # [rad]         Zero lift angle of attack
+    a0 = -np.radians(7.4)              # [rad]         Zero lift angle of attack
 
     Sh = variables.Sh               # [m2]          Horizontal tail surface area
     ih = variables.ih               # [rad]         Horizontal tail incidence angle
-    bh = variables.bh               # [m]           Horizontal tail surface area
-    chr = variables.chr             # [m]           Horizontal tail root chord
-    CLah = variables.CLah           # [/rad]        Horizontal lift curve slope
+    bh = variables.b_h               # [m]           Horizontal tail surface area
+    chr = variables.c_r_h             # [m]           Horizontal tail root chord
+    VhV = variables.VhV
+    Vcruise = variables.Vcruise         # [m/s]     Cruise speed
+    hcruise = variables.hcruise         # [m]       Cruise altitude
+    T0 = variables.T0
+    R = variables.R                     # [J/kg K]  Gas constant
+    gamma = variables.gamma             # [-]       Heat capacity ratio
+    lmbda = variables.lmbda             # [degC/m]  Lapse rate
+    sweeph = variables.sweeph
+    taperh = variables.taper_h
+    Ah = variables.A_h
+    eta = variables.eta                 # [-]       Airfoil efficiency coefficient
+    Vh = VhV*Vcruise
+    Tcruise = T0 + lmbda*hcruise
+    a = sqrt(gamma*R*Tcruise)
+    Mh = Vh/a
+    betah = sqrt(1 - Mh**2)
+    sweepc2h = sweep(0.5,bh,sweeph,taperh,chr)
+    CLah = 2*pi*Ah/(2 + sqrt(4 + (Ah*betah/eta)**2 * (1 + tan(sweepc2h)**2/(betah**2))))
 
     bebh = variables.bebh           # [-]           Elevator span
     de_max = variables.de_max       # [rad]         Maximum elevator deflection
@@ -75,12 +120,14 @@ def elevator_sizing(variables):
 
     # Elevator angle of attack effectiveness
     tau_e = (CLh/CLah-ah)/de_min
-    print('\n----- Elevator design -----')
-    print('Elevator angle of attack effectiveness =',round(tau_e,2))
+    #print('\n----- Elevator design -----')
+    #print('Elevator angle of attack effectiveness =',round(tau_e,2))
 
     # Elevator-to-tail chord ratio
-    cech = float(input('CE/Ch = '))
-
+    if tau_e > 1:
+        print("WARNING: ELEVATOR INTERPOLATION OUT OF RANGE")
+    cech = 0.2872*tau_e + 0.2424*tau_e**2 + 0.2300*tau_e**3 - 1.3548*tau_e**4 - 1.09131*tau_e**4 #float(input('CE/Ch = '))
+    
     # Elevator size
     be = bebh*bh
     ce = cech*chr
@@ -90,7 +137,7 @@ def elevator_sizing(variables):
     variables.be = be
     variables.ce = ce
     variables.Se = Se
-    variables.CLh_TO = CLh_TO
+    variables.CLh_TO = CLh
 
     return variables
 '''

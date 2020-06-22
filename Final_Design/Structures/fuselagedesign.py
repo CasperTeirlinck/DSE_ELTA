@@ -8,6 +8,10 @@ except ModuleNotFoundError:
     from Structures.stringerclass import *
     from Structures.loadinfo import *
     from Structures.Fuselageclass import *
+try:
+    from new_variables import NewVariables
+except ModuleNotFoundError:
+    from Final_Design.new_variables import NewVariables
 
 import copy
 from scipy.interpolate import interp1d
@@ -16,8 +20,7 @@ import numpy as np
 from math import sqrt, cos, sin
 from matplotlib import pyplot as plt
 from functools import partial
-from itertools import product
-from Final_Design.new_variables import NewVariables
+import os
 
 
 def calc_tresca(normal, shear):
@@ -44,7 +47,7 @@ def construct_locs_circ(r, Ns, ts=0.0):
     return locs, angles
 
 
-def change_parameter(minmax, parameter, increase, amount=0.1):
+def change_parameter(minmax, parameter, increase, amount=0.02):
     if isinstance(parameter, int):
         if increase:
             if parameter != minmax[1]:
@@ -58,12 +61,12 @@ def change_parameter(minmax, parameter, increase, amount=0.1):
                 return minmax[0], False
     elif isinstance(parameter, float):
         if increase:
-            if minmax[1]-parameter > amount*parameter:
+            if minmax[1]-parameter > parameter*amount:
                 return parameter * (1.0 + amount), True
             else:
                 return minmax[1], False
         else:
-            if parameter-minmax[0] > amount*parameter:
+            if parameter-minmax[0] > parameter*amount:
                 return parameter * (1.0 - amount), True
             else:
                 return minmax[0], False
@@ -142,7 +145,7 @@ def generate_fuselage(data, framelocs, zshift, ts, base_material, circ_material=
         else:
             length = y-framelocs[idx+1]
         if length == 0.0:
-            length = 0.00001
+            length = 0.00000001
         if y < 6.099:
             width = interpw(y)
             cs = create_compound_segment(base_material, length, ts(y), interph(y), width, interprt(y), interprb(y), stringerlist, stringerargs, n_longs=n_longs, longargs=longeronsarg)
@@ -156,7 +159,9 @@ def generate_fuselage(data, framelocs, zshift, ts, base_material, circ_material=
     return fus
 
 def make_fuselage(skint, stringerlist=[], stringerargs=None, materials=None, framelocs=None, n_stiff_circ=0, circstringerargs=None, n_longs=0, longargs=None):
-    data = np.genfromtxt("fuselage_data.csv", delimiter=",", skip_header=1)
+    bin_path = os.path.dirname(os.path.realpath(__file__)) # Script path
+    data_path = os.path.join(*[bin_path, 'fuselage_data.csv'])
+    data = np.genfromtxt(data_path, delimiter=",", skip_header=1)
     data *= 0.001
     if materials is None:
         aluminium = MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, name="AA2024", alpha=0.8,
@@ -206,9 +211,11 @@ def analyse_fuselage(framelocs, fus, bcs, *loads, yout=None):
         system.change_geometry(framelocs, EIx, EIz)
     if yout is None:
         yout = np.concatenate((framelocs, np.array([framelocs[-1]-0.000003, 0.])))
-    areas = np.concatenate((areas, np.array([areas[-1], areas[-1], areas[-1]])))
-    shearcentres = np.concatenate((shearcentres, np.array([shearcentres[-1], shearcentres[-1], shearcentres[-1]])))
-    system.change_areas(areas, shearcentres, y_locs=yout)
+    youtareas = np.concatenate((framelocs, np.array([0])))
+    diff = len(youtareas)-len(areas)
+    areas = np.concatenate((areas, np.ones(diff)*areas[-1]))
+    shearcentres = np.concatenate((shearcentres, np.ones(diff)*shearcentres[-1]))
+    system.change_areas(areas, shearcentres, y_locs=youtareas)
 
     system.solve_bcs()
 
@@ -233,13 +240,19 @@ def analyse_forces(yout, framelocs, fus, sx, sz, mx, mz, ny, q, printing=True):
     trescastresses = []
     for frameloc, section in zip(framelocs, fus.sections):
         critlen = frameloc - section.properties.l
-        nyi = ny[np.abs(yout - critlen) < 0.001]
-        normalstresses.append((nyi/section.properties.total_area).item())
-        sxi = sx[np.abs(yout - critlen) < 0.001]
-        szi = sz[np.abs(yout - critlen) < 0.001]
-        mxi = mx[np.abs(yout - critlen) < 0.001]
-        mzi = mz[np.abs(yout - critlen) < 0.001]
-        qi = q[np.abs(yout-critlen) < 0.001]
+        nyi = ny[np.abs(yout - critlen) < 0.000001]
+        # print("nyi = {}, critlen = {}, frameloc = {}, length={}".format(nyi, critlen, frameloc, section.properties.l))
+        # print("ny = {}".format(ny))
+        # print("yout = {}".format(yout))
+        # print("area = {}".format(section.properties.total_area))
+        # print("quotient = {}".format(nyi/section.properties.total_area))
+        # print()
+        normalstresses.append((nyi/section.properties.total_area)[0])
+        sxi = sx[np.abs(yout - critlen) < 0.000001]
+        szi = sz[np.abs(yout - critlen) < 0.000001]
+        mxi = mx[np.abs(yout - critlen) < 0.000001]
+        mzi = mz[np.abs(yout - critlen) < 0.000001]
+        qi = q[np.abs(yout-critlen) < 0.000001]
         maxstress = np.array([0])
         minstress = np.array([0])
         shearstressmax = np.array([0])
@@ -271,20 +284,20 @@ def analyse_forces(yout, framelocs, fus, sx, sz, mx, mz, ny, q, printing=True):
                 if tresca > section.properties.tresca_yield:
                     flag[0] = 1
                     if printing:
-                        print("Tresca yield exceeded at y={}, x={}, z={}; stress={}, max_stress={}".format(frameloc, x, z, tresca, section.properties.tresca_yield))
+                        print("Tresca yield exceeded at y={}, x={}, z={}; Circular section; stress={}, max_stress={}".format(frameloc, x, z, tresca, section.properties.tresca_yield))
                 if tresca > trescamax:
                     trescamax = tresca
                     critloc_tresca = (x, z)
                 if abs(minstress)>abs(section.properties.sigma_cr):
                     flag[1] = 1
                     if printing:
-                        print("Buckling occurs at y={}, x={}, z={}; stress={}, sig_cr={}".format(frameloc, x, z, stress,
+                        print("Buckling occurs at y={}, x={}, z={}; Circular section; stress={}, sig_cr={}".format(frameloc, x, z, stress,
                                                                                              -section.properties.sigma_cr))
 
             if maxstress > section.properties.material.sigma_y:
                 flag[2] = 1
                 if printing:
-                    print("Ultimate stress exceeded at y={}, x={}, z={}; stress={}, ult_stress={}"
+                    print("Ultimate stress exceeded at y={}, x={}, z={}; Circular section; stress={}, ult_stress={}"
                           .format(frameloc, x, z, maxstress, section.properties.material.sigma_y))
         else:
             for plate in section.properties.plates:
@@ -293,6 +306,10 @@ def analyse_forces(yout, framelocs, fus, sx, sz, mx, mz, ny, q, printing=True):
                     xi = -x + section.xpos
                     zi = z + section.zpos
                     stress = n_stress_moments(xi, zi, mxi, mzi, section.Ixx_global, section.Izz_global, section.Ixz_global)
+                    # if not isinstance(stress, float) and not isinstance(stress, int):
+                    #     print(stress)
+                    #     print(len(stress))
+                    #     print(xi, zi, mxi, mzi, section.Ixx_global, section.Izz_global, section.Ixz_global)
                     if stress < minstress:
                         minstress = stress
                         critloc_min = (xi, zi)
@@ -302,7 +319,7 @@ def analyse_forces(yout, framelocs, fus, sx, sz, mx, mz, ny, q, printing=True):
                     if stress < -plate.properties.sigma_cr:
                         flag[3] = 1
                         if printing:
-                            print("Buckling occurs at y={}, x={}, z={}; stress={}, sig_cr={}".format(frameloc, xi, zi, stress, -plate.properties.sigma_cr))
+                            print("Buckling occurs at y={}, x={}, z={}; Combined section; stress={}, sig_cr={}".format(frameloc, xi, zi, stress, -plate.properties.sigma_cr))
 
                     Qx = np.sum(section.properties.Qxs[np.where(section.properties.Q_ys >= z-0.001)])
                     Qy = np.sum(section.properties.Qys[np.where(section.properties.Q_xs >= x-0.001)])
@@ -315,7 +332,7 @@ def analyse_forces(yout, framelocs, fus, sx, sz, mx, mz, ny, q, printing=True):
                     if tresca > plate.properties.tresca_yield:
                         flag[4] = 1
                         if printing:
-                            print("Tresca yield exceeded at y={}, x={}, z={}; stress={}, max_stress={}"
+                            print("Tresca yield exceeded at y={}, x={}, z={}; Combined section; stress={}, max_stress={}"
                                   .format(frameloc, xi, zi, tresca, section.properties.tresca_yield))
                     if tresca > trescamax:
                         trescamax = tresca
@@ -323,7 +340,7 @@ def analyse_forces(yout, framelocs, fus, sx, sz, mx, mz, ny, q, printing=True):
                     if maxstress > plate.properties.ultimatestress:
                         flag[5] = 1
                         if printing:
-                            print("Ultimate stress exceeded at y={}, x={}, z={}; stress={}, ult_stress={}"
+                            print("Ultimate stress exceeded at y={}, x={}, z={}; Combined section; stress={}, ult_stress={}"
                                   .format(frameloc, xi, zi, stress, plate.ultimatestress))
             for stiff in section.properties.stiffeners:
                 x, z = -stiff.xbar_global + section.xpos, stiff.ybar_global + section.zpos
@@ -337,11 +354,11 @@ def analyse_forces(yout, framelocs, fus, sx, sz, mx, mz, ny, q, printing=True):
                 if stress < 0 and stress < -stiff.properties.sigma_cr:
                     flag[6] = 1
                     if printing:
-                        print("Buckling of stiffener at y={}, x={}, z={}; stress={}, sigma_cr={}".format(frameloc, x, z, stress, -stiff.properties.sigma_cr))
+                        print("Buckling of stiffener at y={}, x={}, z={}; Longerons; stress={}, sigma_cr={}".format(frameloc, x, z, stress, -stiff.properties.sigma_cr))
                 if maxstress > stiff.properties.material.sigma_y:
                     flag[7] = 1
                     if printing:
-                        print("Ultimate stress exceeded at y={}, x={}, z={}; stress={}, ult_stress={}"
+                        print("Ultimate stress exceeded at y={}, x={}, z={}; Longerons; stress={}, ult_stress={}"
                               .format(frameloc, x, z, maxstress, stiff.properties.materials.sigma_y))
         maxstresses.append(maxstress.item())
         critloc_maxs.append(critloc_max)
@@ -409,22 +426,31 @@ def size_parameters(v):
     Wbat = v.W_batt
     loads = {}
     # VTO, VL, CL_h, XMAC_v, MAC_v, VvV, S_v, CD
-    h_lift = 0.5 * v.rho * v.V * v.V * v.VhV * v.VhV * v.S_h * v.CLh_L * 1.5 * v.n_ult
-    # v_lift = 0.5*v.rho*v.V*v.V*v.S_v*v.CLv_L*1.5*v.n_ult
-    loads["fhtail"] = Force(xpos=0.0, ypos=v.XMAC_h + 0.25 * v.MAC_h, zpos=0.0, xmag=0, zmag=h_lift, ymag=h_lift * 0.2)
-    loads["fvtail"] = Force(xpos=0.0, ypos=v.XMAC_v + 0.25 * v.MAC_v, zpos=0.0, xmag=h_lift * 0.5, ymag=h_lift * 0.1,
+    if v.CLh_TO is not None:
+        if v.CLh_L*v.VL*v.VL < v.CLh_TO*v.VTO*v.VTO:
+            clh = v.CLh_L
+            vel = v.VL
+        else:
+            clh = v.CLh_TO
+            vel = v.VTO
+    else:
+        clh = v.CLh_L
+    h_lift = 0.5 * v.rhoTO * vel * vel * v.VhV * v.VhV * v.Sh * clh * 1.5 * v.n_ult
+    v_lift = 0.5 * v.rhoTO * vel * vel * v.VhV * v.VhV * v.Sv * v.CnB*20*pi/180*1.5*v.n_ult
+    loads["fhtail"] = Force(xpos=0.0, ypos=v.XMAC + v.lh + 0.25 * v.MAC_h, zpos=0.0, xmag=0, zmag=h_lift, ymag=h_lift * 0.2)
+    loads["fvtail"] = Force(xpos=0.0, ypos=v.XMAC + v.lh + 0.25 * v.MAC_h, zpos=0.0, xmag=v_lift, ymag=v_lift * 0.2,
                             zmag=0)
     loads["battery1"] = Force(xpos=0.0, ypos=v.cockpitbulkhead + v.batteryoffset, zpos=0.0, xmag=0, ymag=0,
                               zmag=-Wbat * 0.5 * 1.5)
     loads["battery2"] = Force(xpos=0.0, ypos=v.cockpitbulkhead + v.batteryoffset + v.batterywidth, zpos=0.0, xmag=0,
                               ymag=0, zmag=-Wbat * 0.5 * 1.5)
-
+    v.loads = loads
     yout, old_framelocs, fus, sx, sz, mx, mz, ny, shearflow = analyse_fuselage(framelocs, fus, bcs, loads, yout=v.yout)
     flag, sig_max, loc_max, sig_min, loc_min, sig_norm, shear, loc_shear, tresca, loc_tresca = \
         analyse_forces(yout, old_framelocs, fus, sx, sz, mx, mz, ny, shearflow, printing=True)
-    return flag # Nothing changed
+    return flag
 
-def design_fuselage(v: NewVariables, maxiterations=20):
+def design_fuselage(v: NewVariables, maxiterations=40):
     if v._max_fuselage_iterations is None:
         maxits = maxiterations
     else:
@@ -435,46 +461,98 @@ def design_fuselage(v: NewVariables, maxiterations=20):
             return save_fuselage(v)
         else:
             return v
-    # else:
-    #     v = save_fuselage(v)
-    #     flags = size_parameters(v)
-    #     if sum(flags) > 0:
-    #         if flag[0] == 1:
-    #             pass
-    #         if flag[1] == 1:
-    #             pass
-    #         if flag[2] == 1:
-    #             pass
-    #         if flag[3] == 1:
-    #             pass
-    #         if flag[4] == 1:
-    #             pass
-    #         if flag[5] == 1:
-    #             pass
-    #         if flag[6] == 1:
-    #             pass
-    #         if flag[7] == 1:
-    #             pass
-    #
-    #     vnew = copy.deepcopy(v)
-    #     parameters = {"framesamount": (3, 12), "skin_t": (0.5, 10.0), "stringermod": (1.0, 5.0), "circstringermod":(1.0, 5.0), "longeronmod": (1.0, 6.0), "n_stiff": (0, 12), "n_stiff_circ": (0, 20), "batteryoffset": (0.05, 0.4), "batterywidth": (0.15, 0.5)]
-    #     increaselist = [True, False]
-    #     increase_results = []
-    #     basemass = v.Wfus_aft
-    #     for parameter, minmax in parameters.items():
-    #         baseval = getattr(vnew, parameter)
-    #         for increase in increaselist:
-    #             newval, changed = change_parameter(minmax, baseval, increase)
-    #             if changed:
-    #                 setattr(vnew, parameter, newval)
-    #                 vnew = save_fuselage(vnew)
-    #
-    #     for _ in range(maxits):
-    #
-    #     else:
-    #         print("Structures convergence failed. From now on, fuselage will not be redesigned, only weight will be recalculated following the input. Different input parameters should be chosen, or more iterations should be allowed.")
-    #         v._max_fuselage_iterations = 1
-    #         return v
+    else:
+        v = save_fuselage(v)
+        flags = size_parameters(v)
+        parameters = {"framesamount": (3, 12), "skin_t": (0.5, 10.0), "stringermod": (1.0, 5.0),
+                      "circstringermod": (1.0, 5.0), "longeronmod": (1.0, 6.0), "n_stiff": (0, 12),
+                      "n_stiff_circ": (0, 20), "batteryoffset": (0.05, 0.4), "batterywidth": (0.15, 0.5)}
+
+        if sum(flags) > 0: # Check for not failing under load
+            counter = 0
+            while sum(flags) > 0 and counter < maxits:
+                counter += 1
+                skinchange = False
+                stiffchange = False
+                longchange = False
+                if flags[0] == 1:
+                    v.skin_t, skinchange = change_parameter(parameters["skin_t"], v.skin_t, True)
+                if flags[1] == 1:
+                    if not skinchange:
+                        v.skin_t, skinchange = change_parameter(parameters["skin_t"], v.skin_t, True)
+                if flags[2] == 1:
+                    v.n_stiff_circ, _ = change_parameter(parameters["n_stiff_circ"], v.n_stiff_circ, True)
+                if flags[3] == 1:
+                    if not skinchange:
+                        v.skin_t, skinchange = change_parameter(parameters["skin_t"], v.skin_t, True)
+                        print("Changing skin, done={}, value={}".format(skinchange, v.skin_t))
+                    if not skinchange: # Double, in case minimum or maximum is already reached.
+                        v.n_stiff, stiffchange = change_parameter(parameters["n_stiff"], v.n_stiff, True)
+                        print("Changing stiffeners, done={}, amount={}".format(skinchange, v.n_stiff))
+                if flags[4] == 1:
+                    v.n_stiff, stiffchange = change_parameter(parameters["n_stiff"], v.n_stiff, True)
+                if flags[5] == 1:
+                    if not stiffchange:
+                        v.n_stiff, stiffchange = change_parameter(parameters["n_stiff"], v.n_stiff, True)
+                if flags[6] == 1:
+                    v.stringermod, stiffchange = change_parameter(parameters["stringermod"], v.stringermod, True)
+                    v.longeronmod, longchange = change_parameter(parameters["longeronmod"], v.longeronmod, True)
+                if flags[7] == 1:
+                    if not stiffchange:
+                        v.stringermod, _ = change_parameter(parameters["stringermod"], v.stringermod, True)
+                    if not longchange:
+                        v.longeronmod, _ = change_parameter(parameters["longeronmod"], v.longeronmod, True)
+                v = save_fuselage(v)
+                flags = size_parameters(v)
+            if sum(flags) > 0:
+                print(
+                    "Structures convergence failed. From now on, fuselage will not be redesigned, only weight will be recalculated following the input. Different input parameters should be chosen, or more iterations should be allowed.")
+                v._max_fuselage_iterations = 1
+                return v
+        # Minimize mass within constraints
+        vnew = copy.deepcopy(v)
+        increaselist = [True, False]
+        increase_results = []
+        basemass = v.Wfus_aft
+        for parameter, minmax in parameters.items():
+            baseval = getattr(vnew, parameter)
+            newmasses = []
+            no_failure = []
+            for increase in increaselist:
+                newval, changed = change_parameter(minmax, baseval, increase)
+                if changed:
+                    setattr(vnew, parameter, newval)
+                    vnew = save_fuselage(vnew)
+                    flags = size_parameters(v)
+                    if sum(flags) == 0:
+                        no_failure.append(True)
+                    else:
+                        no_failure.append(False)
+                    newmasses.append(vnew.Wfus_aft)
+                else:
+                    no_failure.append(None)
+                    newmasses.append(basemass)
+                setattr(vnew, parameter, baseval)
+            if no_failure[0] == True and newmasses[0] < basemass:
+                if no_failure[1] == True and newmasses[1] < basemass:
+                    if newmasses[0] > newmasses[1]:
+                        increase_results.append(True)
+                        setattr(vnew, parameter, change_parameter(minmax, baseval, True)[0])
+                    else:
+                        increase_results.append(False)
+                        setattr(vnew, parameter, change_parameter(minmax, baseval, False)[0])
+                else:
+                    increase_results.append(True)
+                    setattr(vnew, parameter, change_parameter(minmax, baseval, True)[0])
+            elif no_failure[1] == True and newmasses[1] < basemass:
+                increase_results.append(False)
+                setattr(vnew, parameter, change_parameter(minmax, baseval, False)[0])
+            else:
+                increase_results.append(None)
+        return save_fuselage(vnew)
+
+
+
 
 
 

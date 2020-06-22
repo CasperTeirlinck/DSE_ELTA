@@ -16,8 +16,8 @@ def main_bat(variables):
     E_avionics = ppe.energy_avionics(variables) # Energy for avionics in [J]
 
     # Just for information which requirement requires the most energy
-    if E_engine == E_engine_endur: print("Enudance uses most energy")
-    else: print("Range uses most energy")
+    #if E_engine == E_engine_endur: print("Enudance uses most energy")
+    #else: print("Range uses most energy")
 
     # Total energy required from the batteries
     E_total = E_engine + E_avionics
@@ -90,11 +90,13 @@ def power_calculation(variables):
     # print(P_req_cruise/private_V_TAS)
 
     # Checking if power loading is achieved
-    if variables.WP < (variables.WTO/(max(P_req_cruise, P_req_sea))):
-        print("POWER DOES NOT MEET W/P, ask Matthijs")
+    # if variables.WP > (variables.WTO/(max(P_req_cruise, P_req_sea))):
+    #     print("POWER DOES NOT MEET W/P, ask Matthijs")
 
-    variables.P_max = max(P_req_cruise, P_req_sea)
+    P1 = max(P_req_cruise, P_req_sea)
+    P2 = variables.WTO / variables.WP
 
+    variables.P_max = max(P1, P2)
     return variables
 
 
