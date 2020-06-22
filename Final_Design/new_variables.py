@@ -351,8 +351,8 @@ class NewVariables:
         self.Bp = 2.5               # [-]           Number of blades per propeller
         self.xp1 = 0.2              # [m]           1st propeller location TODO check value
         self.xp2 = 0.4              # [m]           2nd propeller location TODO check value
-        self.Dp1 = 2                # [m]          1st propeller disk diameter TODO check value
-        self.Dp2 = 2                # [m]          2nd propeller disk diameter TODO check value
+        self.Dp1 = 2                # [m]           1st propeller disk diameter TODO check value
+        self.Dp2 = 2                # [m]           2nd propeller disk diameter TODO check value
 
 
         # Wing variables

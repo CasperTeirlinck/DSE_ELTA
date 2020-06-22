@@ -122,6 +122,9 @@ class WingPlanform:
 
         A1 = self.coeff[0][0]*alpha + self.coeff[0][1]
         return np.pi * self.A * A1
+
+    def calcAlpha0(self):
+        return -self.coeff[0][1]/self.coeff[0][0]
         
     def calcLiftDistribution(self, alpha, N, showCircComponents=False):
 
