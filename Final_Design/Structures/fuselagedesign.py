@@ -384,7 +384,7 @@ def skinthickness(modifier, y):
     if y > 6.099:
         return 0.001*modifier
     else:
-        return 0.001*modifier
+        return 0.0015*modifier
 
 def constructstringerarg(modifier, material):
     return {'material':material, 't1':0.0005*modifier, 't2':0.0005*modifier, 't3':0.0005*modifier, 't4':0.0005*modifier, 'b1':0.005*modifier, 'b2':0.015*modifier, 'b3':0.003*modifier, 'b4':0.003*modifier}
@@ -435,10 +435,10 @@ def size_parameters(v):
             vel = v.VTO
     else:
         clh = v.CLh_L
-    h_lift = 0.5 * v.rhoTO * vel * vel * v.VhV * v.VhV * v.Sh * clh * 1.5 * v.n_ult
-    v_lift = 0.5 * v.rhoTO * vel * vel * v.VhV * v.VhV * v.Sv * v.CnB*20*pi/180*1.5*v.n_ult
-    loads["fhtail"] = Force(xpos=0.0, ypos=v.XMAC + v.lh + 0.25 * v.MAC_h, zpos=0.0, xmag=0, zmag=h_lift, ymag=h_lift * 0.2)
-    loads["fvtail"] = Force(xpos=0.0, ypos=v.XMAC + v.lh + 0.25 * v.MAC_h, zpos=0.0, xmag=v_lift, ymag=v_lift * 0.2,
+    h_lift = 0.5 * v.rhoTO * vel * vel * v.VhV * v.VhV * v.Sh * clh * v.n_ult
+    v_lift = 0.5 * v.rhoTO * vel * vel * v.VhV * v.VhV * v.Sv * v.CnB*15*pi/180*v.n_ult
+    loads["fhtail"] = Force(xpos=0.0, ypos=v.xtail, zpos=0.0, xmag=0, zmag=h_lift, ymag=h_lift * 0.2)
+    loads["fvtail"] = Force(xpos=0.0, ypos=v.xtail, zpos=0.0, xmag=v_lift, ymag=v_lift * 0.2,
                             zmag=0)
     loads["battery1"] = Force(xpos=0.0, ypos=v.cockpitbulkhead + v.batteryoffset, zpos=0.0, xmag=0, ymag=0,
                               zmag=-Wbat * 0.5 * 1.5)
