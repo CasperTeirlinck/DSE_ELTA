@@ -1,7 +1,9 @@
 import numpy as np
 
 A = 10.1 # [-] Aspect ratio
-S = 15.6 # [m2] Wing surface
+# S = 15.6 # [m2] Wing surface
+S = 14.34
+
 
 taper = 0.9 # [-] Taper ratio
 twist = np.radians(2)

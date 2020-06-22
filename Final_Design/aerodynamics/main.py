@@ -90,8 +90,8 @@ if __name__ == "__main__":
     alpha0 = wing.calcAlpha0()
     print(f'alpha_L=0 = {round(np.degrees(alpha0), 2)} degrees')
 
-    if False:
-        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, stallpos = wing.calcCLmax(plotProgression=True)
+    if True:
+        CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, stallpos = wing.calcCLmax(plotProgression=False)
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)} deg')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr, legend=True)
 
