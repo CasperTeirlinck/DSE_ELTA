@@ -33,7 +33,7 @@ class NewVariables:
         self.rhotakeoff = 1.04
         self.sigma = self.rhotakeoff/self.rhocruise
 
-        self.sto = 500
+        self._sto = 500
         self.k = np.sqrt(5647.9 + 17.331 * self.sto) - 75.153
         self.sland = 500
 
@@ -70,6 +70,15 @@ class NewVariables:
 
         self._WP = 0.121
         self._WS = 592
+
+    @property
+    def sto(self):
+        return self._sto
+
+    @sto.setter
+    def sto(self, val):
+        self._sto = val
+        self.k = np.sqrt(5647.9 + 17.331 * self._sto) - 75.153
 
     @property
     def WP(self):
@@ -203,17 +212,17 @@ class NewVariables:
         self.cockpitbulkhead = 2.2 # m, back of the cockpit
         self._framesamount = 8 # [-] amount of spars behind the cockpit bulkhead in the fuselage
         self.framelocs = np.array([2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)])[::-1]
-        self.skin_t = 2.0 # [mm] thickness of the skin
+        self.skin_t = 2.0 # 2.138574136 # 2.0 # [mm] thickness of the skin
         self.skin_t_func = None # Only change if a custom skin thickness function is required. Two arguments: First is skin_t, second is y position where the thickness should be taken.
         self.mats = materials()
-        self.stringermod = 1.0 # one-dimensional scaling parameter for stringers, geometry stays the same.
-        self.circstringermod = 1.0 # one-dimensional scaling parameter for stringers in circular area, geometry stays the same.
-        self.longeronmod = 4.0 # one-dimensional scaling parameter for longerons, geometry stays the same.
+        self.stringermod = 2.23937285795561 # 1.0 # one-dimensional scaling parameter for stringers, geometry stays the same.
+        self.circstringermod = 2.62916210608877 # 1.0 # one-dimensional scaling parameter for stringers in circular area, geometry stays the same.
+        self.longeronmod = 3.36724386380556 # 4.0 # one-dimensional scaling parameter for longerons, geometry stays the same.
         self.stringermat = self.mats['alu2024']
         self.circstringermat = self.mats['alu2024']
         self.longeronmat = self.mats['carbonfibre']
-        self._n_stiff = 5 # Amount of stiffeners per panel
-        self.n_stiff_circ = 6 # Amount of stringers total for circular section
+        self._n_stiff = 3 # Amount of stiffeners per panel
+        self.n_stiff_circ = 20 # Amount of stringers total for circular section
         self.n_longs = 4 # Can't change, only to 0 if longerons should be disabled
         self.n_stringers = np.ones(8, dtype=int) * self.n_stiff
         self.n_stringers[0]=self.n_stiff//2

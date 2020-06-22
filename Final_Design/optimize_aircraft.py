@@ -1,6 +1,8 @@
 from new_main import *
-from copy import deepcopy
+
+from copy import *
 import numpy as np
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
 
@@ -11,57 +13,12 @@ if __name__ == "__main__":
 
     tweakVars = [
         ['designpointfactor', 'Design point choice, WS vs WP'],
-        ['A', 'aspect ratio'],
-        ['e', 'oswald efficiency factor'],
-        ['A_h', 'aspect ratio htail'],
         ['A_v', 'aspect ratio vtail'],
-        ['x_htail', 'aerodynamic center htail'],
-        ['x_vtail', 'aerodynamic center htail'],
-        ['n_blades', 'nr. of propeller blades'],
-        ['eff_propeller', 'propeller eff.'],
-        # ['tcr_h', 'Thickness-to-rootchord ratio htail'],
-        # ['tcr_v', 'Thickness-to-rootchord ratio vtail'],
-        ['CD0', 'Zero-lift drag coefficient'],
         ['V', 'cruise speed'],
-        ['CLmaxclean', 'CLmax clean configuration'],
-        ['CLmaxto', 'CLmax take-off configuration'],
-        ['CLmaxland', 'CLmax landing configuration'],
         ['sto', 'Take-off field length'],
-        # ['endurance_s', 'endurance'],
-        # ['range_m', 'range']
-    ]
-
-    freeVars = [
-        ['A', 'aspect ratio'],
-        ['e', 'oswald efficiency factor'],
-        ['A_h', 'aspect ratio htail'],
-        ['A_v', 'aspect ratio vtail'],
-        ['x_htail', 'aerodynamic center htail'],
-        ['x_vtail', 'aerodynamic center htail'],
-        ['n_blades', 'nr. of propeller blades'],
-        ['eff_propeller', 'propeller eff.'],
-        ['tcr_h', 'Thickness-to-rootchord ratio htail'],
-        ['tcr_v', 'Thickness-to-rootchord ratio vtail'],
-        ['CD0', 'Zero-lift drag coefficient'],
-        ['V', 'cruise speed']
-    ]
-
-    statVars = [
-        ['htail_volume', 'htail volume'],
-        ['vtail_volume', 'vtail volume'],
-        ['Especif_bat', 'specific E batteries'],
-        ['motor_spec_mass', 'battery specific mass'],
-        ['CD0clean', 'drag constant clean'],
-        ['W_wsn', 'nose wheel weight'],
-        ['W_wsm', 'main wheel weight']
-    ]
-
-    reqVars = [
-        ['WPL', 'payload weight'],
-        ['Vmax_kts', 'max speed'],
-        ['n_ult', 'ultimate load factor'],
         ['endurance_s', 'endurance'],
-        ['range_m', 'range']
+        ['range_m', 'range'],
+        ['batt_cell_E_spec', 'specific E batteries'],
     ]
 
     sensDict = {}
@@ -70,7 +27,6 @@ if __name__ == "__main__":
 
     print("WTO={} kg, b={} m".format(v.WTO/9.81, v.b))
     v_dict = vars(v)
-    print(v_dict)
 
     def changefunction(key, x1, x2):
         return (getattr(x2, key) - getattr(x1, key)) / getattr(x1, key) * 100
@@ -80,13 +36,6 @@ if __name__ == "__main__":
     func = partial(changefunction, changevariable)
 
     for var, label in tweakVars:
-        # for var, label in freeVars:
-        # for var, label in statVars:
-        # for var, label in reqVars:
-        #     if var == 'Vmax_kts':
-        #         variation[0] = 4.7
-        #     else:
-        #         variation[0] = 5
 
         v2 = copy.deepcopy(voriginal)
         setattr(v2, var, getattr(v2, var) * (1 + variation[0] / 100))

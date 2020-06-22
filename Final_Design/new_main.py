@@ -48,14 +48,15 @@ def loop(v):
     v.update_WTO()
     return v
 
-def do_loop(v, difference=0.1, maxiterations=500):
+def do_loop(v, difference=1, maxiterations=30):
     WTOS = []
     for iteration in range(maxiterations):
         if len(WTOS) > 2 and abs(WTOS[-1] - WTOS[-2]) < difference*9.81:
             return v, WTOS, iteration
         else:
             v = loop(v)
-            print("\nIteration done, mtom = {} kg\n".format(v.WTO/9.81))
+            print("\nIteration done, mtom = {} kg".format(v.WTO/9.81))
+            print("skin_t={}, n_stiff={}, n_stiff_circ={}, stringermod={}, circstringermod={}, longeronmod={}".format(v.skin_t, v.n_stiff, v.n_stiff_circ, v.stringermod, v.circstringermod, v.longeronmod))
             WTOS.append(v.W_OEW)
     else:
         print("Did not converge within {} iterations".format(maxiterations))
@@ -67,6 +68,7 @@ if __name__ == "__main__":
     v, wtos, i = do_loop(v)
     wtos = np.array(wtos)
     v_dict = vars(v)
+    fus_dict = vars(v.fuselage)
     print(v_dict)
     print("Final mass = {}, b={}, S={}, WS={}, WP={}".format(v.WTO/9.81, v.b, v.S, v.WS, v.WP))
 
@@ -82,4 +84,8 @@ if __name__ == "__main__":
 
     with open('finaldesign.csv', 'w') as file:
         for key in v_dict.keys():
+            file.write("%s, %s\n" % (key, v_dict[key]))
+
+    with open('fuselagedesign.csv', 'w') as file:
+        for key in fus_dict.keys():
             file.write("%s, %s\n" % (key, v_dict[key]))

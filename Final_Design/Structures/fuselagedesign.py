@@ -47,7 +47,7 @@ def construct_locs_circ(r, Ns, ts=0.0):
     return locs, angles
 
 
-def change_parameter(minmax, parameter, increase, amount=0.1):
+def change_parameter(minmax, parameter, increase, amount=0.02):
     if isinstance(parameter, int):
         if increase:
             if parameter != minmax[1]:
@@ -145,7 +145,7 @@ def generate_fuselage(data, framelocs, zshift, ts, base_material, circ_material=
         else:
             length = y-framelocs[idx+1]
         if length == 0.0:
-            length = 0.00001
+            length = 0.00000001
         if y < 6.099:
             width = interpw(y)
             cs = create_compound_segment(base_material, length, ts(y), interph(y), width, interprt(y), interprb(y), stringerlist, stringerargs, n_longs=n_longs, longargs=longeronsarg)
@@ -211,9 +211,11 @@ def analyse_fuselage(framelocs, fus, bcs, *loads, yout=None):
         system.change_geometry(framelocs, EIx, EIz)
     if yout is None:
         yout = np.concatenate((framelocs, np.array([framelocs[-1]-0.000003, 0.])))
-    areas = np.concatenate((areas, np.array([areas[-1], areas[-1], areas[-1]])))
-    shearcentres = np.concatenate((shearcentres, np.array([shearcentres[-1], shearcentres[-1], shearcentres[-1]])))
-    system.change_areas(areas, shearcentres, y_locs=yout)
+    youtareas = np.concatenate((framelocs, np.array([0])))
+    diff = len(youtareas)-len(areas)
+    areas = np.concatenate((areas, np.ones(diff)*areas[-1]))
+    shearcentres = np.concatenate((shearcentres, np.ones(diff)*shearcentres[-1]))
+    system.change_areas(areas, shearcentres, y_locs=youtareas)
 
     system.solve_bcs()
 
@@ -238,13 +240,19 @@ def analyse_forces(yout, framelocs, fus, sx, sz, mx, mz, ny, q, printing=True):
     trescastresses = []
     for frameloc, section in zip(framelocs, fus.sections):
         critlen = frameloc - section.properties.l
-        nyi = ny[np.abs(yout - critlen) < 0.001]
-        normalstresses.append((nyi/section.properties.total_area).item())
-        sxi = sx[np.abs(yout - critlen) < 0.001]
-        szi = sz[np.abs(yout - critlen) < 0.001]
-        mxi = mx[np.abs(yout - critlen) < 0.001]
-        mzi = mz[np.abs(yout - critlen) < 0.001]
-        qi = q[np.abs(yout-critlen) < 0.001]
+        nyi = ny[np.abs(yout - critlen) < 0.000001]
+        # print("nyi = {}, critlen = {}, frameloc = {}, length={}".format(nyi, critlen, frameloc, section.properties.l))
+        # print("ny = {}".format(ny))
+        # print("yout = {}".format(yout))
+        # print("area = {}".format(section.properties.total_area))
+        # print("quotient = {}".format(nyi/section.properties.total_area))
+        # print()
+        normalstresses.append((nyi/section.properties.total_area)[0])
+        sxi = sx[np.abs(yout - critlen) < 0.000001]
+        szi = sz[np.abs(yout - critlen) < 0.000001]
+        mxi = mx[np.abs(yout - critlen) < 0.000001]
+        mzi = mz[np.abs(yout - critlen) < 0.000001]
+        qi = q[np.abs(yout-critlen) < 0.000001]
         maxstress = np.array([0])
         minstress = np.array([0])
         shearstressmax = np.array([0])
@@ -298,6 +306,10 @@ def analyse_forces(yout, framelocs, fus, sx, sz, mx, mz, ny, q, printing=True):
                     xi = -x + section.xpos
                     zi = z + section.zpos
                     stress = n_stress_moments(xi, zi, mxi, mzi, section.Ixx_global, section.Izz_global, section.Ixz_global)
+                    # if not isinstance(stress, float) and not isinstance(stress, int):
+                    #     print(stress)
+                    #     print(len(stress))
+                    #     print(xi, zi, mxi, mzi, section.Ixx_global, section.Izz_global, section.Ixz_global)
                     if stress < minstress:
                         minstress = stress
                         critloc_min = (xi, zi)
@@ -425,8 +437,8 @@ def size_parameters(v):
         clh = v.CLh_L
     h_lift = 0.5 * v.rhoTO * vel * vel * v.VhV * v.VhV * v.Sh * clh * 1.5 * v.n_ult
     v_lift = 0.5 * v.rhoTO * vel * vel * v.VhV * v.VhV * v.Sv * v.CnB*20*pi/180*1.5*v.n_ult
-    loads["fhtail"] = Force(xpos=0.0, ypos=v.XMAC_h + 0.25 * v.MAC_h, zpos=0.0, xmag=0, zmag=h_lift, ymag=h_lift * 0.2)
-    loads["fvtail"] = Force(xpos=0.0, ypos=v.XMAC_h + 0.25 * v.MAC_h, zpos=0.0, xmag=v_lift, ymag=v_lift * 0.2,
+    loads["fhtail"] = Force(xpos=0.0, ypos=v.XMAC + v.lh + 0.25 * v.MAC_h, zpos=0.0, xmag=0, zmag=h_lift, ymag=h_lift * 0.2)
+    loads["fvtail"] = Force(xpos=0.0, ypos=v.XMAC + v.lh + 0.25 * v.MAC_h, zpos=0.0, xmag=v_lift, ymag=v_lift * 0.2,
                             zmag=0)
     loads["battery1"] = Force(xpos=0.0, ypos=v.cockpitbulkhead + v.batteryoffset, zpos=0.0, xmag=0, ymag=0,
                               zmag=-Wbat * 0.5 * 1.5)
@@ -438,7 +450,7 @@ def size_parameters(v):
         analyse_forces(yout, old_framelocs, fus, sx, sz, mx, mz, ny, shearflow, printing=True)
     return flag
 
-def design_fuselage(v: NewVariables, maxiterations=20):
+def design_fuselage(v: NewVariables, maxiterations=40):
     if v._max_fuselage_iterations is None:
         maxits = maxiterations
     else:
@@ -519,6 +531,7 @@ def design_fuselage(v: NewVariables, maxiterations=20):
                     newmasses.append(vnew.Wfus_aft)
                 else:
                     no_failure.append(None)
+                    newmasses.append(basemass)
                 setattr(vnew, parameter, baseval)
             if no_failure[0] == True and newmasses[0] < basemass:
                 if no_failure[1] == True and newmasses[1] < basemass:
