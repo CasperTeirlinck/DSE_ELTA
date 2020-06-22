@@ -247,7 +247,7 @@ class NewVariables:
         
         self.W_syscomp = 69.2*9.81      # System component weight (TE package + avionics + electronics)
 
-        self.Wfus_fwd = self._Wfus_aft
+        self.Wfus_fwd = max(1228.755-self._Wfus_aft, 500)
         self.W_fgroup = None
 
         self.W_htail = None
@@ -268,7 +268,7 @@ class NewVariables:
     @Wfus_aft.setter
     def Wfus_aft(self, val):
         self._Wfus_aft = val
-        self.Wfus_fwd = val
+        self.Wfus_fwd = max(1228.755-val, 500)
 
     @property
     def fuselage(self):
