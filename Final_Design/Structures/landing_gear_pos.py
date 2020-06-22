@@ -56,7 +56,7 @@ def size_gear(variables):
             else:
                 pass
 
-    variables.xmg = x_main
+    variables.xmg = variables.xcg_max + x_main
     #variables.zmg = z_main
     variables.xng = variables.xcg_max + x_nose
 
