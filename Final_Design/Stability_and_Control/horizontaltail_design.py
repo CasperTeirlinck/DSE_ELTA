@@ -387,7 +387,7 @@ def sizing_htail_wingpos(variables,plot=False):
 
     # Update values in variables class
     variables.xwing = xwing
-    variables.xtail = variables.lh + xnp
+    variables.lh = variables.xtail - xnp
     variables.xlemac = xlemacw
     variables.xcg_min = xcg_min*MAC
     variables.xcg_max = xcg_max*MAC
