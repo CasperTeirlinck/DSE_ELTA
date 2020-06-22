@@ -353,10 +353,8 @@ class NewVariables:
 
         # Propeller geometry parameters
         self.Bp = 2.5               # [-]           Number of blades per propeller
-        self.xp1 = 0.2              # [m]           1st propeller location TODO check value
-        self.xp2 = 0.4              # [m]           2nd propeller location TODO check value
-        self.Dp1 = 2                # [m]           1st propeller disk diameter TODO check value
-        self.Dp2 = 2                # [m]           2nd propeller disk diameter TODO check value
+        self.Dp1 = 2                # [m]           1st propeller disk diameter
+        self.Dp2 = 2                # [m]           2nd propeller disk diameter
 
 
         # Wing variables
@@ -393,8 +391,10 @@ class NewVariables:
         self.mu = 0.05              # [-]           Take-off friction factor
 
         # Component locations
-        self.zT = 1                 # [m]           Thrust vector height TODO Check
-        self.zD = 0.5               # [m]           Drag vector height TODO Check
+        self.zT = self.h_landinggear + 0.61
+                                    # [m]           Thrust vector height
+        self.zD = self.h_landinggear + .5*self.fuselageheight
+                                    # [m]           Drag vector height
 
         # Elevator geometry parameters
         self.bebh = 1               # [-]           Elevator span
