@@ -9,6 +9,7 @@ from Power_and_Propulsion.battery_main import *
 from ClassIIWeightEstimationnew import *
 from Midterm_Design.cg_determination import *
 from Structures.fuselagedesign import *
+from Structures.landing_gear_pos import *
 
 wingresolution = 100
 iterating_designpoint = False
@@ -40,6 +41,7 @@ def loop(v):
 
     v = dosubloop(v)
     v = CalcTTO(v)
+    v = size_gear(v)
     v = elevator_sizing(v)
 
     v = design_fuselage(v)

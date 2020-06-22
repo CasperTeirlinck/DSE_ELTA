@@ -48,6 +48,10 @@ class NewVariables:
         self.c = 2
         self.n_ult = 4.81 # TO BE OVERWRITTEN. ASK CASPER HOW TO IMPLEMENT THIS
 
+        # Landing gear
+        self.xng = None             # [m]   Nose gear location
+        self.xmg = None             # [m]   Main gear location
+        self.propclear = 0.23
         self.h_landinggear = 0.8
         self.w_landinggear = 0.175
 
@@ -66,7 +70,7 @@ class NewVariables:
         self.xcg_min = None
         self.xcg_max = None
 
-
+        self.zcg = 1                # [m]           Centre of gravity height TODO Check
 
         self._WP = 0.121
         self._WS = 592
@@ -388,14 +392,7 @@ class NewVariables:
         self.VL = 1.1 * 25.2
         self.mu = 0.05              # [-]           Take-off friction factor
 
-        # Centre of gravity
-        self.zcg = 1                # [m]           Centre of gravity height TODO Check
-        self.xcg_f = 2.3            # [m]           Fuselage centre of gravity location TODO Check
-
         # Component locations
-        self.xmg = 2                # [m]           Main gear location TODO Check
-
-        self.zmg = 0                # [m]           Main gear height TODO Check
         self.zT = 1                 # [m]           Thrust vector height TODO Check
         self.zD = 0.5               # [m]           Drag vector height TODO Check
 
