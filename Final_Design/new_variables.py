@@ -358,8 +358,8 @@ class NewVariables:
 
         # Propeller geometry parameters
         self.Bp = 2.5               # [-]           Number of blades per propeller
-        self.Dp1 = 2                # [m]           1st propeller disk diameter
-        self.Dp2 = 2                # [m]           2nd propeller disk diameter
+        self.Dp1 = 1.8                # [m]           1st propeller disk diameter
+        self.Dp2 = 1.8                # [m]           2nd propeller disk diameter
 
 
         # Wing variables
