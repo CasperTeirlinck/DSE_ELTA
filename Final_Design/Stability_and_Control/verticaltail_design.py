@@ -29,8 +29,8 @@ def verticaltail_sizing(variables):
     bf2 = variables.bf2                 # [m]       Fuselage tail width
     Bp = variables.Bp                   # [-]       Number of blades per porpeller
     xcg = variables.xcg_max
-    xp1 = variables.xp1
-    xp2 = variables.xp2
+    xp1 = variables.xprop
+    xp2 = variables.xprop
     lp1 = xcg - xp1
     lp2 = xcg - xp2                     # [m]       Distance 1st propeller plane - aircraft centre of gravity
     Dp1 = variables.Dp1                 # [m2]      1st propeller disk diameter
@@ -38,13 +38,15 @@ def verticaltail_sizing(variables):
     Sw = variables.S                    # [m2]      Wing surface area
     bw = variables.b                    # [m]       Wing span
     CnBi = variables.CnBi               # [-]       Wing configuration stability component
-    lv = variables.lv                   # [m]       Vertical tail arm
+    xcg = variables.xcg_max             # [m]       Centre of gravity location
+    xtail = variables.xtail             # [m]       Tail location
+    lv = xtail - xcg                    # [m]       Vertical tail arm
 
     CnB = directional_stability(lcg,lf,hfmax,Sfs,Sw,bw,hf1,hf2,bf1,bf2,lp1,lp2,Dp1,Dp2,Bp,CnBi)
-    print('---- Vertical tail sizing -----')
-    print('Directional stability coefficient =',round(CnB,4))
+    #print('---- Vertical tail sizing -----')
+    #print('Directional stability coefficient =',round(CnB,4))
 
-    SvlvSb = float(input('Vertical tail size = '))
+    SvlvSb = 0.04 - 0.04220*CnB + 3.540*CnB**2 + 2.4428*CnB**3 #float(input('Vertical tail size = '))
 
     Sv = SvlvSb*(Sw*bw)/lv
 

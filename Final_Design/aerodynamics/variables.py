@@ -1,7 +1,9 @@
 import numpy as np
 
 A = 10.1 # [-] Aspect ratio
-S = 15.6 # [m2] Wing surface
+# S = 15.6 # [m2] Wing surface
+S = 14.34
+
 
 taper = 0.9 # [-] Taper ratio
 twist = np.radians(2)
@@ -20,7 +22,7 @@ BLturbratio_wing = 0.65
 l_gear = 0.9
 w_gear = 0.2
 dCD_gear = 0.15
-flap_area_ratio = 0
+flap_area_ratio = 0.3
 
 # Empennage
 S_h = 0.3*S

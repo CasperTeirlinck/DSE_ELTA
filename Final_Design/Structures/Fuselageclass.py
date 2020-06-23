@@ -1,6 +1,11 @@
-from plateclass import *
-from stringerclass import *
-from loadinfo import *
+try:
+    from plateclass import *
+    from stringerclass import *
+    from loadinfo import *
+except:
+    from Structures.plateclass import *
+    from Structures.stringerclass import *
+    from Structures.loadinfo import *
 import copy
 from scipy.interpolate import interp1d
 from numpy import pi
@@ -9,6 +14,13 @@ from math import sqrt, cos, sin
 from matplotlib import pyplot as plt
 import matplotlib.patches as patches
 
+def get_C(bovert):
+    if bovert < 40:
+        return 4.0
+    elif bovert > 110:
+        return 6.98
+    else:
+        return 4.0 + 2.98 * (bovert - 40) / 70
 
 class CircCrossSection:
     def __init__(self, length, r, ts, material):
@@ -17,8 +29,9 @@ class CircCrossSection:
 
         self.radius = r
         self.thickness = ts
+        self.circumference = 2*pi*r
 
-        self.total_area = 2*pi*r*ts
+        self.total_area = self.circumference*ts
 
         self.xbar, self.ybar = r, r
         self.Ixx, self.Iyy, self.Ixy = pi*ts*r*r*r, pi*ts*r*r*r, 0
@@ -30,13 +43,83 @@ class CircCrossSection:
         self.internal_area = pi*r*r
         self.tresca_yield = self.material.sigma_y*self.material.sigma_y / 3.
 
-        rhoxx = sqrt(self.Ixx/self.total_area)
-        rhoyy = sqrt(self.Iyy/self.total_area)
-        slender = self.l/min(rhoxx, rhoyy)
-
-        self.sigma_cr = pi*pi*self.material.E / (slender*slender)
-
         self.stiffeners = []
+        self.we2s = []
+        self.stringerpitches = []
+
+        self.sigma_cr = self.calc_critical_stress()
+        self.calc_sigma_ult_tensile()
+
+
+    def calc_we(self):
+        for stringer in self.stiffeners:
+            C = get_C(self.circumference/self.l)
+            self.we2s.append(self.thickness * sqrt(C*pi*pi*self.material.E/(12*(1-self.material.poisson**2)*stringer.properties.sigma_cc)))
+
+    def calc_stringerpitch(self):
+        for index, stringer in enumerate(self.stiffeners):
+            if index == 0:
+                if len(self.stiffeners) != 1:
+                    stringerpitch = self.stiffeners[index+1].xpos - stringer.xpos
+                else:
+                    stringerpitch = self.circumference*0.5
+            elif index == len(self.stiffeners)-1:
+                stringerpitch = stringer.xpos-self.stiffeners[index-1].xpos
+            else:
+                stringerpitch = (self.stiffeners[index+1].xpos - self.stiffeners[index-1].xpos)/2
+            self.stringerpitches.append(stringerpitch)
+
+    def calc_critical_stress(self):
+        rhoxx = sqrt(self.Ixx / self.total_area)
+        rhoyy = sqrt(self.Iyy / self.total_area)
+        slender = self.l / min(rhoxx, rhoyy)
+        sigma_cr_circ = pi * pi * self.material.E / (slender * slender)
+        stiffenerforces = 0
+        totalstiffenerarea = 0
+        if sum(self.we2s) > self.circumference:
+            f_plate = 0
+            f_stiff = [self.circumference / len(self.stiffeners) for _ in range(len(self.stiffeners))]
+        else:
+            f_plate = self.circumference - sum(self.we2s)
+            f_stiff = self.we2s
+        for we, stiff in zip(f_stiff, self.stiffeners):
+            stiffenerforces += stiff.properties.sigma_cr * (stiff.properties.total_area + we * self.thickness)
+            totalstiffenerarea += stiff.properties.total_area
+        return (sigma_cr_circ * self.thickness * f_plate + stiffenerforces) / (totalstiffenerarea + self.thickness * self.circumference)
+
+    def calc_sigma_ult_tensile(self):
+        size = len(self.stiffeners)+1
+        if size == 1:
+            self.sigma_ult_tensile = self.material.sigma_y
+            self.stresses = np.array([1./self.total_area])
+            self.averagestress = 1./self.total_area
+            self.ultimatestress = self.material.sigma_y
+            self.tresca_yield = self.ultimatestress*self.ultimatestress / 3
+        else:
+            forcematrix = np.zeros((size, size))
+            forcematrix[0,:] = 1
+            forcematrix[1:,0] = self.l/(self.total_area*self.material.E)
+            for idx, stringer in enumerate(self.stiffeners):
+                forcematrix[idx+1, idx+1] = -stringer.properties.Le/(stringer.properties.total_area*stringer.properties.material.E)
+            bvector = np.zeros(size)
+            bvector[0] = 1.
+            try:
+                fractions = np.linalg.solve(forcematrix, bvector)
+            except np.linalg.LinAlgError:
+                print(forcematrix, bvector)
+                print("Error in ult stress calculation in a circular section, matrix is singular!")
+
+            self.stresses = np.copy(fractions)
+            self.stresses[0] = self.stresses[0]/(self.total_area)
+            for idx, stringer in enumerate(self.stiffeners):
+                self.stresses[idx+1] = self.stresses[idx+1]/(stringer.properties.total_area)
+            self.averagestress = np.sum(fractions)/self.total_area
+            ult_stresses = []
+            for stringer, fraction in zip(self.stiffeners, fractions):
+                ult_stresses.append(stringer.properties.material.sigma_y/fraction)
+            ult_stresses = np.array([ult_stresses])
+            self.ultimatestress = np.min(ult_stresses)
+            self.tresca_yield = self.ultimatestress*self.ultimatestress / 3
 
     def addStringer(self, stringer: Stringer):
         self.stiffeners.append(stringer)
@@ -47,6 +130,12 @@ class CircCrossSection:
         self.Ixx, self.Iyy, self.Ixy = self.momentofinertia()
         self.E = self.youngsmodulus()
         self.calc_mass()
+        self.calc_cost()
+        self.calc_we()
+        self.calc_stringerpitch()
+        self.sigma_cr = self.calc_critical_stress()
+        self.calc_sigma_ult_tensile()
+
 
     def calc_total_area(self):
         self.total_area = 2*pi*self.radius*self.thickness
@@ -81,6 +170,12 @@ class CircCrossSection:
         for stiff in self.stiffeners:
             self.mass += stiff.properties.mass
         return self.mass
+
+    def calc_cost(self):
+        self.cost = self.radius*2*pi*self.thickness*self.l*self.material.rho*self.material.cost
+        for stiff in self.stiffeners:
+            self.cost += stiff.properties.cost
+        return self.cost
 
     def plot_section(self, show=True):
         fig, ax = plt.subplots(1)
@@ -170,12 +265,21 @@ class CrossSection:
             self.mass += plate.properties.mass
         return self.mass
 
+    def calc_cost(self):
+        self.cost = 0
+        for stiff in self.stiffeners:
+            self.cost += stiff.properties.cost
+        for plate in self.plates:
+            self.cost += plate.properties.cost
+        return self.cost
+
     def recalculate_component_effects(self):
         self.calc_total_area()
         self.xbar, self.ybar = self.calc_centroid()
         self.Ixx, self.Iyy, self.Ixy = self.momentofinertia()
         self.E = self.youngsmodulus()
         self.calc_mass()
+        self.calc_cost()
         self.calc_Qs()
 
     def calc_centroid(self):
@@ -277,8 +381,10 @@ class FuselageSection:
 
 
 class Fuselage:
-    def __init__(self):
+    def __init__(self, framelocs):
         self.sections = []
+
+        self.framelocs = framelocs
 
         self.ys = []
         self.El = []
@@ -287,8 +393,11 @@ class Fuselage:
         self.Ixz = []
         self.xbars = []
         self.zbars = []
+        self.xbar, self.ybar, self.zbar = None, None, None
 
         self.mass = None
+
+        self.cost = None
 
     def addSection(self, section: FuselageSection):
         self.sections.append(section)
@@ -297,7 +406,36 @@ class Fuselage:
         self.mass = 0
         for section in self.sections:
             self.mass += section.properties.mass
+            if isinstance(section.properties, CircCrossSection):
+                self.mass += section.properties.internal_area * 0.75 * 0.002 * section.properties.material.rho
+            else:
+                self.mass += section.properties.internal_area * 0.75 * 0.002 * section.properties.plates[0].properties.material.rho
         return self.mass
+
+    def calc_total_cost(self):
+        self.cost = 0
+        for section in self.sections:
+            self.cost += section.properties.cost
+            if isinstance(section.properties, CircCrossSection):
+                self.cost += section.properties.internal_area * 0.75*0.002*section.properties.material.rho*section.properties.material.cost
+            else:
+                self.cost += section.properties.internal_area * 0.75 * 0.002 * section.properties.plates[0].properties.material.rho * section.properties.plates[0].properties.material.cost
+        return self.cost
+
+    def calc_cg(self):
+        self.Qyy = 0
+        self.Qz = 0
+        self.Qx = 0
+        for section, y in zip(self.sections, self.framelocs):
+            self.Qyy += section.properties.mass * (y - section.properties.l * 0.5)
+            if isinstance(section.properties, CircCrossSection):
+                self.Qyy += section.properties.internal_area * 0.75 * 0.002 * section.properties.material.rho * y
+            else:
+                self.Qyy += section.properties.internal_area * 0.75 * 0.002 * section.properties.plates[0].properties.material.rho * y
+            self.Qz += section.properties.mass * section.xbar_global
+            self.Qx += section.properties.mass * section.zbar_global
+        self.ybar = self.Qyy/self.mass
+        self.xbar, self.zbar = self.Qz/self.mass, self.Qx/self.mass
 
     def recalculate_lists(self):
         self.ys = []
@@ -323,3 +461,5 @@ class Fuselage:
         self.xbars, self.zbars = np.asarray(self.xbars), np.asarray(self.zbars)
         self.areas = np.asarray(self.areas)
         self.calc_total_mass()
+        self.calc_total_cost()
+        self.calc_cg()

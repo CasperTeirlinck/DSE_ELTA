@@ -16,8 +16,8 @@ def main_bat(variables):
     E_avionics = ppe.energy_avionics(variables) # Energy for avionics in [J]
 
     # Just for information which requirement requires the most energy
-    if E_engine == E_engine_endur: print("Enudance uses most energy")
-    else: print("Range uses most energy")
+    #if E_engine == E_engine_endur: print("Enudance uses most energy")
+    #else: print("Range uses most energy")
 
     # Total energy required from the batteries
     E_total = E_engine + E_avionics
@@ -90,12 +90,32 @@ def power_calculation(variables):
     # print(P_req_cruise/private_V_TAS)
 
     # Checking if power loading is achieved
-    if variables.WP < (variables.WTO/(max(P_req_cruise, P_req_sea))):
-        print("POWER DOES NOT MEET W/P, ask Matthijs")
+    # if variables.WP > (variables.WTO/(max(P_req_cruise, P_req_sea))):
+    #     print("POWER DOES NOT MEET W/P, ask Matthijs")
 
-    variables.P_max = max(P_req_cruise, P_req_sea)
+    P1 = max(P_req_cruise, P_req_sea)
+    P2 = variables.WTO / variables.WP
 
+    variables.P_max = max(P1, P2)
     return variables
+
+
+def range_calculator(variables, second_pilot = False):
+    """
+    This function calculates the range that can be achieved based on battery mass
+    second_pilot == False means the second pilot is replaced by a 100 kg battery
+    :return: achievable range in km
+    """
+    if not second_pilot:
+        m_temp = ((variables.W_batt/9.81) + 100)/1.15
+    if second_pilot:
+        m_temp = (variables.W_batt/9.81)/1.15
+
+    E = m_temp*variables.batt_cell_E_spec*variables.eff_tot_prop*3600 # Energy in J
+    CL, CD = np.sqrt(np.pi * variables.A * variables.eclean * variables.CD0clean), 2 * variables.CD0clean
+
+    R = (E/variables.WTO)*(CL/CD)/1000 # Range in km
+    return R
 
 
 # Testing block
@@ -104,14 +124,15 @@ if __name__ == "__main__":
     class Variables_battery:
         def __init__(self):
             # For the energy required
-            self.CD0 = 0.0250
+            self.CD0clean = 0.0250
             self.A = 10.1
-            self.e = 0.85
+            self.eclean = 0.85
             self.rho0 = 1.225
             self.eff_tot_prop = 0.95 * 0.88
             self.eff_batt = 0.95
             self.g0 = 9.80665
             self.WTO = 809.95 * 9.81
+            self.W_batt = 250*9.81
             self.range_m = 250000
             self.endurance_s = 2.5 * 3600
             self.P_max = 65 * 1000  # [W]
@@ -139,3 +160,4 @@ if __name__ == "__main__":
 
     test_v = Variables_battery()
     main_bat(test_v)
+    print(range_calculator(test_v, False), "km")

@@ -90,11 +90,11 @@ def turnrate(rho, V, CD0, phi, A, e, WS):
 
 def get_design_point(variables, plot_result=False):
     # Returns WS and WP of the feasible design point
-    WS_s = stallspeed(CLmax=variables.CLmaxland, Vs=variables.Vs, rho=variables.rho)  # Stallspeed
+    WS_s = stallspeed(CLmax=variables.CL_landing, Vs=variables.Vs, rho=variables.rhocruise)  # Stallspeed
     # WS_s = stallspeed(CLmax=variables.CLmaxto, Vs=variables.Vs, rho=variables.rho)  # Stallspeed
 
-    WS_landing1 = landing(CLmax=variables.CLmaxland, rho=variables.rho, sland=variables.sland,
-                          f=variables.f)  # Pessimistic landing
+    WS_landing1 = landing(CLmax=variables.CL_landing, rho=variables.rhotakeoff, sland=variables.sland,
+                          f=1)  # Pessimistic landing
     # WS_landing2 = landing(CLmax=variables.CLmaxland[1], rho=variables.rho, sland=variables.sland,
     #                       f=variables.f)  # Neutral landing
     # WS_landing3 = landing(CLmax=variables.CLmaxland[2], rho=variables.rho, sland=variables.sland,
@@ -105,19 +105,19 @@ def get_design_point(variables, plot_result=False):
 
     # Define single-input calculations for W/P
     def calcWP_to(WSinput):
-        return takeoff(k=variables.k, CLto=variables.CLto, sigma=variables.sigma, WS=WSinput)
+        return takeoff(k=variables.k, CLto=variables.CL_takeoff, sigma=variables.sigma, WS=WSinput)
     
     def calcWP_cruise(WSinput):
-        return cruisspeed(etap=variables.eff_propeller, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
-                            V=variables.V, A=variables.A, e=variables.e, WS=WSinput)
+        return cruisspeed(etap=variables.eff_prop, rho=variables.rhocruise, rho0=variables.rho0, CD0=variables.CD0clean,
+                            V=variables.V, A=variables.A, e=variables.eclean, WS=WSinput)
 
     def calcWP_climbrate(WSinput):
-        return climbrate(etap=variables.eff_propeller, rho=variables.rho, A=variables.A, e=variables.e,
+        return climbrate(etap=variables.eff_prop, rho=variables.rhocruise, A=variables.A, e=variables.eclean,
                               CD0=variables.CD0to, c=variables.c, WS=WSinput)
 
     def calcWP_climbgrad(WSinput):
-        return climbgradient(etap=variables.eff_propeller, cV=variables.c / variables.V, CD=variables.CDclimb,
-                                  CL=variables.CLclimb, rho=variables.rho, WS=WSinput)
+        return climbgradient(etap=variables.eff_prop, cV=variables.c / variables.V, CD=variables.CD_climb,
+                                  CL=variables.CL_climb, rho=variables.rhocruise, WS=WSinput)
 
     # def calcWP_turnrate(WSinput):
     #     return turnrate(rho=variables.rhocruise, V=variables.V, CD0=variables.CD0clean, phi=variables.phi,
@@ -266,10 +266,10 @@ def get_design_point(variables, plot_result=False):
     variables.WP = WP_limit
     return variables
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    for n in [1,2]:
-        variables = CurrentVariables(n_engines=n)
-        get_design_point(variables, plot_result=True)
+#     for n in [1,2]:
+#         variables = CurrentVariables(n_engines=n)
+#         get_design_point(variables, plot_result=True)
 
 
