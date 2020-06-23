@@ -3,7 +3,7 @@ This script contains functions to calculate wing properties
 Author: Bob
 '''
 
-from math import tan,atan
+from math import tan,atan,cos,pi,sqrt
 
 '''
 sweep() :               Calculates the sweep angle at c'/c
@@ -88,3 +88,21 @@ V&V:    Verified
 def XLEMAC(lfn,b,sweepc4,taper,cr):
     xmac = XMAC(b,sweepc4,taper,cr)
     return lfn + xmac
+
+'''
+downwash() :            Calculates the downwash gradient
+
+Inputs:
+    
+
+'''
+
+def downwash(lh,bw,zh,zw,twistwr,sweepw,CLaw,Aw):
+    r = lh*2/bw
+    mtv = 2/bw * ((zh-zw)+lh*tan(twistwr)) * cos(twistwr)
+    KeLambda = (0.1124 + 0.1265*sweepw + sweepw**2)/(r**2) + 0.1025/r + 2
+    KeLambda0 = 0.1124/(r**2) + 0.1024/r + 2
+    deda = KeLambda/KeLambda0 * (r/(r**2 + mtv**2)*0.4876/sqrt(r**2+0.6319+mtv**2)+
+                                 (1+(r**2/(r**2+0.7915+5.0734*mtv**2))**0.3113)
+                                 *(1-sqrt(mtv**2/(1+mtv**2)))) * CLaw/(pi*Aw)
+    return deda

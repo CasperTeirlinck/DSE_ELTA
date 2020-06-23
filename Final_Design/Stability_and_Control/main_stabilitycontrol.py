@@ -1,7 +1,7 @@
 from math import sqrt,pi
 from horizontaltail_design import *
 #from verticaltail_design import verticaltail_sizing
-from empennagecontrol_design import elevator_sizing
+#from empennagecontrol_design import elevator_sizing
 
 
 class stabilitycontrol_variables:
@@ -145,5 +145,5 @@ if __name__ ==  "__main__":
 
     #xcg_min,xcg_max = loading_diagram(test_v,3.27,plot=False)
     #test_v,ShS_min = scissor_plot(test_v, 2.57166, xcg_min, xcg_max, plot=False)
-    #test_v = sizing_htail_wingpos(test_v,plot=False)
+    test_v = sizing_htail_wingpos(test_v,plot=True)
     #test_v = elevator_sizing(test_v)

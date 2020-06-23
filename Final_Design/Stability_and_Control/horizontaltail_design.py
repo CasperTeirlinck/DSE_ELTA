@@ -6,8 +6,8 @@ Author: Bob
 import numpy as np
 from math import pi,sqrt,tan,cos,atan
 import matplotlib.pyplot as plt
-from Stability_and_Control.wing_properties import XMAC,XLEMAC,sweep
-
+from wing_properties import XMAC,XLEMAC,sweep,downwash
+#Stability_and_Control.
 
 '''
 loading_diagram() :     Creates the loading diagram
@@ -25,7 +25,7 @@ V&V:    Verified
 '''
 
 def loading_diagram(variables,xcg_wing,plot=False):
-    # Inputs TODO Get values out of variables class
+    # Inputs
     g = variables.g0                        # [m/s2]
 
     MAC = variables.MAC                     # [m]       Mean Aerodynamic Chord
@@ -164,7 +164,7 @@ Outputs:
 V&V:    Verified
 '''
 
-def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
+def scissor_plot(variables,lh,xlemac,xcg_min,xcg_max,plot=False):
     # Input parameters
     R = variables.R                     # [J/kg K]  Gas constant
     gamma = variables.gamma             # [-]       Heat capacity ratio
@@ -187,7 +187,7 @@ def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
     crw = variables.c_r                 # [m]       Wing root chord
     bfl = variables.flapspan            # [m]       Flap span
 
-    lh = variables.lh                   # [m]       Tail arm
+    #lh = variables.lh                   # [m]       Tail arm
     zh = variables.h_htail              # [m]       Height horizontal tail from ground
     Ah = variables.A_h                  # [-]       Horizontal tail aspect ratio
     bh = variables.b_h                  # [m]       Horizontal tail span
@@ -245,13 +245,14 @@ def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
     xac = xacwf + xacn
 
     # Wing downwash gradient
-    r = lh*2/bw
-    mtv = 2/bw * ((zh-zw)+lh*tan(twistwr)) * cos(twistwr)
-    KeLambda = (0.1124 + 0.1265*sweepw + sweepw**2)/(r**2) + 0.1025/r + 2
-    KeLambda0 = 0.1124/(r**2) + 0.1024/r + 2
-    deda = KeLambda/KeLambda0 * (r/(r**2 + mtv**2)*0.4876/sqrt(r**2+0.6319+mtv**2)+
-                                 (1+(r**2/(r**2+0.7915+5.0734*mtv**2))**0.3113)
-                                 *(1-sqrt(mtv**2/(1+mtv**2)))) * CLaw/(pi*Aw)
+    #r = lh*2/bw
+    #mtv = 2/bw * ((zh-zw)+lh*tan(twistwr)) * cos(twistwr)
+    #KeLambda = (0.1124 + 0.1265*sweepw + sweepw**2)/(r**2) + 0.1025/r + 2
+    #KeLambda0 = 0.1124/(r**2) + 0.1024/r + 2
+    #deda = KeLambda/KeLambda0 * (r/(r**2 + mtv**2)*0.4876/sqrt(r**2+0.6319+mtv**2)+
+    #                             (1+(r**2/(r**2+0.7915+5.0734*mtv**2))**0.3113)
+    #                             *(1-sqrt(mtv**2/(1+mtv**2)))) * CLaw/(pi*Aw)
+    deda = downwash(lh,bw,zh,zw,twistwr,sweepw,CLaw,Aw)
 
     # Pitching moment coefficient
     Cmacw = Cm0af*(Aw*cos(sweepw)**2/(Aw + 2*cos(sweepw)))
@@ -280,16 +281,18 @@ def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
     # Minimum required horizontal tail surface
     ShS_min = max(ShS_stability,ShS_Control)
 
-    # Add to variables class
-    variables.deda = deda
+    # Scissor plot curves
+    def stability_curve(ShS):
+        return (1 - sm_free) * (xac + CLah / CLaA_h * (1 - deda) * ShS * lh / MAC * VhV ** 2) - sm
+
+    def control_curve(ShS):
+        return xac - Cmac / CLA_h + CLh / CLA_h * ShS * lh / MAC * VhV ** 2
+
+    # Neutral point
+    xnp = stability_curve(ShS_min) + sm
 
     # Create Scissor Plot
     if plot:
-        def stability_curve(ShS):
-            return (1-sm_free)*(xac + CLah/CLaA_h * (1-deda) * ShS*lh/MAC * VhV**2) - sm
-
-        def control_curve(ShS):
-            return xac - Cmac/CLA_h + CLh/CLA_h * ShS*lh/MAC * VhV**2
 
         ShS = np.arange(0,1.001,0.001)
 
@@ -310,7 +313,7 @@ def scissor_plot(variables,xlemac,xcg_min,xcg_max,plot=False):
     else:
         pass
 
-    return variables,ShS_min
+    return ShS_min,xnp
 
 
 '''
@@ -334,16 +337,22 @@ V&V:    Verified
 
 def sizing_htail_wingpos(variables,plot=False):
     # Inputs
-    lf = variables.fuselagelength   # [m]   Fuselage length
-    Sw = variables.S                # [m2]  Wing surface area
-    sweepw = 0        # [rad] Wing quarter chord sweep angle
-    taperw = variables.taper        # [-]   Wing taper ratio
-    bw = variables.b                # [m]   Wing span
+    lf = variables.fuselagelength       # [m]   Fuselage length
+    lh = variables.lh                   # [m]   Tail arm
+    Sw = variables.S                    # [m2]  Wing surface area
+    sweepw = 0                          # [rad] Wing quarter chord sweep angle
+    taperw = variables.taper            # [-]   Wing taper ratio
+    bw = variables.b                    # [m]   Wing span
     MAC = variables.MAC
-    crw = variables.c_r             # [m]   Wing root chord
-    cg_wing = variables.cg_wing     # [m]   Wing center of gravity
-
-    sm = 0.1                        # [-]   Safety margin
+    crw = variables.c_r                 # [m]   Wing root chord
+    cg_wing = variables.cg_wing         # [m]   Wing center of gravity
+    xtail = variables.xtail             # [m]   Tail location
+    zh = variables.h_htail
+    zw = variables.h_landinggear
+    twistwr = variables.twist
+    CLaw = variables.wing_CL_alpha
+    Aw = variables.A
+    sm = 0.1                            # [-]   Safety margin
 
     # Parameter calculations
     # xlemac and xmac
@@ -354,6 +363,7 @@ def sizing_htail_wingpos(variables,plot=False):
     xcgmin_lst = []
     xcgmax_lst = []
     ShSmin_lst = []
+    lh_lst = []
 
     # Perform wing shift
     for xlemaclf in xlemaclf_lst:
@@ -362,11 +372,13 @@ def sizing_htail_wingpos(variables,plot=False):
         xcg_wing_i = xwing_i + cg_wing
 
         xcg_min_i,xcg_max_i = loading_diagram(variables,xcg_wing_i)
-        variables,ShS_min_i = scissor_plot(variables,xlemacw_i,xcg_min_i,xcg_max_i)
+        ShS_min_i,xnp = scissor_plot(variables,lh,xlemacw_i,xcg_min_i,xcg_max_i)
+        lh = xtail + xnp*MAC
 
         xcgmin_lst.append(xcg_min_i)
         xcgmax_lst.append(xcg_max_i)
         ShSmin_lst.append(ShS_min_i)
+        lh_lst.append(lh)
 
     # Determine minimum horizontal tail surface
     ShS_min = min(ShSmin_lst)
@@ -378,16 +390,22 @@ def sizing_htail_wingpos(variables,plot=False):
     xcg_min = xcgmin_lst[i]
     xcg_max = xcgmax_lst[i]
 
+    # Determine tail length
+    lh = lh_lst[i-1]
+
     # Determine wing location parameters for minimum horizontal tail surface
     xlemaclf = xlemaclf_lst[i]
     xlemacw = xlemaclf*lf
     xwing = xlemacw - xmac
     xcg_wing = xwing + cg_wing
-    xnp = xcg_max + 0.05
+
+    # Determine downwash
+    deda = downwash(lh,bw,zh,zw,twistwr,sweepw,CLaw,Aw)
+    variables.deda = deda
 
     # Update values in variables class
     variables.xwing = xwing
-    variables.lh = variables.xtail - xnp*MAC
+    variables.lh = lh
     variables.xlemac = xlemacw
     variables.xcg_min = xcg_min*MAC
     variables.xcg_max = xcg_max*MAC
