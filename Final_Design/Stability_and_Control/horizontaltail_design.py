@@ -4,7 +4,7 @@ Author: Bob
 '''
 
 import numpy as np
-from math import pi,sqrt,tan,cos,atan
+from math import pi,sqrt,tan,cos
 import matplotlib.pyplot as plt
 from Stability_and_Control.wing_properties import XMAC,XLEMAC,sweep,downwash,percMAC
 #
@@ -118,7 +118,8 @@ def loading_diagram(variables,xcg_wing,plot=False):
     xcg_lst = np.array(xcg_lst)/MAC
 
     # Get Maximum and minimum center of gravity location and apply safety margin
-    xcg_min = min(xcg_lst) - sm/2
+    xcg_min = xcg_lst[-1] - sm/2
+    xcg_min_ground = min(xcg_lst) - sm/2
     xcg_max = max(xcg_lst) + sm/2
 
     # Create loading diagram
@@ -135,16 +136,18 @@ def loading_diagram(variables,xcg_wing,plot=False):
         pb_p_xcg = percMAC(np.array(pb_p_xcg), xlemac, MAC)
         pb_b_xcg = percMAC(np.array(pb_b_xcg), xlemac, MAC)
 
-        xcg_min_plot = percMAC(xcg_min * MAC, xlemac, MAC)
+        xcg_min_plot = percMAC(xcg_min*MAC,xlemac,MAC)
+        xcg_min_ground_plot = percMAC(xcg_min_ground*MAC,xlemac,MAC)
         xcg_max_plot = percMAC(xcg_max * MAC, xlemac, MAC)
 
         # Create the plot
         plt.plot(bp_b_xcg*100,bp_b_m,color='#1f77b4',label='Battery loading')
-        plt.plot(pb_b_xcg*100,pb_b_m,color='#1f77b4')
+        plt.plot(pb_b_xcg*100,pb_b_m,'--',color='#1f77b4')
         plt.plot(bp_p_xcg*100,bp_p_m,color='#ff7f0e',label='Payload loading')
-        plt.plot(pb_p_xcg*100,pb_p_m,color='#ff7f0e')
+        plt.plot(pb_p_xcg*100,pb_p_m,'--',color='#ff7f0e')
         plt.plot([xcg_min_plot*100,xcg_min_plot*100],[min(m_lst),max(m_lst)],'r',label='Minimum/Maximum Center of Gravity')
         plt.plot([xcg_max_plot*100,xcg_max_plot*100],[min(m_lst),max(m_lst)],'r')
+        plt.plot([xcg_min_ground_plot*100,xcg_min_ground_plot*100],[min(m_lst),max(m_lst)],'r--')
         plt.title('Loading Diagram')
         plt.xlabel('$x_{cg}$/MAC (%)')
         plt.ylabel('Weight [kg]')
