@@ -131,6 +131,11 @@ class NewVariables:
         self.flapend = None
         self.flapspan = None
         self.flapaffectedarea = None
+
+        # Aileron geometry
+        self.aileronstart = 4.9
+        self.aileronend = None
+        self.aileronspan = None
         
         # Horizontal tail geometry
         self._Sh = 0.4*self.S
@@ -996,7 +1001,7 @@ class NewVariables:
         cd0_TO = self.CD0clean      # [-]       Take-off configuration zero lift drag coefficient
         cd0_L = self.CD0flap        # [-]       Landing configuration zero lift drag coefficient
 
-        b1 = self.b1                # [m]       Aileron start
+        b1 = self.aileronstart      # [m]       Aileron start
         clear_tip = self.clear_tip  # [m]       Distance from the tip that should be clear of control surfaces
         da = self.da                # [rad]     Aileron deflection angle
         clda = self.clda            # [/rad]    Take-off configuration change in the airfoil’s lift coefficient with aileron deflection
@@ -1074,8 +1079,9 @@ class NewVariables:
         # b2lst = np.array(b2lst)
 
         # Update values in variables class
-        self.b1 = b1
-        self.b2 = b2
+        self.aileronstart = b1
+        self.aileronend = b2
+        self.aileronspan = b2 - b1
 
 
 def sys_Aerodynamics_wing(v,resolution):
@@ -1085,6 +1091,7 @@ def sys_Aerodynamics_wing(v,resolution):
     v.calcCLmax()
     v.CL0clean= v.calcCL(0)
     v.flap_sizing()
+    v.aileron_sizing()
     v.CL0flap = v.CL0clean + (2.0 - v.wing_CL_max)
     return v
 
