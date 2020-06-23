@@ -343,6 +343,8 @@ class NewVariables:
         self.batt_cell_I_max      = 9.8                                                             # Maximum discharge current [A]
         self.batt_cell_C_Ah       = 5.0                                                             # Capacity [Ah]
         self.batt_cell_C_Wh       = self.batt_cell_C_Ah * self.batt_cell_V_nom                      # Capacity [Wh]
+
+        # WARNING!: do not change batt_cell_E_spec! -> Change batt_cell_Ah or batt_cell_V_nom
         self.batt_cell_E_spec     = self.batt_cell_C_Wh / self.batt_cell_mass                       # Capacity per kg of weight [Wh/kg]
         self.batt_cell_E_vol_spec = self.batt_cell_C_Wh / self.batt_cell_volume                     # Capacity per unit volume [Wh/m^3]
         self.batt_cell_P          = self.batt_cell_I_max * self.batt_cell_V_nom                     # Maximum power [W]
