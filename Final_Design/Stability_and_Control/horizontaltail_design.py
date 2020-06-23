@@ -6,8 +6,8 @@ Author: Bob
 import numpy as np
 from math import pi,sqrt,tan,cos,atan
 import matplotlib.pyplot as plt
-from wing_properties import XMAC,XLEMAC,sweep,downwash
-#Stability_and_Control.
+from Stability_and_Control.wing_properties import XMAC,XLEMAC,sweep,downwash
+#
 
 '''
 loading_diagram() :     Creates the loading diagram
