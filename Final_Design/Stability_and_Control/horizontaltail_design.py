@@ -382,7 +382,7 @@ def sizing_htail_wingpos(variables,plot=False):
 
     # Perform wing shift
     for xlemaclf in xlemaclf_lst:
-        xlemacw_i = xlemaclf*lf
+        xlemacw_i = xlemaclf*lf + variables.proplength
         xwing_i = xlemacw_i-xmac
         xcg_wing_i = xwing_i + cg_wing
 
@@ -410,7 +410,7 @@ def sizing_htail_wingpos(variables,plot=False):
 
     # Determine wing location parameters for minimum horizontal tail surface
     xlemaclf = xlemaclf_lst[i]
-    xlemacw = xlemaclf*lf
+    xlemacw = xlemaclf*lf + variables.proplength
     xwing = xlemacw - xmac
     xcg_wing = xwing + cg_wing
 
