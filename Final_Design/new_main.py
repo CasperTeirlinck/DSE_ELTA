@@ -10,6 +10,7 @@ from ClassIIWeightEstimationnew import *
 from Midterm_Design.cg_determination import *
 from Structures.fuselagedesign import *
 from Structures.landing_gear_pos import *
+from Structures.stress_analysis import *
 
 wingresolution = 100
 iterating_designpoint = False
@@ -45,6 +46,7 @@ def loop(v):
     v = elevator_sizing(v)
 
     v = design_fuselage(v)
+    # v = size_wing(v)
 
     v = CalcOEW(v)
     v.update_WTO()
