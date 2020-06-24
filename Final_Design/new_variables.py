@@ -50,8 +50,6 @@ class NewVariables:
         self.h_landinggear = 0.8
         self.w_landinggear = 0.175
 
-        self.la = 11
-
         self._xtail = 9
 
         self.fuselagelength = self.xtail + 0.42
@@ -59,6 +57,10 @@ class NewVariables:
         self.fuselageheight = 1.211
         self.fuselagefrontalarea = 1.218
         self.fuselagewettedarea = 17.507
+
+        self.proplength = 0.5       # [m] Length of the propeller part, in front of the fuselage
+
+        self.la = self.fuselagelength + self.proplength
 
         self.h_htail = self.h_landinggear + .5*self.fuselageheight
 
@@ -71,7 +73,7 @@ class NewVariables:
         self.xcg_min = None
         self.xcg_max = None
 
-        self.zcg = 1                # [m]           Centre of gravity height TODO Check
+        self.zcg = self.h_landinggear+0.5*self.fuselageheight    # [m]           Centre of gravity height
 
         self._WP = 0.121
         self._WS = 592
