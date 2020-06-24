@@ -86,6 +86,8 @@ class J_Stringer:
         self.sigma_cc = self.crippling_stress(self.material)
 
         self.sigma_cr = self.calc_critical_stress(self.Le)
+        
+        self.mass_per_m = self.calc_mass_per_m()
 
 
     def calc_centroid(self):
@@ -130,6 +132,9 @@ class J_Stringer:
             return sigma_cr
         else:
             return self.material.sigma_comp
+        
+    def calc_mass_per_m(self):
+        return self.total_area*self.material.rho
 
 
 class Z_Stringer(J_Stringer):
@@ -144,6 +149,7 @@ class Z_Stringer(J_Stringer):
 
         self.sigma_cc=self.crippling_stress(self.material)*self.total_area
         self.sigma_cr = self.calc_critical_stress(self.Le)
+        self.mass_per_m = self.calc_mass_per_m()
 
     def calc_centroid(self):
         # Returns xbar, ybar
@@ -168,6 +174,9 @@ class Z_Stringer(J_Stringer):
               self.area1*(self.b4+self.t2+self.b1*0.5-self.xbar)**2 + self.area2*(self.b4+self.t2*0.5-self.xbar)**2 + \
               self.area4*(self.b4*0.5-self.xbar)**2
         return Ixx, Iyy
+    
+    def calc_maxx_per_m(self):
+        return self.total_area*self.material.rho
     
 
 
@@ -196,7 +205,7 @@ class SparProp:
     
     
 class Spar:
-    def __init__(self, xpos, zpos, h, t=0.01, material=aluminum):
+    def __init__(self, xpos, zpos, h, t=0.001, material=aluminum):
         self.t        = t
         self.material = material
         self.xpos     = xpos
@@ -263,7 +272,7 @@ class StiffenedPanel:
 
 
 class Rib:
-    def __init__(self, ypos, t=0.01, material=aluminum):
+    def __init__(self, ypos, t=0.001, material=aluminum):
         self.ypos = ypos
         self.t = t
         self.material=material
@@ -475,6 +484,8 @@ class StiffenedWing(WingPlanform):
         self.l_st_sigma_cr  = self.stringers_l_lst[0][0].sigma_cr
         self.st_u_sigma_y   = self.stringers_u_lst[0][0].material.sigma_y
         self.st_l_sigma_y   = self.stringers_l_lst[0][0].material.sigma_y
+        
+        self.m_half_wing    = self.calc_mass()
         
         
 
@@ -1933,7 +1944,22 @@ class StiffenedWing(WingPlanform):
             
             
         return q_maxg_tot, q_ming_tot, tau_maxg_tot, tau_ming_tot
-            
+    
+    def calc_mass(self):
+        
+        m_stringer = (self.Le_lst_u[0][0]*len(self.stiff_panel_u))*self.stringers_u_lst[0][0].mass_per_m
+        m_stringers = m_stringer*(self.n_string_u+self.n_string_l)
+        m_ribs = self.calc_m_rib()*self.n_rib
+        m_spar_le = (self.spar_lst[0][0].h*self.spar_lst[0][0].t+self.spar_lst[-1][0].h*self.spar_lst[-1][0].t)/2*self.ylst[-1]*self.spar_lst[0][0].material.rho
+        m_spar_te = (self.spar_lst[0][1].h*self.spar_lst[0][1].t+self.spar_lst[-1][1].h*self.spar_lst[-1][1].t)/2*self.ylst[-1]*self.spar_lst[0][1].material.rho
+        m_skin_u  = (sum(self.l_bt[0][:self.n_string_u-1])+sum(self.l_bt[-1][:self.n_string_u-1]))/2*self.skin.t*self.ylst[-1]*self.skin.material.rho
+        m_skin_l  = (sum(self.l_bt[0][self.n_string_u+1:-1])+sum(self.l_bt[-1][self.n_string_u+1:-1]))/2*self.skin.t*self.ylst[-1]*self.skin.material.rho
+        
+        return (m_stringers+m_ribs+m_spar_le+m_spar_te+m_skin_u+m_skin_l)/2
+        
+    def calc_m_rib(self):
+        return (self.cr*self.rib_lst[0].t*self.spar_lst[0][0].h+self.ct*self.rib_lst[0].t*self.spar_lst[0][0].h)/2*self.rib_lst[0].material.rho
+    
             
             
             
@@ -1948,9 +1974,86 @@ class StiffenedWing(WingPlanform):
         
 
 
-aluminium=MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, G=28E9, name="AA2024", alpha=0.8, n=0.6)
-skin    = Skin()
-wing = StiffenedWing(100, 20, 20, 0.25, 0.75, Spar,skin, 10)
+#aluminium=MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, G=28E9, name="AA2024", alpha=0.8, n=0.6)
+#skin    = Skin()
+#wing = StiffenedWing(5, 20, 20, 0.25, 0.75, Spar,skin, 3)
+
+def size_wing(n, spar_le_loc, spar_te_loc):
+    skin = Skin()
+    
+    n_u   = 3
+    n_l   = 3
+    n_rib = 3
+    
+    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib)
+    sizing = True
+    
+    it = 0
+    
+    while sizing:
+        n_u_next   = n_u+1
+        n_l_next   = n_l+1
+        n_rib_next = n_rib+1
+        it +=1
+
+        
+        print(it/50*100, '%')
+        
+        for i in range(len(wing.sigma_maxg)):
+            if it >=50:
+                sizing = False
+                
+            
+            for j in range(len(wing.sigma_maxg[i])):
+                
+                if abs(wing.sigma_ming[i][j]) >= wing.panel_sigma_cr or abs(wing.sigma_maxg[i][j]) >= abs(wing.u_st_sigma_cr) or abs(wing.sigma_ming[i][j]) >= abs(wing.u_st_sigma_cr):
+                    n_rib += 1
+                    n_u+=1
+                    n_l+=1
+                
+                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib)
+                
+                if abs(wing.sigma_maxg[i][j]) >= abs(wing.panel_sigma_cr) or abs(wing.sigma_ming[i][j]) >= abs(wing.panel_sigma_cr):
+                    n_rib += 1
+                    
+                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib)
+                    
+                    break
+
+                    
+                if abs(wing.sigma_maxg[i][j]) >= abs(wing.st_u_sigma_y) or abs(wing.sigma_ming[i][j]) >= abs(wing.st_u_sigma_y):
+                    n_u +=1
+                    n_l+=1
+                    
+                    
+                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib)
+                    
+                    break
+                
+                if i == len(wing.sigma_maxg)-1 and j == len(wing.sigma_maxg[-1])-1 and n_u != n_u_next and n_l != n_l_next and n_rib != n_rib_next:
+                    print('The wing needs ', n_u, ' upper stringers, ', n_l, ' lower stringers and ', n_rib, ' ribs.')
+                    sizing = False
+                    
+                    break
+                
+            
+            break
+    
+    return n_u, n_l, n_rib, wing.m_half_wing
+
+
+
+
+#self.panel_sigma_cr = self.stiff_panel_u[0].sigma_cr
+#self.u_st_sigma_cr  = self.stringers_u_lst[0][0].sigma_cr
+#self.l_st_sigma_cr  = self.stringers_l_lst[0][0].sigma_cr
+#self.st_u_sigma_y   = self.stringers_u_lst[0][0].material.sigma_y
+#self.st_l_sigma_y   = self.stringers_l_lst[0][0].material.sigma_y
+
+
+
+
+
 
 
 #plt.figure(1)
