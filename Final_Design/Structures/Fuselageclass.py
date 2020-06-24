@@ -22,6 +22,30 @@ def get_C(bovert):
     else:
         return 4.0 + 2.98 * (bovert - 40) / 70
 
+class EmptyCrossSectionProps:
+    def __init__(self):
+        self.E = 70000000000
+        self.internal_area = 0.0
+        self.mass = 0.0
+        self.cost = 0.0
+        self.l = 0.0
+        self.total_area = 0.0
+        plates = []
+
+class EmptyCrossSection:
+    def __init__(self):
+        self.properties = EmptyCrossSectionProps()
+        self.ypos = 0.0
+        self.xpos = 0.0
+        self.zpos = 0.0
+        self.rotation = 0.0
+        self.Ixx_global = 0.0000000001
+        self.Izz_global = 0.0000000001
+        self.Ixz_global = 0.0000000001
+        self.xbar_global = 0.0
+        self.zbar_global = 0.0
+
+
 class CircCrossSection:
     def __init__(self, length, r, ts, material):
         self.l = length
@@ -408,7 +432,7 @@ class Fuselage:
             self.mass += section.properties.mass
             if isinstance(section.properties, CircCrossSection):
                 self.mass += section.properties.internal_area * 0.75 * 0.002 * section.properties.material.rho
-            else:
+            elif isinstance(section.properties, CrossSection):
                 self.mass += section.properties.internal_area * 0.75 * 0.002 * section.properties.plates[0].properties.material.rho
         return self.mass
 
@@ -418,7 +442,7 @@ class Fuselage:
             self.cost += section.properties.cost
             if isinstance(section.properties, CircCrossSection):
                 self.cost += section.properties.internal_area * 0.75*0.002*section.properties.material.rho*section.properties.material.cost
-            else:
+            elif isinstance(section.properties, CrossSection):
                 self.cost += section.properties.internal_area * 0.75 * 0.002 * section.properties.plates[0].properties.material.rho * section.properties.plates[0].properties.material.cost
         return self.cost
 
@@ -430,7 +454,7 @@ class Fuselage:
             self.Qyy += section.properties.mass * (y - section.properties.l * 0.5)
             if isinstance(section.properties, CircCrossSection):
                 self.Qyy += section.properties.internal_area * 0.75 * 0.002 * section.properties.material.rho * y
-            else:
+            elif isinstance(section.properties, CrossSection):
                 self.Qyy += section.properties.internal_area * 0.75 * 0.002 * section.properties.plates[0].properties.material.rho * y
             self.Qz += section.properties.mass * section.xbar_global
             self.Qx += section.properties.mass * section.zbar_global
@@ -446,15 +470,18 @@ class Fuselage:
         self.xbars = []
         self.zbars = []
         self.areas = []
+        self.sections_amount = 0
         for section in self.sections:
-            self.ys.append(section.ypos)
-            self.E.append(section.properties.E)
-            self.Ixx.append(section.Ixx_global)
-            self.Izz.append(section.Izz_global)
-            self.Ixz.append(section.Ixz_global)
-            self.xbars.append(section.xbar_global)
-            self.zbars.append(section.zbar_global)
-            self.areas.append(section.properties.internal_area)
+            if not isinstance(section, EmptyCrossSection):
+                self.sections_amount += 1
+                self.ys.append(section.ypos)
+                self.E.append(section.properties.E)
+                self.Ixx.append(section.Ixx_global)
+                self.Izz.append(section.Izz_global)
+                self.Ixz.append(section.Ixz_global)
+                self.xbars.append(section.xbar_global)
+                self.zbars.append(section.zbar_global)
+                self.areas.append(section.properties.internal_area)
         self.ys = np.asarray(self.ys)
         self.E = np.asarray(self.E)
         self.Ixx, self.Izz, self.Ixz = np.asarray(self.Ixx), np.asarray(self.Izz), np.asarray(self.Ixz)

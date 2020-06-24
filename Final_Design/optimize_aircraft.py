@@ -13,12 +13,15 @@ if __name__ == "__main__":
 
     tweakVars = [
         ['designpointfactor', 'Design point choice, WS vs WP'],
-        ['A_v', 'aspect ratio vtail'],
         ['V', 'cruise speed'],
         ['sto', 'Take-off field length'],
+        ['eff_prop', 'Propeller efficiency'],
         ['endurance_s', 'endurance'],
         ['range_m', 'range'],
-        ['batt_cell_E_spec', 'specific E batteries'],
+        ['batt_cell_C_Ah', 'specific E batteries'],
+        ['DoD', 'Depth of discharge'],
+        ['hwl', 'Winglet height'],
+        ['xtail', 'Tail position from nose']
     ]
 
     sensDict = {}

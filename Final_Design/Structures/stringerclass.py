@@ -191,23 +191,30 @@ class Stringer:
 
 if __name__ == "__main__":
     print(translate_mmoi(1,2,0,0*pi/180))
-    aluminium = MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, name="AA2024", alpha=0.8, n=0.6)
+    aluminium = MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, name="AA2024", alpha=0.8, n=0.6, cost=1.6)
 
     kwargs = {'t1':0.001, 't2':0.001, 't3':0.001, 't4':0.001, 'b1':0.01, 'b2':0.02, 'b3':0.01, 'b4':0.01}
 
-    j = J_Stringer(Le=0.4, material=aluminium, **kwargs)
-    z = Z_Stringer(Le=0.4, material=aluminium, **kwargs)
 
-    stringer = Stringer(0.0, 1.0, j)
+    def constructstringerarg(modifier, material):
+        return {'material': material, 't1': 0.0005 * modifier, 't2': 0.0005 * modifier, 't3': 0.0005 * modifier,
+                't4': 0.0005 * modifier, 'b1': 0.005 * modifier, 'b2': 0.015 * modifier, 'b3': 0.003 * modifier,
+                'b4': 0.003 * modifier}
+    kwargs = constructstringerarg(1.0, aluminium)
+
+    j = J_Stringer(Le=0.4, **kwargs)
+    z = Z_Stringer(Le=0.4, **kwargs)
+    print(z.total_area)
+    # stringer = Stringer(0.0, 1.0, j)
 
     print(j.total_area)
-    print(stringer.properties.total_area)
-    print(stringer.properties.material.sigma_y)
-
-    factor = sqrt(1.8/2.3)
-    for key in kwargs:
-        kwargs[key] *= factor
-    j = J_Stringer(Le=0.4, material=aluminium, **kwargs)
-    s = Stringer(0.1, 4.5, j, 0.5*pi)
+    # print(stringer.properties.total_area)
+    # print(stringer.properties.material.sigma_y)
+    #
+    # factor = sqrt(1.8/2.3)
+    # for key in kwargs:
+    #     kwargs[key] *= factor
+    # j = J_Stringer(Le=0.4, material=aluminium, **kwargs)
+    # s = Stringer(0.1, 4.5, j, 0.5*pi)
 
 

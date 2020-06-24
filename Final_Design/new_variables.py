@@ -39,11 +39,6 @@ class NewVariables:
 
         self.designpointfactor = 1
 
-        self.fuselagelength = 9.420
-        self.fuselagewidth = 1.05
-        self.fuselageheight = 1.211
-        self.fuselagefrontalarea = 1.218
-        self.fuselagewettedarea = 17.507
 
         self.c = 2
         self.n_ult = 4.81 # TO BE OVERWRITTEN. ASK CASPER HOW TO IMPLEMENT THIS
@@ -57,16 +52,22 @@ class NewVariables:
 
         self.la = 11
 
-        self.xtail = 9
+        self._xtail = 9
+
+        self.fuselagelength = self.xtail + 0.42
+        self.fuselagewidth = 1.05
+        self.fuselageheight = 1.211
+        self.fuselagefrontalarea = 1.218
+        self.fuselagewettedarea = 17.507
+
         self.h_htail = self.h_landinggear + .5*self.fuselageheight
 
         self.cg_wing = 0.8         # [m]           Distance LE root chord - wing cg
         self.xwing = None
 
-        self.xcg_fgroup = 2.5
+        self.xcg_fgroup = 2.3
 
         self.xcgPL = 1.5
-        self.xcgbat = 3.2
         self.xcg_min = None
         self.xcg_max = None
 
@@ -74,6 +75,17 @@ class NewVariables:
 
         self._WP = 0.121
         self._WS = 592
+
+        self.printing = False # Whether to print the stuctures calculations results or not
+
+    @property
+    def xtail(self):
+        return self._xtail
+
+    @xtail.setter
+    def xtail(self, val):
+        self._xtail = val
+        self.fuselagelength = val+0.42
 
     @property
     def sto(self):
@@ -198,13 +210,13 @@ class NewVariables:
         self.wing_CL_alpha = None
         self.wing_CL_max = None
         self.wing_alpha_max = None
-        self.CD0clean = 0.01912
+        self._CD0clean = 0.01912
         self._CD0flap = 0.04
         self.CD0to = self.CD0flap/(1.1**2)
         if haswinglets:
-            self.eclean = 0.84
+            self._eclean = 0.84
         if not haswinglets:
-            self.eclean = 0.79
+            self._eclean = 0.79
         self.eflaps = None
 
         self.CD_climb = self.CD0clean + self.CL_climb**2/(np.pi*self.A*self.eclean) # MAKE USED VARIABLES PRIVATE
@@ -212,15 +224,33 @@ class NewVariables:
         # Working variables
         self.coeff = None
 
+    @property
+    def CD0clean(self):
+        return self._CD0clean
+
+    @CD0clean.setter
+    def CD0clean(self, val):
+        self._CD0clean = val
+        self.CD0clean + self.CL_climb ** 2 / (np.pi * self.A * self.eclean)
+
+    @property
+    def eclean(self):
+        return self._eclean
+
+    @eclean.setter
+    def eclean(self, val):
+        self._eclean = val
+        self.CD_climb = self.CD0clean + self.CL_climb ** 2 / (np.pi * self.A * self.eclean)
+
     def init_fuselage(self):
         self._max_fuselage_iterations = None # Don't change without contacting Max
         self._Wfus_aft = 50 # weight of the aft section of the fuselage
         self.Wfus_aft_xbar = None # centroid of the aft section of the fuselage
-        self.Wfus_aft_ybar = None # centroid of the aft section of the fuselage
+        self._Wfus_aft_ybar = None # centroid of the aft section of the fuselage
         self.Wfus_aft_zbar = None # centroid of the aft section of the fuselage
-        self.cockpitbulkhead = 2.2 # m, back of the cockpit
+        self._cockpitbulkhead = 2.2+0.3 # m, back of the cockpit
         self._framesamount = 8 # [-] amount of spars behind the cockpit bulkhead in the fuselage
-        self.framelocs = np.array([2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)])[::-1]
+        self.framelocs = np.array([self._cockpitbulkhead + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)])[::-1]
         self.skin_t = 2.5 # 2.138574136 # 2.0 # [mm] thickness of the skin
         self.skin_t_func = None # Only change if a custom skin thickness function is required. Two arguments: First is skin_t, second is y position where the thickness should be taken.
         self.mats = materials()
@@ -238,11 +268,48 @@ class NewVariables:
         self.n_stringers[4]=self.n_stiff//2
         self.material_regular = self.mats['alu7075']
         self.material_circular = self.mats['carbonfibre']
-        self.batteryoffset = 0.1 # [m] battery distance behind the cockpit aft bulkhead
-        self.batterywidth = 0.2 # [m] distance of second attachment point of the battery from the first
+        self.batteryinfuselage = False
+        self._batteryoffset = 0.1 # [m] battery distance behind the cockpit aft bulkhead
+        self._batterywidth = 0.2 # [m] distance of second attachment point of the battery from the first
         self.yout = None
         self._fuselage = None # Fuselage object, don't change without contacting Max
         self.loads = None # Loads acting on the fuselage
+        if self.batteryinfuselage:
+            self.xcgbat = self._cockpitbulkhead + self._batteryoffset + self._batterywidth*0.5
+        else:
+            self.xcgbat = 0.7
+
+    @property
+    def cockpitbulkhead(self):
+        return self._cockpitbulkhead
+
+    @cockpitbulkhead.setter
+    def cockpitbulkhead(self, val):
+        self._cockpitbulkhead = val
+        if self.batteryinfuselage:
+            self.xcgbat = val + self._batteryoffset + self._batterywidth*0.5
+
+
+    @property
+    def batteryoffset(self):
+        return self._batteryoffset
+
+    @property
+    def batterywidth(self):
+        return self._batterywidth
+
+    @batteryoffset.setter
+    def batteryoffset(self, val):
+        self._batteryoffset = val
+        if self.batteryinfuselage:
+            self.xcgbat = self._cockpitbulkhead + val + self._batterywidth*0.5
+
+    @batterywidth.setter
+    def batterywidth(self, val):
+        self._batterywidth = val
+        if self.batteryinfuselage:
+            self.xcgbat = self._cockpitbulkhead + self._batteryoffset + val*0.5
+
 
     def init_weight(self):        
         self.WPL = 1961.33
@@ -264,11 +331,20 @@ class NewVariables:
         
         self.W_OEW = None
 
-        self.xcg_fus_fwd = 1.811
-        self.xcg_fus_aft = 4.5
+        self.xcg_fus_fwd = 1.3 # 1.811
+        self.xcg_fus_aft = 4.1
         self.xprop = 0.15
-        self.xmotor = 0.3
-        self.xshaft = 0.225
+        self.xmotor = 0.6
+        self.xshaft = 0.525
+
+    @property
+    def Wfus_aft_ybar(self):
+        return self._Wfus_aft_ybar
+
+    @Wfus_aft_ybar.setter
+    def Wfus_aft_ybar(self, val):
+        self._Wfus_aft_ybar = val
+        self.xcg_fus_aft = val
 
     @property
     def Wfus_aft(self):
@@ -309,7 +385,7 @@ class NewVariables:
     @framesamount.setter
     def framesamount(self, val):
         self._framessamount = val
-        self.framelocs = np.array([2.2 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)])[::-1]
+        self.framelocs = np.array([2.2 + 0.3 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)])[::-1]
 
     def init_propulsion(self):
         # Sizing
@@ -322,8 +398,8 @@ class NewVariables:
         self.batt_Np      = None           # Number of battery cells in parallel
         self.batt_N       = None           # Number of battery cells
         self.eff_batt     = 0.95           # Battery efficiency
-        self.eff_prop     = 0.85           # Propeller efficiency
-        self.eff_tot_prop = 0.95 * 0.88    # Total propulsive efficiency
+        self._eff_prop    = 0.85           # Propeller efficiency
+        self.eff_tot_prop = 0.95 * self.eff_prop    # Total propulsive efficiency
         self.V_req_batt   = 400            # Required voltage in Volts
         self.I_req_batt   = 0.0 #189.75         # Required current in Amps UPDATE THIS
         self.DoD          = 90             # Depth of discharge of the battery
@@ -341,13 +417,32 @@ class NewVariables:
         self.batt_cell_V_max      = 4.2                                                             # Maximum voltage [V]
         self.batt_cell_V_cut      = 2.5                                                             # Cut-off voltage [V]
         self.batt_cell_I_max      = 9.8                                                             # Maximum discharge current [A]
-        self.batt_cell_C_Ah       = 5.0                                                             # Capacity [Ah]
+        self._batt_cell_C_Ah       = 5.0                                                             # Capacity [Ah]
         self.batt_cell_C_Wh       = self.batt_cell_C_Ah * self.batt_cell_V_nom                      # Capacity [Wh]
 
         # WARNING!: do not change batt_cell_E_spec! -> Change batt_cell_Ah or batt_cell_V_nom
         self.batt_cell_E_spec     = self.batt_cell_C_Wh / self.batt_cell_mass                       # Capacity per kg of weight [Wh/kg]
         self.batt_cell_E_vol_spec = self.batt_cell_C_Wh / self.batt_cell_volume                     # Capacity per unit volume [Wh/m^3]
         self.batt_cell_P          = self.batt_cell_I_max * self.batt_cell_V_nom                     # Maximum power [W]
+
+    @property
+    def batt_cell_C_Ah(self):
+        return self._batt_cell_C_Ah
+
+    @batt_cell_C_Ah.setter
+    def batt_cell_C_Ah(self, val):
+        self._batt_cell_C_Ah = val
+        self.batt_cell_C_Wh = val * self.batt_cell_V_nom
+
+
+    @property
+    def eff_prop(self):
+        return self._eff_prop
+
+    @eff_prop.setter
+    def eff_prop(self, val):
+        self._eff_prop = val
+        self.eff_tot_prop = self.eff_batt * val
 
     def init_sc(self):
         # Fuselage variables
