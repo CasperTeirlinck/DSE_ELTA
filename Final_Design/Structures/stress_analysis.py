@@ -1,10 +1,21 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import os
 from math import pi, sqrt
 import copy
-from Final_Design.aerodynamics.utils import readAeroLoads
+try:
+    from Final_Design.aerodynamics.utils import readAeroLoads
+except ModuleNotFoundError:
+    try:
+        from aerodynamics.utils import readAeroLoads
+    except ModuleNotFoundError:
+        from utils import readAeroLoads
 from scipy import interpolate
+try:
+    from new_variables import NewVariables
+except:
+    pass
 
 
 
@@ -182,16 +193,16 @@ class Z_Stringer(J_Stringer):
 
 
 class WingPlanform:
-    def __init__(self):
-        self.b          = 6.2643*2               #m
-        self.S          = 20                     #m2
-        self.qc_sweep   = 0                      #rad
-        self.taper      = 1.4
-        self.airfoil    = 'naca4415'
-        self.cr         = 1.98                   #m
-        self.ct         = 0.79
-        self.y_MAC      = (2/3)*self.cr*((1+self.taper+self.taper**2)/(1+self.taper))
-        self.A          = 10
+    def __init__(self, b=6.2643*2, S=20, qc_sweep=0, taper=0.71428, airfoil='naca4415', cr=1.98, ct=0.79, y_MAC=1.712857, A=10):
+        self.b          = b               #m
+        self.S          = S                     #m2
+        self.qc_sweep   = qc_sweep                      #rad
+        self.taper      = taper
+        self.airfoil    = airfoil
+        self.cr         = cr                   #m
+        self.ct         = ct
+        self.y_MAC      = y_MAC
+        self.A          = A
 
 
 
@@ -280,9 +291,9 @@ class Rib:
 
 
 class StiffenedWing(WingPlanform):
-    def __init__(self, n, n_string_u, n_string_l,
-                 spar_le_loc, spar_te_loc, spar, skin, n_rib, batt = False):
-        super().__init__()
+    def __init__(self, n, n_string_u, n_string_l, spar_le_loc, spar_te_loc, spar, skin, n_rib, batt = False,
+                 b=6.2643*2, S=20, qc_sweep=0, taper=0.71428, airfoil='naca4415', cr=1.98, ct=0.79, y_MAC=1.712857, A=10):
+        super().__init__(b=b, S=S, qc_sweep=qc_sweep, taper=taper, airfoil=airfoil, cr=cr, ct=ct, y_MAC=y_MAC, A=A)
         self.stringers_u_lst = [list(zeros) for zeros in np.zeros((n, n_string_u))]
         self.stringers_l_lst = [list(zeros) for zeros in np.zeros((n, n_string_l))]
         self.spar_lst        = [list(zeros) for zeros in np.zeros((n,2))]
@@ -492,10 +503,13 @@ class StiffenedWing(WingPlanform):
     
     def create_cross_sections(self, n):
         theta = np.arctan((self.cr-self.ct)/2/self.b)
-        
+
         file_name = self.airfoil+'.txt'
-        
-        file = open(file_name, 'r')
+        bin_path = os.path.dirname(os.path.realpath(__file__))  # Script path
+        data_path = os.path.join(*[bin_path, file_name])
+
+
+        file = open(data_path, 'r')
         lines = file.readlines()
         file.close()
     
@@ -1978,14 +1992,28 @@ class StiffenedWing(WingPlanform):
 #skin    = Skin()
 #wing = StiffenedWing(5, 20, 20, 0.25, 0.75, Spar,skin, 3)
 
-def size_wing(n, spar_le_loc, spar_te_loc):
+def size_wing(v):
     skin = Skin()
+
+    n = v.n_discretizations
+    spar_le_loc = v.spar_le_locs
+    spar_te_loc = v.spar_te_locs
+
+    n_u   = v.w_n_stiff_u
+    n_l   = v.w_n_stiff_l
+    n_rib = v.w_n_ribs
+    b = v.b
+    S = v.S
+    qc_sweep = 0
+    taper = v.taper
+    airfoil = 'naca4415'
+    cr = v.c_r
+    ct = v.c_t
+    y_MAC = v.YMAC
+    A = v.A
     
-    n_u   = 3
-    n_l   = 3
-    n_rib = 3
-    
-    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib)
+    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib, b=b, S=S, qc_sweep=qc_sweep,
+                       taper=taper, airfoil=airfoil, cr=cr, ct=ct, y_MAC=y_MAC, A=A)
     sizing = True
     
     it = 0
@@ -1996,8 +2024,8 @@ def size_wing(n, spar_le_loc, spar_te_loc):
         n_rib_next = n_rib+1
         it +=1
 
-        
-        print(it/50*100, '%')
+        if v.printing:
+            print(it/50*100, '%')
         
         for i in range(len(wing.sigma_maxg)):
             if it >=50:
@@ -2011,12 +2039,14 @@ def size_wing(n, spar_le_loc, spar_te_loc):
                     n_u+=1
                     n_l+=1
                 
-                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib)
+                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib, b=b, S=S, qc_sweep=qc_sweep,
+                       taper=taper, airfoil=airfoil, cr=cr, ct=ct, y_MAC=y_MAC, A=A)
                 
                 if abs(wing.sigma_maxg[i][j]) >= abs(wing.panel_sigma_cr) or abs(wing.sigma_ming[i][j]) >= abs(wing.panel_sigma_cr):
                     n_rib += 1
                     
-                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib)
+                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib, b=b, S=S, qc_sweep=qc_sweep,
+                       taper=taper, airfoil=airfoil, cr=cr, ct=ct, y_MAC=y_MAC, A=A)
                     
                     break
 
@@ -2026,7 +2056,8 @@ def size_wing(n, spar_le_loc, spar_te_loc):
                     n_l+=1
                     
                     
-                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib)
+                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib, b=b, S=S, qc_sweep=qc_sweep,
+                       taper=taper, airfoil=airfoil, cr=cr, ct=ct, y_MAC=y_MAC, A=A)
                     
                     break
                 
@@ -2038,9 +2069,13 @@ def size_wing(n, spar_le_loc, spar_te_loc):
                 
             
             break
-    
-    return n_u, n_l, n_rib, wing.m_half_wing
 
+    v.w_n_stiff_u = n_u
+    v.w_n_stiff_l = n_l
+    v.w_n_ribs = n_rib
+    v.W_wing = 9.81 * 2 * wing.m_half_wing
+
+    return v
 
 
 

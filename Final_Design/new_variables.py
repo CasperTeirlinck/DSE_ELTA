@@ -11,6 +11,7 @@ class NewVariables:
     def __init__(self,haswinglets,wingletheight):
         self.init_general()
         self.init_aerodynamics(haswinglets,wingletheight)
+        self.init_wing()
         self.init_fuselage()
         self.init_propulsion()
         self.init_sc()
@@ -58,7 +59,7 @@ class NewVariables:
         self.fuselagefrontalarea = 1.218
         self.fuselagewettedarea = 17.507
 
-        self.proplength = 0.5       # [m] Length of the propeller part, in front of the fuselage
+        self.proplength = 0.3       # [m] Length of the propeller part, in front of the fuselage
 
         self.la = self.fuselagelength + self.proplength
 
@@ -78,7 +79,7 @@ class NewVariables:
         self._WP = 0.121
         self._WS = 592
 
-        self.printing = False # Whether to print the stuctures calculations results or not
+        self.printing = False # Whether to print the structures calculations results or not
 
     @property
     def xtail(self):
@@ -221,7 +222,7 @@ class NewVariables:
             self._eclean = 0.79
         self.eflaps = None
 
-        self.CD_climb = self.CD0clean + self.CL_climb**2/(np.pi*self.A*self.eclean) # MAKE USED VARIABLES PRIVATE
+        self.CD_climb = self.CD0clean + self.CL_climb**2/(np.pi*self.A*self.eclean)
 
         # Working variables
         self.coeff = None
@@ -244,14 +245,22 @@ class NewVariables:
         self._eclean = val
         self.CD_climb = self.CD0clean + self.CL_climb ** 2 / (np.pi * self.A * self.eclean)
 
+    def init_wing(self):
+        self.w_n_stiff_u = 3
+        self.w_n_stiff_l = 3
+        self.w_n_ribs = 3
+        self.spar_le_locs = 0.25
+        self.spar_te_locs = 0.75
+        self.n_discretizations = 5 # Don't make more than 10, contact Yann if you want to change this.
+
     def init_fuselage(self):
         self._max_fuselage_iterations = None # Don't change without contacting Max
         self._Wfus_aft = 50 # weight of the aft section of the fuselage
         self.Wfus_aft_xbar = None # centroid of the aft section of the fuselage
         self._Wfus_aft_ybar = None # centroid of the aft section of the fuselage
         self.Wfus_aft_zbar = None # centroid of the aft section of the fuselage
-        self._cockpitbulkhead = 2.2+0.3 # m, back of the cockpit
-        self._framesamount = 8 # [-] amount of spars behind the cockpit bulkhead in the fuselage
+        self._cockpitbulkhead = 2.2+self.proplength # m, back of the cockpit
+        self._framesamount = 8 # [-] amount of frames behind the cockpit bulkhead in the fuselage
         self.framelocs = np.array([self._cockpitbulkhead + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)])[::-1]
         self.skin_t = 2.5 # 2.138574136 # 2.0 # [mm] thickness of the skin
         self.skin_t_func = None # Only change if a custom skin thickness function is required. Two arguments: First is skin_t, second is y position where the thickness should be taken.
@@ -387,7 +396,7 @@ class NewVariables:
     @framesamount.setter
     def framesamount(self, val):
         self._framessamount = val
-        self.framelocs = np.array([2.2 + 0.3 + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)])[::-1]
+        self.framelocs = np.array([2.2 + self.proplength + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)])[::-1]
 
     def init_propulsion(self):
         # Sizing
