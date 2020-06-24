@@ -388,7 +388,7 @@ def sizing_htail_wingpos(variables,plot=False):
 
         xcg_min_i,xcg_max_i = loading_diagram(variables,xcg_wing_i)
         ShS_min_i,xnp = scissor_plot(variables,lh,xlemacw_i,xcg_min_i,xcg_max_i)
-        lh = xtail + xnp*MAC
+        lh = xtail - xnp*MAC
 
         xcgmin_lst.append(xcg_min_i)
         xcgmax_lst.append(xcg_max_i)
