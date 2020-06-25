@@ -430,8 +430,8 @@ def sizing_htail_wingpos(variables,plot=False):
     if plot:
         # Transform lists to numpy arrays
         xlemac_lst = xlemaclf_lst*lf
-        xcgmin_lst = percMAC(np.array(xcgmin_lst)*MAC,xlemac_lst,MAC)
-        xcgmax_lst = percMAC(np.array(xcgmax_lst)*MAC,xlemac_lst,MAC)
+        xcgmin_lst = percMAC(np.array(xcgmin_lst)*MAC-variables.proplength,xlemac_lst,MAC)
+        xcgmax_lst = percMAC(np.array(xcgmax_lst)*MAC-variables.proplength,xlemac_lst,MAC)
 
         xcg_min_plot = percMAC(xcg_min*MAC,xlemacw,MAC)
         xcg_max_plot = percMAC(xcg_max*MAC,xlemacw,MAC)

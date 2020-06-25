@@ -22,36 +22,37 @@ class stabilitycontrol_variables:
         self.mu = 0.05                  # [-]           Take-off friction factor
 
         # Weight parameters
-        self.WTO = 8725.00            # [N]       Take-off weight
-        self.W_fgroup = 2714.09     # [N]      Fuselage group weight
-        self.W_wing = 1186.02       # [N]      Wing weight
-        self.W_batt = 2863.57       # [N]      Battery weight
+        self.WTO = 8671.0967            # [N]       Take-off weight
+        self.W_fgroup = 2601.1565     # [N]      Fuselage group weight
+        self.W_wing = 1245.044       # [N]      Wing weight
+        self.W_batt = 2863.566       # [N]      Battery weight
         self.WPL = 1961.33              # [N]      Payload weight
 
         # Centre of gravity parameters
         self.xcg_min = None             # [m]       Minimum center of gravity location
         self.xcg_max = None             # [m]       Maximum center of gravity location
-        self.xcg_fgroup = 3.036             # [m]       Fuselage group center of gravity
-        self.xcg_fuselage = 2.541                # [m]       Fuselage centre of gravity location
+        self.xcg_fgroup = 2.729             # [m]       Fuselage group center of gravity
+        self.xcg_fuselage = 2.1985                # [m]       Fuselage centre of gravity location
         self.cg_wing = 0.8                # [m]       Wing center of gravity
-        self.xwing = 2.4716
-        self.xcgbat = 3.2                 # [m]       Battery center of gravity
+        self.xwing = 2.26999
+        self.xcgbat = 2.6772                 # [m]       Battery center of gravity
         self.xcgPL = 1.5                  # [m]       Payload center of gravity
-        self.xmg = 3.3389                    # [m]       Main gear location
+        self.xmg = 2.994                    # [m]       Main gear location
         self.xacw = 1                   # [m]       Wing/fuselage aerodynamic centre location
         self.xach = 6                   # [m]       Horizontal tail aerodynamic centre location
-        self.xtail = 9
+        self.xtail = 8.82
 
-        self.zcg = 1                    # [m]       Centre of gravity height
+        self.zcg = 1.4055                    # [m]       Centre of gravity height
         self.zmg = 0                    # [m]       Main gear height
-        self.zT = 1                     # [m]       Thrust vector height
-        self.zD = 0.5                   # [m]       Drag vector height
+        self.zT = 1.41                     # [m]       Thrust vector height
+        self.zD = 1.4055                   # [m]       Drag vector height
 
         # Fuselage geometry parameters
-        self.la = 11                     # [m]       Aircraft length
-        self.fuselagelength = 9.420     # [m]       Fuselage length
+        self.la = 9.54                     # [m]       Aircraft length
+        self.fuselagelength = 9.240     # [m]       Fuselage length
         self.fuselagewidth = 1.05        # [m]       Fuselage width
         self.fuselageheight = 1.211     # [m]       Fuselage height
+        self.proplength = 0.3
         self.hfmax = 1.211              # [m]       Maximum fuselage height
         self.Sfs = 5.258                # [m2]      Fuselage lateral surface area
         self.hf1 = 1.146                # [m]       Fuselage nose height
@@ -60,27 +61,27 @@ class stabilitycontrol_variables:
         self.bf2 = 0.243                # [m]       Fuselage tail width
 
         # Wing geometry parameters
-        self.xlemac = None              # [m]       Distance nose - leading edge of the MAC
+        self.xlemac = 2.36976              # [m]       Distance nose - leading edge of the MAC
         self.h_landinggear = 0.8        # [m]       Height of the wing, from ground
-        self.S = 14.7381798                   # [m2]      Wing surface area
-        self.Snet = 13.03                  # [m2]      Net wing surface area
-        self.b = 12.20                   # [m]       Wing span
+        self.S = 14.6471                   # [m2]      Wing surface area
+        self.Snet = 12.9444                  # [m2]      Net wing surface area
+        self.b = 12.1629                   # [m]       Wing span
         self.A = 10.1                   # [-]       Wing aspect ratio
         self.sweep = 0                  # [rad]     Wing quarter chord sweep angle
         self.taper = 0.45               # [-]       Wing taper ratio
         self.twist = 5*pi/180           # [rad]     Wing twist at the root
-        self.MAC = 1.2659                 # [m]       Mean Aerodynamic Chord
-        self.c_r = 1.6662                 # [m]       Wing root chord
-        self.flapspan = 3.4858        # [m]       Flap span
+        self.MAC = 1.262                 # [m]       Mean Aerodynamic Chord
+        self.c_r = 1.661                 # [m]       Wing root chord
+        self.flapspan = 3.477        # [m]       Flap span
 
         # Horizontal tail geometry parameters
-        self.lh = 6.4402                   # [m]       Horizontal tail arm
+        self.lh = 5.8962                   # [m]       Horizontal tail arm
         self.Sh = None                  # [m2]      Minimum required horizontal tail surface
-        self.b_h = 3.3895                     # [m]       Horizontal tail span
+        self.b_h = 3.1352                     # [m]       Horizontal tail span
         self.h_htail = 1.4055              # [m]       Height horizontal tail from ground
         self.A_h = 3                     # [-]       Horizontal tail aspect ratio
         self.sweeph = 0.1745329                 # [rad]     Horizontal tail half chord sweep
-        self.c_r_h = 1.3292                   # [m]       Horizontal tail root chord
+        self.c_r_h = 1.2295                   # [m]       Horizontal tail root chord
         self.ih = 0                     # [rad]     Horizontal tail incidence angle
         self.taper_h = 0.7               # [-]       Horizontal tail taper ratio
 
@@ -95,8 +96,8 @@ class stabilitycontrol_variables:
         # Propeller geometry parameters
         self.Bp = 2.5                   # [-]       Number of blades per propeller
         self.xprop = 0.15                    # [m]       Distance 1st propeller plane - aircraft centre of gravity
-        self.Dp1 = 2                    # [m2]      1st propeller disk diameter
-        self.Dp2 = 2                    # [m2]      1st propeller disk diameter
+        self.Dp1 = 1.8                    # [m2]      1st propeller disk diameter
+        self.Dp2 = 1.8                    # [m2]      1st propeller disk diameter
 
         # Wing aerodynamic parameters
         self.eta = 0.95                 # [-]       Airfoil efficiency coefficient
@@ -105,7 +106,7 @@ class stabilitycontrol_variables:
         self.dClmax = 1.2       # [-]       Airfoil lift coefficient increase at landing TODO Check this value
         self.cc = 1                     # [-]       Chord ratio (extended flap/clean)
         self.CL_landing = 2             # [-]       Wing lift coefficient at landing (all flaps deployed)
-        self.flapaffectedarea = 9.1924         # [m2]      Reference wing flapped surface area TODO Check this value
+        self.flapaffectedarea = 9.1354         # [m2]      Reference wing flapped surface area TODO Check this value
         self.CL0flap = 1.008                    # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
         self.CLA_h = 2                  # [-]       Aircraft less tail lift coefficient TODO Check this value
         self.VhV = sqrt(0.85)           # [-]       Tail/wing speed ratio
@@ -115,7 +116,7 @@ class stabilitycontrol_variables:
         self.Cmacwf = -0.565            # [-]       Wing-fuselage pitching moment coefficient around the aerodynamic centre
         self.deda = None                # [-]       Downwash gradient
         self.a0 = -7.255*pi/180         # [rad]     Zero lift angle of attack
-        self.wing_CL_alpha = 4.503004
+        self.wing_CL_alpha = 4.803
 
         # Horizontal tail aerodynamic parameters
         self.CLh_L = -0.8               # [-]       Horizontal tail landing lift coefficient
@@ -126,7 +127,7 @@ class stabilitycontrol_variables:
         self.CnB = None                 # [-]       Directional stability coefficient
 
         # Power parameters
-        self.TTO = 549.710                 # [N]       Take-off thrust
+        self.TTO = 546.08                 # [N]       Take-off thrust
 
     def calcCLa(self):
         return 5.4
@@ -143,7 +144,7 @@ def stability_control(variables):
 if __name__ ==  "__main__":
     test_v = stabilitycontrol_variables()
 
-    #xcg_min,xcg_max = loading_diagram(test_v,3.27,plot=False)
-    #test_v,ShS_min = scissor_plot(test_v, 2.57166, xcg_min, xcg_max, plot=False)
+    #xcg_min,xcg_max = loading_diagram(test_v,3.06999,plot=True)
+    #ShS_min,xnp = scissor_plot(test_v,5.8962,2.36976,xcg_min,xcg_max,plot=True)
     test_v = sizing_htail_wingpos(test_v,plot=True)
     #test_v = elevator_sizing(test_v)
