@@ -1,7 +1,7 @@
 from math import sqrt,pi
-from horizontaltail_design import *
+#from horizontaltail_design import *
 #from verticaltail_design import verticaltail_sizing
-#from empennagecontrol_design import elevator_sizing
+from empennagecontrol_design import elevator_sizing
 
 
 class stabilitycontrol_variables:
@@ -29,8 +29,8 @@ class stabilitycontrol_variables:
         self.WPL = 1961.33              # [N]      Payload weight
 
         # Centre of gravity parameters
-        self.xcg_min = None             # [m]       Minimum center of gravity location
-        self.xcg_max = None             # [m]       Maximum center of gravity location
+        self.xcg_min = 2.4478             # [m]       Minimum center of gravity location
+        self.xcg_max = 2.8668             # [m]       Maximum center of gravity location
         self.xcg_fgroup = 2.729             # [m]       Fuselage group center of gravity
         self.xcg_fuselage = 2.1985                # [m]       Fuselage centre of gravity location
         self.cg_wing = 0.8                # [m]       Wing center of gravity
@@ -38,8 +38,6 @@ class stabilitycontrol_variables:
         self.xcgbat = 2.6772                 # [m]       Battery center of gravity
         self.xcgPL = 1.5                  # [m]       Payload center of gravity
         self.xmg = 2.994                    # [m]       Main gear location
-        self.xacw = 1                   # [m]       Wing/fuselage aerodynamic centre location
-        self.xach = 6                   # [m]       Horizontal tail aerodynamic centre location
         self.xtail = 8.82
 
         self.zcg = 1.4055                    # [m]       Centre of gravity height
@@ -76,17 +74,17 @@ class stabilitycontrol_variables:
 
         # Horizontal tail geometry parameters
         self.lh = 5.8962                   # [m]       Horizontal tail arm
-        self.Sh = None                  # [m2]      Minimum required horizontal tail surface
+        self.Sh = 3.2765                  # [m2]      Minimum required horizontal tail surface
         self.b_h = 3.1352                     # [m]       Horizontal tail span
         self.h_htail = 1.4055              # [m]       Height horizontal tail from ground
         self.A_h = 3                     # [-]       Horizontal tail aspect ratio
-        self.sweeph = 0.1745329                 # [rad]     Horizontal tail half chord sweep
+        self.sweeph = 0.1745329                 # [rad]     Horizontal tail quarter chord sweep
         self.c_r_h = 1.2295                   # [m]       Horizontal tail root chord
         self.ih = 0                     # [rad]     Horizontal tail incidence angle
         self.taper_h = 0.7               # [-]       Horizontal tail taper ratio
 
         # Vertical tail geometry parameters
-        self.Sv = None                  # [m2]      Vertical tail surface
+        self.Sv = 1.2229                  # [m2]      Vertical tail surface
 
         # Elevator geometry parameters
         self.bebh = 1                   # [-]       Elevator span
@@ -106,31 +104,26 @@ class stabilitycontrol_variables:
         self.dClmax = 1.2       # [-]       Airfoil lift coefficient increase at landing TODO Check this value
         self.cc = 1                     # [-]       Chord ratio (extended flap/clean)
         self.CL_landing = 2             # [-]       Wing lift coefficient at landing (all flaps deployed)
+        self.CL_takeoff = 1.65289
+        self.CD0to = 0.03306
+        self.eflaps = 0.7525
         self.flapaffectedarea = 9.1354         # [m2]      Reference wing flapped surface area TODO Check this value
         self.CL0flap = 1.008                    # [-]       Flapped wing lift coefficient at zero angle of attack TODO Check this value
         self.CLA_h = 2                  # [-]       Aircraft less tail lift coefficient TODO Check this value
         self.VhV = sqrt(0.85)           # [-]       Tail/wing speed ratio
         self.CnBi = 0.024               # [-]       Wing configuration stability component
-        self.CLTO = 1.6529               # [-]       Take-off lift coefficient
-        self.CDTO = None              # [-]       Take-off drag coefficient
-        self.Cmacwf = -0.565            # [-]       Wing-fuselage pitching moment coefficient around the aerodynamic centre
-        self.deda = None                # [-]       Downwash gradient
-        self.a0 = -7.255*pi/180         # [rad]     Zero lift angle of attack
+        self.deda = 0.2816                # [-]       Downwash gradient
         self.wing_CL_alpha = 4.803
 
         # Horizontal tail aerodynamic parameters
         self.CLh_L = -0.8               # [-]       Horizontal tail landing lift coefficient
         self.CLh_TO = None              # [-]       Horizontal tail take-off lift coefficient
-        self.CLah = 4                   # [/rad]    Horizontal lift curve slope
 
         # Vertical tail aerodynamic parameters
-        self.CnB = None                 # [-]       Directional stability coefficient
+        self.CnB = -0.0107                 # [-]       Directional stability coefficient
 
         # Power parameters
         self.TTO = 546.08                 # [N]       Take-off thrust
-
-    def calcCLa(self):
-        return 5.4
 
 '''
 def stability_control(variables):
@@ -146,5 +139,5 @@ if __name__ ==  "__main__":
 
     #xcg_min,xcg_max = loading_diagram(test_v,3.06999,plot=True)
     #ShS_min,xnp = scissor_plot(test_v,5.8962,2.36976,xcg_min,xcg_max,plot=True)
-    test_v = sizing_htail_wingpos(test_v,plot=True)
-    #test_v = elevator_sizing(test_v)
+    #test_v = sizing_htail_wingpos(test_v,plot=True)
+    test_v = elevator_sizing(test_v)
