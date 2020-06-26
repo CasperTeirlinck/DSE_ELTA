@@ -28,28 +28,32 @@ def sensAnalysis(refVar='WTO'):
         # ['range_m', 'range'],
         # ['batt_cell_C_Ah', 'specific E batteries'],
         # ['DoD', 'Depth of discharge'],
-        ['hwl', 'Winglet height'],
-        # ['xtail', 'Tail position from nose']
+        # ['hwl', 'Winglet height'],
+        ['xtail', 'Tail position from nose']
     ]
 
-    variation = [5, 10] # [%]
+    variation = [2, 5] # [%]
     sensDict = {}
 
-    v = NewVariables(True, 0.3)
+    v = NewVariables()
     v, _, _ = do_loop(v)
     refValue = getattr(v, refVar)
 
     def _do_loop_sens(var: str, change: int):
-        if var != 'hwl':
-            v2 = NewVariables(True, 0.3)
-            setattr(v2, var, getattr(v2, var)*(1 + change/100))
-            v2, _, _ = do_loop(v2)
-            return (getattr(v2, refVar) - refValue) / refValue *100
-        else:
-            v2 = NewVariables(True, 0.3*(1+change/100))
-            print(v2.winglet)
-            v2, _, _ = do_loop(v2)
-            return (getattr(v2, refVar) - refValue) / refValue *100
+        # if var != 'hwl':
+        v2 = NewVariables()
+        print(v2.xtail)
+        print(v2.fuselagelength)
+        setattr(v2, var, getattr(v2, var)*(1 + change/100))
+        print(v2.xtail)
+        print(v2.fuselagelength)
+        v2, _, _ = do_loop(v2)
+        return (getattr(v2, refVar) - refValue) / refValue *100
+        # else:
+        #     v2 = NewVariables(True, 0.3*(1+change/100))
+        #     print(v2.winglet)
+        #     v2, _, _ = do_loop(v2)
+        #     return (getattr(v2, refVar) - refValue) / refValue *100
 
     for var, label in sensVars:
         print("Now doing var={}, label={}".format(var, label))

@@ -42,11 +42,12 @@ def size_gear(variables):
         c      = z_tail-m2*(variables.xtail-variables.xcg_max)
         x_int  = c/(m1-m2)
         x_main = x_int+move
+        xmg = x_main + variables.xcg_max
         z_main = m1*(x_main)
-        factor = 0.12
-        x_nose = -((1-factor)/factor)*x_main
+        factor = variables.nosegearfraction
+        xng = ((variables.xcg_max-xmg)/factor)+xmg
 
-        if (abs(x_nose)+nose_margin)>variables.xcg_max and i<max_i:
+        if (abs(xng-variables.xcg_max)+nose_margin)>variables.xcg_max and i<max_i:
             move += 0.1
             i += 1
         else:
@@ -55,10 +56,10 @@ def size_gear(variables):
                 print('There is a problem with the landing gear sizing, ask Bob')
             else:
                 pass
-
-    variables.xmg = variables.xcg_max + x_main
+    variables.zmg = z_main
+    variables.xmg = xmg
     #variables.zmg = z_main
-    variables.xng = variables.xcg_max + x_nose
+    variables.xng = xng
 
     return variables
 

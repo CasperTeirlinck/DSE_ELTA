@@ -17,7 +17,7 @@ import copy
 from scipy.interpolate import interp1d
 from numpy import pi
 import numpy as np
-from math import sqrt, cos, sin
+from math import sqrt, cos, sin, atan
 from matplotlib import pyplot as plt
 from functools import partial
 import os
@@ -445,6 +445,11 @@ def size_parameters(v):
     loads["fhtail"] = Force(xpos=0.0, ypos=v.xtail, zpos=0.0, xmag=0, zmag=h_lift, ymag=h_lift * 0.2)
     loads["fvtail"] = Force(xpos=0.0, ypos=v.xtail, zpos=0.0, xmag=v_lift, ymag=v_lift * 0.2,
                             zmag=0)
+    xdistpara = v.emergencyparachute-v.xcg_max
+    zdistpara = 0.45
+    angle = atan(zdistpara/xdistpara)
+    loads["parachute"] = Force(xpos=0.0, ypos=v.emergencyparachute, zpos=zdistpara, xmag=0.0, ymag=v.WTO*cos(angle),
+                            zmag=v.WTO*sin(angle))
     if v.batteryinfuselage:
         loads["battery1"] = Force(xpos=0.0, ypos=v.cockpitbulkhead + v.batteryoffset, zpos=0.0, xmag=0, ymag=0,
                                   zmag=-Wbat * 0.5 * 1.5)

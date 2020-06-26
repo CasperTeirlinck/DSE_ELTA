@@ -46,7 +46,7 @@ def loop(v):
     v = elevator_sizing(v)
 
     v = design_fuselage(v)
-    # v = size_wing(v)
+    v = size_wing(v)
 
     v = CalcOEW(v)
     v.update_WTO()
@@ -67,13 +67,13 @@ def do_loop(v, difference=1, maxiterations=30):
         return v, WTOS, iteration
 
 if __name__ == "__main__":
-    v = NewVariables(True,0.3)
+    v = NewVariables(True,0.51)
     var = 'endurance_s'
-    # change = -35
-    change = 0
+    change = -35
+    # change = 0
     setattr(v, var, getattr(v, var)*(1 + change/100))
-    print(v.endurance_s)
-    print("Original mass = 875.3897121968254 kg")
+    # print(v.endurance_s)
+    # print("Original mass = 875.3897121968254 kg")
     # for i in range(5):
     v, wtos, i = do_loop(v)
     wtos = np.array(wtos)
@@ -83,6 +83,7 @@ if __name__ == "__main__":
     print("Final mass = {}, b={}, S={}, WS={}, WP={}".format(v.WTO/9.81, v.b, v.S, v.WS, v.WP))
 
     print("Iteration ", i + 1, " results:")
+    print("Oswald:", v.eclean)
     print("Take-off: ", v.WTO / 9.81)
     print("Battery: ", v.W_batt / 9.81)
     print("Horizontal tail: ", v.W_htail / 9.81)
@@ -95,3 +96,4 @@ if __name__ == "__main__":
     with open('finaldesign.csv', 'w') as file:
         for key in v_dict.keys():
             file.write("%s, %s\n" % (key, v_dict[key]))
+    print("Done!")

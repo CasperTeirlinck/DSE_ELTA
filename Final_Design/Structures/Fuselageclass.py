@@ -203,8 +203,8 @@ class CircCrossSection:
 
     def plot_section(self, show=True):
         fig, ax = plt.subplots(1)
-        ax.set_xlim(-0.3, 0.4)
-        ax.set_ylim(-0.2, 0.6)
+        ax.set_xlim(-0.6, 0.6)
+        ax.set_ylim(-0.65, 0.65)
         stringerplot = plt.Circle((self.xbar, self.ybar), radius=self.radius, color='r', fill=False)
         ax.add_artist(stringerplot)
         for stiff in self.stiffeners:
@@ -212,6 +212,7 @@ class CircCrossSection:
             stringerplot = plt.Circle((x, y), 0.005, color='b', fill=True)
             ax.add_artist(stringerplot)
         if show:
+            plt.gca().set_aspect('equal', adjustable='box')
             plt.show()
 
 
@@ -363,8 +364,8 @@ class CrossSection:
 
     def plot_section(self, show=True):
         fig, ax = plt.subplots(1)
-        ax.set_xlim(-0.3, 0.4)
-        ax.set_ylim(-0.2, 0.6)
+        ax.set_xlim(-0.6, 0.6)
+        ax.set_ylim(-0.65, 0.65)
         for stiff in self.stiffeners:
             stringerplot = plt.Circle((-stiff.xpos, stiff.ypos), 0.002, color='g', fill=True)
             ax.add_artist(stringerplot)
@@ -382,6 +383,7 @@ class CrossSection:
                 stringerplot = plt.Circle((x, y), 0.005, color='b', fill=True)
                 ax.add_artist(stringerplot)
         if show:
+            plt.gca().set_aspect('equal', adjustable='box')
             plt.show()
 
 

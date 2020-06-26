@@ -8,7 +8,7 @@ except ModuleNotFoundError:
     from Structures.materials import materials
 
 class NewVariables:
-    def __init__(self,haswinglets,wingletheight):
+    def __init__(self,haswinglets=True,wingletheight=0.43):
         self.init_general()
         self.init_aerodynamics(haswinglets,wingletheight)
         self.init_wing()
@@ -47,11 +47,12 @@ class NewVariables:
         # Landing gear
         self.xng = None             # [m]   Nose gear location
         self.xmg = None             # [m]   Main gear location
+        self.zmg = None             # [m]   Main gear vertical location
         self.propclear = 0.23
         self.h_landinggear = 0.8
         self.w_landinggear = 0.175
 
-        self._xtail = 9
+        self._xtail = 8.82
 
         self.fuselagelength = self.xtail + 0.42
         self.fuselagewidth = 1.05
@@ -89,6 +90,8 @@ class NewVariables:
     def xtail(self, val):
         self._xtail = val
         self.fuselagelength = val+0.42
+        self.framelocs = np.array([self._cockpitbulkhead + (self.fuselagelength-self.cockpitbulkhead)*n/(self.framesamount+1) for n in range(self.framesamount+1)])[::-1]
+        self.la = self.fuselagelength + self.proplength
 
     @property
     def sto(self):
@@ -279,7 +282,7 @@ class NewVariables:
         self.n_stringers[4]=self.n_stiff//2
         self.material_regular = self.mats['alu7075']
         self.material_circular = self.mats['carbonfibre']
-        self.batteryinfuselage = False
+        self.batteryinfuselage = True
         self._batteryoffset = 0.1 # [m] battery distance behind the cockpit aft bulkhead
         self._batterywidth = 0.2 # [m] distance of second attachment point of the battery from the first
         self.yout = None
@@ -290,6 +293,9 @@ class NewVariables:
         else:
             self.xcgbat = 0.7
 
+        self.emergencyparachute = self.cockpitbulkhead + self.batteryoffset + self.batterywidth + 0.1
+
+        self.nosegearfraction = 0.08
     @property
     def cockpitbulkhead(self):
         return self._cockpitbulkhead
@@ -334,7 +340,8 @@ class NewVariables:
         
         self.W_syscomp = 69.2*9.81      # System component weight (TE package + avionics + electronics)
 
-        self.Wfus_fwd = max(1228.755-self._Wfus_aft, 500)
+        # self.Wfus_fwd = max(1228.755-self._Wfus_aft, 500)
+        self.Wfus_fwd = self._Wfus_aft*5/7
         self.W_fgroup = None
 
         self.W_htail = None
@@ -364,7 +371,8 @@ class NewVariables:
     @Wfus_aft.setter
     def Wfus_aft(self, val):
         self._Wfus_aft = val
-        self.Wfus_fwd = max(1228.755-val, 500)
+        # self.Wfus_fwd = max(1228.755-val, 500)
+        self.Wfus_fwd = self._Wfus_aft*5/7
 
     @property
     def fuselage(self):
