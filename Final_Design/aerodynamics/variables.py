@@ -2,14 +2,14 @@ import numpy as np
 
 A = 10.1 # [-] Aspect ratio
 # S = 15.6 # [m2] Wing surface
-S = 14.34
+S = 14.738
 
 
 taper = 0.9 # [-] Taper ratio
 twist = np.radians(2)
 gamma = 0
 
-hwl = 0.4 # [m] winglet height
+hwl = 0.3 # [m] winglet height
 kwl = 2.1 # [-] winglet factor
 
 S_wet_fus = 17.507
@@ -19,15 +19,15 @@ w_fuselage = 1.05
 
 BLturbratio_fus = 1
 BLturbratio_wing = 0.65
-l_gear = 0.9
-w_gear = 0.2
+l_gear = 0.8
+w_gear = 0.175
 dCD_gear = 0.15
 flap_area_ratio = 0.3
 
 # Empennage
-S_h = 0.3*S
-S_v = 0.15*S
-MAC_emp = 1
+S_h = 3.83
+S_v = 1.3
+MAC_emp = 1.5
 BLturbratio_emp = 0.65
 tc_emp=0.12
 xc_emp=0.3
