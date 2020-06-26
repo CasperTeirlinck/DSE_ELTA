@@ -59,8 +59,8 @@ if __name__ == "__main__":
 
     """ === SHOW === """
 
-    if False:
-        S_h = 20
+    if True:
+        S_h = 3.52
         A_h = 3
         taper_h = 0.7
         b_h = np.sqrt(A_h*S_h)
@@ -89,8 +89,13 @@ if __name__ == "__main__":
     print(f'CLa = {round(CLa, 2)} 1/rad or {round(CLa*np.pi/180, 2)} /deg')
     alpha0 = wing.calcAlpha0()
     print(f'alpha_L=0 = {round(np.degrees(alpha0), 2)} degrees')
+    CD0clean = wing.calcCD0(v.S_wet_fus, v.l_fus, v.fus_A_max, v.w_fuselage, v.S_h, v.S_v, v.MAC_emp, v.BLturbratio_fus, v.BLturbratio_wing, v.BLturbratio_emp, v.l_gear, v.w_gear, v.dCD_gear, v.flap_area_ratio, v.tc_emp, v.xc_emp, v.V_stall, v.rho_cruise, v.visc, clean_config=True)
+    print(f'CD0clean = {round(CD0clean, 4)}')
+    print(f'espan = {round(wing.calcespan(), 3)}')
+    eclean = wing.calcOswald(CD0clean, v.w_fuselage, hasWinglets=True)
+    print(f'eclean = {round(eclean, 3)}')
 
-    if True:
+    if False:
         CLmax, alphaMax, Cl_distrMax, yPntsMax, ClmaxDistr, stallpos = wing.calcCLmax(plotProgression=False)
         print(f'CLmax = {round(CLmax, 2)} @ a = {round(np.degrees(alphaMax), 2)} deg')
         plotLiftDistribution(yPntsMax, [Cl_distrMax], ClmaxDistr=ClmaxDistr, legend=True)
@@ -104,13 +109,3 @@ if __name__ == "__main__":
         alpha = np.radians(10.2)
         Cl_distr, yPnts = wing.calcLiftDistribution(alpha, 100)
         plotLiftDistribution(yPnts, [Cl_distr])
-
-    CD0 = wing.calcCD0(v.S_wet_fus, v.l_fus, v.fus_A_max, v.w_fuselage, v.S_h, v.S_v, v.MAC_emp, v.BLturbratio_fus, v.BLturbratio_wing, v.BLturbratio_emp, v.l_gear, v.w_gear, v.dCD_gear, v.flap_area_ratio, v.tc_emp, v.xc_emp, v.V_stall, v.rho_cruise, v.visc,clean_config=False)
-
-    CD0wing = wing.calcCD0wing(1.,0,0)
-
-    e = wing.calcOswald(CD0, v.w_fuselage, hasWinglets=False)
-
-    print(CD0)
-    print(CD0wing)
-    print(e)

@@ -340,6 +340,8 @@ class WingPlanform:
         FF_emp = 1. + 0.6*tc_emp/xc_emp + 100*tc_emp**4
         IF_emp = 1.05
 
+        print('wetted areas:', S_wet_wing, S_wet_emp)
+
         CDS_wet_fus =  Cf_fus*  FF_fus*  IF_fus*  S_wet_fus
         CDS_wet_wing = Cf_wing* FF_wing* IF_wing* S_wet_wing
         CDS_wet_emp =  Cf_emp*  FF_emp*  IF_emp*  S_wet_emp

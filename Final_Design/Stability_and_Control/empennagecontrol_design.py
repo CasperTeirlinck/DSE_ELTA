@@ -19,7 +19,7 @@ def elevator_sizing(variables):
     xcg = variables.xcg_min         # [m]           Most forward centre of gravity
     xmg = variables.xmg             # [m]           Main gear location
     MAC = variables.MAC             # [m]           Mean aerodynamic chord
-    xacw = variables.xwing+0.25*MAC # [m]           Wing/fuselage aerodynamic centre location
+    xacw = variables.xlemac+0.25*MAC # [m]           Wing/fuselage aerodynamic centre location
     xach = variables.xtail          # [m]           Horizontal tail aerodynamic centre location
 
     zcg = variables.zcg             # [m]           Centre of gravity height

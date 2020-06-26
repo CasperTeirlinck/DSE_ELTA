@@ -163,7 +163,7 @@ def plotHtail(cr, ct, b):
     ax1.set_xlabel('Span [m]')
     ax1.xaxis.grid(color='black', linestyle='--')
     ax1.yaxis.grid(color='black', linestyle='--')
-    fig.suptitle('Horizintal tail Planform', fontsize=16, y=0.97)
+    fig.suptitle('Horizontal tail Planform', fontsize=16, y=0.97)
     plt.axis('equal')
     plt.tight_layout(rect=[0, 0, 1, 0.93])
     plt.show()
