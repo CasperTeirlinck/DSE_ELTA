@@ -85,9 +85,13 @@ class LoadCase:
         self.areas = areas
         # self.shearcentre_x = shearcentre_x
         self.shearcentre_z = shearcentre_z
-        self.areasfunc = interp1d(self.y_samples, areas)
-        # self.shearcentre_x_func = interp1d(self.y_samples, shearcentre_x)
-        self.shearcentre_z_func = interp1d(self.y_samples, shearcentre_z)
+        if areas is not None and shearcentre_z is not None:
+            self.areasfunc = interp1d(self.y_samples, areas)
+            # self.shearcentre_x_func = interp1d(self.y_samples, shearcentre_x)
+            self.shearcentre_z_func = interp1d(self.y_samples, shearcentre_z)
+        else:
+            self.areasfunc = None
+            self.shearcentre_z_func = None
 
     def change_geometry(self, y_coordinates, EIx, EIz):
         self.y_samples = y_coordinates
@@ -410,7 +414,9 @@ def run_tests():
     EIfactor = 7.34
     EIz = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])*EIfactor
     ys = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-    system = LoadCase(y_coordinates=ys, EIx=EIz, EIz=EIz)
+    areas = np.ones(11)*0.001
+    shearcentres = np.zeros(11)
+    system = LoadCase(y_coordinates=ys, EIx=EIz, EIz=EIz, areas=areas, shearcentre_z=shearcentres)
 
     loads = {}
     testload = 3
@@ -428,7 +434,22 @@ def run_tests():
     system.add_boundary_condition(y=0.0+offset, angle_y=0)
     system.add_boundary_condition(y=0.0+offset, angle_z=0)
     system.solve_bcs()  # Includes test for equilibrium
-
+    # yout = np.linspace(0, 1.0, 50)
+    # sx, sz = system.get_shearforce(yout)
+    # mx, mz = system.get_moment(yout)
+    # plt.plot(yout, sx)
+    # plt.plot(yout, sz)
+    # plt.show()
+    # plt.plot(yout, mx)
+    # plt.plot(yout, mz)
+    # plt.show()
+    # print()
+    # for load in system.reactionforces:
+    #     print(load.vector)
+    # print()
+    # for moment in system.reactionmoments:
+    #     print(moment.vector)
+    # print()
     def exact_deflection(yout, length=1.0):
         factor = direction*2 - 1
         if testload == 1:

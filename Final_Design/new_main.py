@@ -9,6 +9,8 @@ from Power_and_Propulsion.battery_main import *
 from ClassIIWeightEstimationnew import *
 from Midterm_Design.cg_determination import *
 from Structures.fuselagedesign import *
+from Structures.landing_gear_pos import *
+from Structures.stress_analysis import *
 
 wingresolution = 100
 iterating_designpoint = False
@@ -40,9 +42,11 @@ def loop(v):
 
     v = dosubloop(v)
     v = CalcTTO(v)
+    v = size_gear(v)
     v = elevator_sizing(v)
 
     v = design_fuselage(v)
+    # v = size_wing(v)
 
     v = CalcOEW(v)
     v.update_WTO()
@@ -55,8 +59,8 @@ def do_loop(v, difference=1, maxiterations=30):
             return v, WTOS, iteration
         else:
             v = loop(v)
-            print("\nIteration done, mtom = {} kg".format(v.WTO/9.81))
-            print("skin_t={}, n_stiff={}, n_stiff_circ={}, stringermod={}, circstringermod={}, longeronmod={}".format(v.skin_t, v.n_stiff, v.n_stiff_circ, v.stringermod, v.circstringermod, v.longeronmod))
+            print("Iteration {} done, mtom = {} kg".format(iteration, v.WTO/9.81))
+            # print("skin_t={}, n_stiff={}, n_stiff_circ={}, stringermod={}, circstringermod={}, longeronmod={}".format(v.skin_t, v.n_stiff, v.n_stiff_circ, v.stringermod, v.circstringermod, v.longeronmod))
             WTOS.append(v.W_OEW)
     else:
         print("Did not converge within {} iterations".format(maxiterations))
@@ -64,6 +68,12 @@ def do_loop(v, difference=1, maxiterations=30):
 
 if __name__ == "__main__":
     v = NewVariables(True,0.3)
+    var = 'endurance_s'
+    # change = -35
+    change = 0
+    setattr(v, var, getattr(v, var)*(1 + change/100))
+    print(v.endurance_s)
+    print("Original mass = 875.3897121968254 kg")
     # for i in range(5):
     v, wtos, i = do_loop(v)
     wtos = np.array(wtos)
@@ -84,8 +94,4 @@ if __name__ == "__main__":
 
     with open('finaldesign.csv', 'w') as file:
         for key in v_dict.keys():
-            file.write("%s, %s\n" % (key, v_dict[key]))
-
-    with open('fuselagedesign.csv', 'w') as file:
-        for key in fus_dict.keys():
             file.write("%s, %s\n" % (key, v_dict[key]))

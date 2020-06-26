@@ -1,10 +1,21 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import os
 from math import pi, sqrt
 import copy
-from Final_Design.aerodynamics.utils import readAeroLoads
+try:
+    from Final_Design.aerodynamics.utils import readAeroLoads
+except ModuleNotFoundError:
+    try:
+        from aerodynamics.utils import readAeroLoads
+    except ModuleNotFoundError:
+        from utils import readAeroLoads
 from scipy import interpolate
+try:
+    from new_variables import NewVariables
+except:
+    pass
 
 
 
@@ -53,7 +64,7 @@ aluminum=MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, G=28
 
 class J_Stringer:
     name = "J_Stringer"
-    def __init__(self, xpos, zpos, Le=1, material=aluminum, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
+    def __init__(self, xpos, zpos, Le, material=aluminum, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t3=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b3=0.005, b4=0.005):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png, gray area included in 2_alt
         # Reference coordinate system is x positive to the left, y positive upwards, origin bottom right.
@@ -86,6 +97,8 @@ class J_Stringer:
         self.sigma_cc = self.crippling_stress(self.material)
 
         self.sigma_cr = self.calc_critical_stress(self.Le)
+        
+        self.mass_per_m = self.calc_mass_per_m()
 
 
     def calc_centroid(self):
@@ -130,11 +143,14 @@ class J_Stringer:
             return sigma_cr
         else:
             return self.material.sigma_comp
+        
+    def calc_mass_per_m(self):
+        return self.total_area*self.material.rho
 
 
 class Z_Stringer(J_Stringer):
     name = "Z_Stringer"
-    def __init__(self, xpos, zpos, Le=1, material=aluminum, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
+    def __init__(self, xpos, zpos, Le, material=aluminum, stiff_ratio=0.5, ts=0.001, t1=0.001, t2=0.001, t4=0.001,
                  b1=0.005, b2=0.006, b4=0.005, t3=None, b3=None):
         # Geometry defined following https://puu.sh/FSdDm/df0747d2c5.png without the t3 and b3 elements
         super().__init__(xpos=xpos, zpos=zpos, Le=Le, material=material, stiff_ratio=stiff_ratio,
@@ -144,6 +160,7 @@ class Z_Stringer(J_Stringer):
 
         self.sigma_cc=self.crippling_stress(self.material)*self.total_area
         self.sigma_cr = self.calc_critical_stress(self.Le)
+        self.mass_per_m = self.calc_mass_per_m()
 
     def calc_centroid(self):
         # Returns xbar, ybar
@@ -169,19 +186,23 @@ class Z_Stringer(J_Stringer):
               self.area4*(self.b4*0.5-self.xbar)**2
         return Ixx, Iyy
     
+    def calc_maxx_per_m(self):
+        return self.total_area*self.material.rho
+    
 
 
 
 class WingPlanform:
-    def __init__(self):
-        self.b          = 6.2643*2               #m
-        self.S          = 20                     #m2
-        self.qc_sweep   = 0                      #rad
-        self.taper      = 1.4
-        self.airfoil    = 'naca4415'
-        self.cr         = 1.98                   #m
-        self.ct         = 0.79
-        self.y_MAC      = (2/3)*self.cr*((1+self.taper+self.taper**2)/(1+self.taper))
+    def __init__(self, b=6.2643*2, S=20, qc_sweep=0, taper=0.71428, airfoil='naca4415', cr=1.98, ct=0.79, y_MAC=1.712857, A=10):
+        self.b          = b               #m
+        self.S          = S                     #m2
+        self.qc_sweep   = qc_sweep                      #rad
+        self.taper      = taper
+        self.airfoil    = airfoil
+        self.cr         = cr                   #m
+        self.ct         = ct
+        self.y_MAC      = y_MAC
+        self.A          = A
 
 
 
@@ -195,7 +216,7 @@ class SparProp:
     
     
 class Spar:
-    def __init__(self, xpos, zpos, h, t=0.01, material=aluminum):
+    def __init__(self, xpos, zpos, h, t=0.001, material=aluminum):
         self.t        = t
         self.material = material
         self.xpos     = xpos
@@ -222,25 +243,64 @@ class Stringer:
         self.xpos = xpos
         self.zpos = zpos
         
+        
 class Skin:
     def __init__(self, t=0.003, material=aluminum):
         self.t = t
         self.material = material
+                
+
+
+class StiffenedPanel:
+    def __init__(self, b, ypos, t=0.003, material=aluminum):
+        self.b          = b
+        self.ypos       = ypos
+        self.t          = t
+        self.material   = material
+        self.C          = 6.98
         
+        self.skin_sig_cr = self.calc_critical_stress_skin()
+        self.sigma_e     = self.calc_sigma_e()
+        self.sigma_cr    = self.calc_sigma_cr()
+        
+        
+    def calc_critical_stress_skin(self):
+        return self.C*((np.pi**2*self.material.E)/(12*(1-self.material.poisson**2))*(self.t)/self.b)
     
+    def calc_2we(self):
+        return self.t*np.sqrt((self.C*np.pi**2)/(12*(1-self.material.poisson**2)))*np.sqrt(self.material.E/self.stringer_instance.sigma_cc)
+    
+    def calc_sigma_e(self):
+        return 3.6*self.material.E*(self.t/self.b)
+    
+    def calc_sigma_cr(self):
+        if self.sigma_e <= 0.5*self.material.sigma_y:
+            return self.sigma_e
+        
+        if self.sigma_e > self.material.sigma_y:
+            return self.material.sigma_y*(1-self.material.sigma_y/(4*self.sigma_e))
 
 
 
+class Rib:
+    def __init__(self, ypos, t=0.001, material=aluminum):
+        self.ypos = ypos
+        self.t = t
+        self.material=material
+        
 
 
 class StiffenedWing(WingPlanform):
-    def __init__(self, n, n_string_u, n_string_l,
-                 spar_le_loc, spar_te_loc, spar, skin, batt = False):
-        super().__init__()
+    def __init__(self, n, n_string_u, n_string_l, spar_le_loc, spar_te_loc, spar, skin, n_rib, batt = False,
+                 b=6.2643*2, S=20, qc_sweep=0, taper=0.71428, airfoil='naca4415', cr=1.98, ct=0.79, y_MAC=1.712857, A=10):
+        super().__init__(b=b, S=S, qc_sweep=qc_sweep, taper=taper, airfoil=airfoil, cr=cr, ct=ct, y_MAC=y_MAC, A=A)
         self.stringers_u_lst = [list(zeros) for zeros in np.zeros((n, n_string_u))]
         self.stringers_l_lst = [list(zeros) for zeros in np.zeros((n, n_string_l))]
         self.spar_lst        = [list(zeros) for zeros in np.zeros((n,2))]
         self.skin            = skin
+        self.rib_lst         = [0]*n_rib
+        self.stiff_panel_u   = []
+        self.stiff_panel_l   = []
         
         self.batt            = batt
         
@@ -248,10 +308,15 @@ class StiffenedWing(WingPlanform):
         self.n_string_l      = n_string_l                               #number of stringers on lower sheet
         self.spar_le_loc     = spar_le_loc                              #x/c location of leading edge spar
         self.spar_te_loc     = spar_te_loc                              #x/c location of trailing edge spar
+        self.n_rib           = n_rib
         
         self.cross_sections  = self.create_cross_sections(n)[0]         #list of cross sections x,z coordinates (output: [[[x1,x2],[z1,z2]],...])
         self.ylst            = self.create_cross_sections(n)[1]         #list of all y coordinates of the cross sections
         self.clst            = self.create_cross_sections(n)[2]         #list of all chord lengths of cross sections
+        self.rib_ylst        = list(np.linspace(0,self.ylst[-1],n_rib))
+        self.Le_lst_u        = [[self.rib_ylst[1]-self.rib_ylst[0]]*n_string_u]*n
+        self.Le_lst_l        = [[self.rib_ylst[1]-self.rib_ylst[0]]*n_string_l]*n
+        
         
         self.string_z_u      = self.position_stringers(n_string_u, n_string_l)[0]
         self.string_x_u      = self.position_stringers(n_string_u, n_string_l)[1]
@@ -268,7 +333,7 @@ class StiffenedWing(WingPlanform):
         self.spar_z_loc_te   = self.calc_spar_centroid_loc()[3]
         self.spar_h_le       = self.calc_spar_centroid_loc()[4]
         self.spar_h_te       = self.calc_spar_centroid_loc()[5]
-
+        
 
         for i in range(len(self.cross_sections)):
             stringers_u_cs   = self.stringers_u_lst[i]
@@ -278,6 +343,9 @@ class StiffenedWing(WingPlanform):
             stringers_u_z_cs = self.string_z_u[i]
             stringers_l_x_cs = self.string_x_l[i]
             stringers_l_z_cs = self.string_z_l[i]
+            
+            Le_lst_u_cs      = self.Le_lst_u[i]
+            Le_lst_l_cs      = self.Le_lst_l[i]
             
             spar_x_loc_le_cs = self.spar_x_loc_le[i]
             spar_z_loc_le_cs = self.spar_z_loc_le[i]
@@ -292,9 +360,19 @@ class StiffenedWing(WingPlanform):
             spars_cs[1]      = Spar(spar_x_loc_te_cs, spar_z_loc_te_cs, spar_h_te_cs)
 
             for j in range(len(stringers_u_cs)):
-                stringers_u_cs[j] = J_Stringer(stringers_u_x_cs[j], stringers_u_z_cs[j])
+                stringers_u_cs[j] = J_Stringer(stringers_u_x_cs[j], stringers_u_z_cs[j], Le_lst_u_cs[j])
             for k in range(len(stringers_l_cs)):
-                stringers_l_cs[k] = Z_Stringer(stringers_l_x_cs[k], stringers_l_z_cs[k])
+                stringers_l_cs[k] = Z_Stringer(stringers_l_x_cs[k], stringers_l_z_cs[k], Le_lst_l_cs[j])
+        
+        for l in range(len(self.rib_lst)):
+            self.rib_lst[l] = Rib(self.rib_ylst[l])
+        
+        for m in range(n_rib-1):
+            b_u = self.stringers_u_lst[0][0].xpos-self.stringers_u_lst[0][1].xpos
+            b_l = self.stringers_l_lst[0][1].xpos-self.stringers_l_lst[0][0].xpos
+            
+            self.stiff_panel_u.append(StiffenedPanel(b_u, self.rib_ylst[m]))
+            self.stiff_panel_l.append(StiffenedPanel(b_l, self.rib_ylst[m]))
         
         self.x_bar           = self.calc_centroid_wb()[0]
         self.z_bar           = self.calc_centroid_wb()[1]
@@ -310,6 +388,7 @@ class StiffenedWing(WingPlanform):
         
         self.x_sc_cg_lst     = self.calc_sc_loc()[0]
         self.x_sc_lst        = self.calc_sc_loc()[1]
+        self.l_bt            = self.calc_sc_loc()[2]
         
         self.v_maxg          = self.calc_v_maxg()[0]
         self.ylst_maxL       = self.calc_v_maxg()[1]
@@ -337,7 +416,7 @@ class StiffenedWing(WingPlanform):
         self.xsc_at_yMAC    = interpolate.interp1d(self.ylst, self.x_sc_lst, kind = 'slinear', fill_value='extrapolate')([self.y_MAC])[0]
         
         self.Lmin_cs_lst    = list(interpolate.interp1d(self.ylst_minL, self.L_dist_ming, kind='slinear', fill_value='extrapolate')(self.ylst))
-        self.Dmin_cs_lst    = list(interpolate.interp1d(self.ylst_minL, self.L_dist_ming, kind='slinear', fill_value='extrapolate')(self.ylst))
+        self.Dmin_cs_lst    = list(interpolate.interp1d(self.ylst_minL, self.D_dist_ming, kind='slinear', fill_value='extrapolate')(self.ylst))
         self.cp_minL_int    = list(interpolate.interp1d(self.ylst_minL, self.cp_minL_lst, kind='slinear', fill_value='extrapolate')(self.ylst))
         self.cp_minL        = interpolate.interp1d(self.ylst_minL, self.cp_minL_lst, kind='slinear', fill_value='extrapolate')([self.y_MAC])[0]
         
@@ -401,26 +480,36 @@ class StiffenedWing(WingPlanform):
             self.Mz_ming_lst    = self.calc_Mz_dist()[1]
             self.Mz_maxg_root   = self.calc_Mz_dist()[2]
             self.Mz_ming_root   = self.calc_Mz_dist()[3]
-            
+        
+        self.sigma_maxg     = self.calc_norm_stresses()[0]
+        self.sigma_ming     = self.calc_norm_stresses()[1]
+        
+        self.q_maxg         = self.calc_shear_stresses()[0]
+        self.q_ming         = self.calc_shear_stresses()[1]
+        
+        self.tau_maxg       = self.calc_shear_stresses()[2]
+        self.tau_ming       = self.calc_shear_stresses()[3]
+        
+        self.panel_sigma_cr = self.stiff_panel_u[0].sigma_cr
+        self.u_st_sigma_cr  = self.stringers_u_lst[0][0].sigma_cr
+        self.l_st_sigma_cr  = self.stringers_l_lst[0][0].sigma_cr
+        self.st_u_sigma_y   = self.stringers_u_lst[0][0].material.sigma_y
+        self.st_l_sigma_y   = self.stringers_l_lst[0][0].material.sigma_y
+        
+        self.m_half_wing    = self.calc_mass()
         
         
-    
-        
-        
-        
-        
-        
-        
-        
-
 
     
     def create_cross_sections(self, n):
         theta = np.arctan((self.cr-self.ct)/2/self.b)
-        
+
         file_name = self.airfoil+'.txt'
-        
-        file = open(file_name, 'r')
+        bin_path = os.path.dirname(os.path.realpath(__file__))  # Script path
+        data_path = os.path.join(*[bin_path, file_name])
+
+
+        file = open(data_path, 'r')
         lines = file.readlines()
         file.close()
     
@@ -529,7 +618,7 @@ class StiffenedWing(WingPlanform):
             c     = self.clst[j]
             cross_section = self.cross_sections[j]
             x_min = self.spar_le_loc*c+0.25*(self.cr-c)             #DOES NOT WORK IF THERES QC SWEEP
-            x_max = self.spar_te_loc*c+0.25*(self.cr-c)            #DOES NOT WORK IF THERES QC SWEEP
+            x_max = self.spar_te_loc*c+0.25*(self.cr-c)             #DOES NOT WORK IF THERES QC SWEEP
             x_box_ucs = []
             x_box_lcs = []
             z_box_ucs = []
@@ -781,9 +870,9 @@ class StiffenedWing(WingPlanform):
                 z2A.append(z**2*A)
                 xzA.append(x*z*A)
             
-            Ixx.append(sum(x2A)+Ixx_cont_le+Ixx_cont_te)
-            Izz.append(sum(z2A)+Izz_cont_le+Izz_cont_te)
-            Ixz.append(sum(xzA)+Ixz_cont_le+Ixz_cont_te)
+            Ixx.append(sum(x2A))#+Ixx_cont_le+Ixx_cont_te)
+            Izz.append(sum(z2A))#+Izz_cont_le+Izz_cont_te)
+            Ixz.append(sum(xzA))#+Ixz_cont_le+Ixz_cont_te)
         
         return Ixx, Izz, Ixz
     
@@ -984,7 +1073,7 @@ class StiffenedWing(WingPlanform):
             x_sc_lst.append(x_sc)
         
             
-        return x_sc_cg_lst, x_sc_lst
+        return x_sc_cg_lst, x_sc_lst, l_bt
     
     def calc_y_lift_loc(self):
         
@@ -1020,7 +1109,7 @@ class StiffenedWing(WingPlanform):
             A_av = (A_ub+A_lb)/2
             A_lst.append(A_av)
             
-        v_maxg = np.sqrt((4.45*750*9.80665)/(1.225*self.S*sum(A_lst)))
+        v_maxg = np.sqrt((4.45*1.5*750*9.80665)/(1.225*self.S*sum(A_lst)))
         
         L_lst = [j * 0.5*1.225*v_maxg**2*self.S for j in cl_lst]
         D_lst = [l * 0.5*1.225*v_maxg**2*self.S for l in cd_lst]
@@ -1056,7 +1145,7 @@ class StiffenedWing(WingPlanform):
             A_av = (A_ub+A_lb)/2
             A_lst.append(A_av)
             
-        v_ming = np.sqrt((-2.45*750*9.80665)/(1.225*self.S*sum(A_lst)))
+        v_ming = np.sqrt((-2.45*1.5*750*9.80665)/(1.225*self.S*sum(A_lst)))
         
         L_lst = [j * 0.5*1.225*v_ming**2*self.S for j in cl_lst]
         D_lst = [l * 0.5*1.225*v_ming**2*self.S for l in cd_lst]
@@ -1210,11 +1299,11 @@ class StiffenedWing(WingPlanform):
                     
                     xsc_i   = self.x_sc_lst[-i]
                     
-                    T_maxg_toti = L_maxg_toti*(xcp_maxg-xsc_i)
-                    T_ming_toti = L_ming_toti*(xcp_ming-xsc_i)
+                    T_maxg_toti = -L_maxg_toti*(xcp_maxg-xsc_i)
+                    T_ming_toti = -L_ming_toti*(xcp_ming-xsc_i)
                     
-                    T_lst_maxg.append(T_maxg_toti)
-                    T_lst_ming.append(T_ming_toti)
+                    T_lst_maxg.append(-T_maxg_toti)
+                    T_lst_ming.append(-T_ming_toti)
                 
                 if len(T_lst_maxg) == 0:
                     T_lst_maxg.append(0)
@@ -1259,11 +1348,11 @@ class StiffenedWing(WingPlanform):
                     
                     xsc_i   = self.x_sc_lst[-i]
                     
-                    T_maxg_toti = L_maxg_toti*(xcp_maxg-xsc_i)+W_batt_toti*(self.x_bar[-1]-xsc_i)
-                    T_ming_toti = L_ming_toti*(xcp_ming-xsc_i)+W_batt_toti*(self.x_bar[-1]-xsc_i)
+                    T_maxg_toti = -(L_maxg_toti*(xcp_maxg-xsc_i)+W_batt_toti*(self.x_bar[-1]-xsc_i))
+                    T_ming_toti = -(L_ming_toti*(xcp_ming-xsc_i)+W_batt_toti*(self.x_bar[-1]-xsc_i))
                     
-                    T_lst_maxg.append(T_maxg_toti)
-                    T_lst_ming.append(T_ming_toti)
+                    T_lst_maxg.append(-T_maxg_toti)
+                    T_lst_ming.append(-T_ming_toti)
                 
                 if len(T_lst_maxg) == 0:
                     T_lst_maxg.append(0)
@@ -1346,8 +1435,8 @@ class StiffenedWing(WingPlanform):
                     L_toti_ming = self.integrate(ylst_interm, L_lst_interm_ming)
                     W_batt_toti = self.integrate(ylst_interm, W_batt_interm)
                     
-                    Vz_loc_maxg = -L_toti_maxg+W_batt_toti
-                    Vz_loc_ming = -L_toti_ming+W_batt_toti
+                    Vz_loc_maxg = (-L_toti_maxg+W_batt_toti)
+                    Vz_loc_ming = (-L_toti_ming+W_batt_toti)
                     
                     Vz_maxg.append(Vz_loc_maxg)
                     Vz_ming.append(Vz_loc_ming)
@@ -1400,8 +1489,8 @@ class StiffenedWing(WingPlanform):
                 Vx_ming.append(Vx_loc_ming)
                 
             if len(Vx_maxg) == 0:
-                Vx_maxg.append(-Di_maxg)
-                Vx_ming.append(-Di_ming)
+                Vx_maxg.append(Di_maxg)
+                Vx_ming.append(Di_ming)
                 
         Vx_root_maxg = -Vx_maxg[-1]
         Vx_root_ming = -Vx_ming[-1]
@@ -1437,8 +1526,8 @@ class StiffenedWing(WingPlanform):
                     L_maxg_toti = self.integrate(ylst_interm, L_lst_maxg_interm)
                     L_ming_toti = self.integrate(ylst_interm, L_lst_ming_interm)
                     
-                    Mx_maxg_i = L_maxg_toti*d_maxg
-                    Mx_ming_i = L_ming_toti*d_ming
+                    Mx_maxg_i = (L_maxg_toti*d_maxg)
+                    Mx_ming_i = (L_ming_toti*d_ming)
                     
                     Mx_maxg.append(Mx_maxg_i)
                     Mx_ming.append(Mx_ming_i)
@@ -1472,8 +1561,8 @@ class StiffenedWing(WingPlanform):
                     L_ming_toti = self.integrate(ylst_interm, L_lst_ming_interm)
                     W_batt_toti = self.integrate(ylst_interm, W_batt_interm)
                     
-                    Mx_maxg_i = L_maxg_toti*d_maxg-W_batt_toti*d_batt
-                    Mx_ming_i = L_ming_toti*d_ming-W_batt_toti*d_batt
+                    Mx_maxg_i = (L_maxg_toti*d_maxg-W_batt_toti*d_batt)
+                    Mx_ming_i = (L_ming_toti*d_ming-W_batt_toti*d_batt)
                     
                     Mx_maxg.append(Mx_maxg_i)
                     Mx_ming.append(Mx_ming_i)
@@ -1513,8 +1602,8 @@ class StiffenedWing(WingPlanform):
                 D_maxg_toti = self.integrate(ylst_interm, D_lst_maxg_interm)
                 D_ming_toti = self.integrate(ylst_interm, D_lst_ming_interm)
                 
-                Mx_maxg_i = D_maxg_toti*d_maxg
-                Mx_ming_i = D_ming_toti*d_ming
+                Mx_maxg_i = (D_maxg_toti*d_maxg)
+                Mx_ming_i = (D_ming_toti*d_ming)
                 
                 Mx_maxg.append(Mx_maxg_i)
                 Mx_ming.append(Mx_ming_i)
@@ -1572,6 +1661,7 @@ class StiffenedWing(WingPlanform):
         xA = []
         A  = []
         
+        
         for i in range(len(self.cross_sections)):
             x_bari = self.x_bar[i]
             Ai = self.Am_lst[i]
@@ -1581,36 +1671,431 @@ class StiffenedWing(WingPlanform):
         
         return sum(xA)/sum(A)
     
+    def calc_norm_stresses(self):
+        sigma_u_maxg = []
+        sigma_u_ming = []
         
-    
+        sigma_l_maxg = []
+        sigma_l_ming = []
         
-    
-    
-    
-        
-                    
+        for i in range(len(self.cross_sections)):
+            
+            sigma_u_maxg_cs = []
+            sigma_u_ming_cs = []
+            
+            sigma_l_maxg_cs = []
+            sigma_l_ming_cs = []
             
             
+            Mx_maxg = -self.Mx_maxg_lst[i]
+            Mz_maxg = -self.Mz_maxg_lst[i]
             
-    
-    
+            
+            Mx_ming = -self.Mx_ming_lst[i]
+            Mz_ming = -self.Mz_ming_lst[i]
+            
+            stringers_u_cs = self.stringers_u_lst[i]
+            stringers_l_cs = self.stringers_l_lst[i]
+            
+            if i==0:
+                Mx_maxg = self.Mx_maxg_root
+                Mz_maxg = self.Mz_maxg_root
+            
+                Mx_ming = self.Mx_ming_root
+                Mz_ming = self.Mz_ming_root
                 
                 
-                    
-               
+            
+            Ixx = self.Ixx_lst[i]
+            Izz = self.Izz_lst[i]
+            Ixz = self.Ixz_lst[i]
+            
+            
+            for j in range(len(stringers_u_cs)):
+                xc = stringers_u_cs[j].xpos
+                zc = stringers_u_cs[j].zpos
+                
+                x = xc-self.x_bar[i]
+                z = zc-self.z_bar[i]
+                
+                sigma_maxg = ((Mx_maxg*Izz-Mz_maxg*Ixz)*z+(Mz_maxg*Ixx-Mx_maxg*Ixz)*x)/(Ixx*Izz-Ixz**2)
+                sigma_ming = ((Mx_ming*Izz-Mz_ming*Ixz)*z+(Mz_ming*Ixx-Mx_ming*Ixz)*x)/(Ixx*Izz-Ixz**2)
+                
+                sigma_u_maxg_cs.append(sigma_maxg)
+                sigma_u_ming_cs.append(sigma_ming)
+                
+            for k in range(len(stringers_l_cs)):
+                xc = stringers_l_cs[k].xpos
+                zc = stringers_l_cs[k].zpos
+                
+                x = xc-self.x_bar[i]
+                z = zc-self.z_bar[i]
+                
+                sigma_maxg = ((Mx_maxg*Izz-Mz_maxg*Ixz)*z+(Mz_maxg*Ixx-Mx_maxg*Ixz)*x)/(Ixx*Izz-Ixz**2)
+                sigma_ming = ((Mx_ming*Izz-Mz_ming*Ixz)*z+(Mz_ming*Ixx-Mx_ming*Ixz)*x)/(Ixx*Izz-Ixz**2)
+                
+                sigma_l_maxg_cs.append(sigma_maxg)
+                sigma_l_ming_cs.append(sigma_ming)
+            
+            sigma_u_maxg.append(sigma_u_maxg_cs)
+            sigma_u_ming.append(sigma_u_ming_cs)
+            
+            sigma_l_maxg.append(sigma_l_maxg_cs)
+            sigma_l_ming.append(sigma_l_ming_cs)
+            
+        sigma_maxg_lst = []
+        sigma_ming_lst = []
         
-          
+        for l in range(len(self.cross_sections)):
+            lst_maxg_i = sigma_u_maxg[l]+sigma_l_maxg[l]
+            lst_ming_i = sigma_u_ming[l]+sigma_l_ming[l]
+            sigma_maxg_lst.append(lst_maxg_i)
+            sigma_ming_lst.append(lst_ming_i)
         
         
-        
+        return sigma_maxg_lst, sigma_ming_lst
     
-    
+    def calc_shear_stresses(self):        
+        qb_cs_maxg   = []
+        qb_cs_ming   = []
         
+        qs_0_maxg    = []
+        qs_0_ming    = []
+        
+        q_maxg_tot   = []
+        q_ming_tot   = []
+        
+        tau_maxg_tot = []
+        tau_ming_tot = []
+        
+        for i in range(len(self.cross_sections)):
+            l_bt_cs = self.l_bt[i]
+            spars_cs = self.spar_lst[i]
+            
+            
+            q_T_maxg = self.T_lst_maxg[i]/(2*self.Am_lst[i])
+            q_T_ming = self.T_lst_ming[i]/(2*self.Am_lst[i])
+            
+            stringers_u_cs = self.stringers_u_lst[i]
+            stringers_l_cs = self.stringers_l_lst[i]
+            
+             
+            
+            qb_maxg  = [0]
+            qb_ming  = [0]
+            
+            Vz_maxg  = self.Vz_maxg_lst[i]
+            Vx_maxg  = self.Vx_maxg_lst[i]
+            
+            Vz_ming  = self.Vz_ming_lst[i]
+            Vx_ming  = self.Vz_ming_lst[i]
+            
+            if i == 0:
+                Vz_maxg = -self.Vz_maxg_root
+                Vx_maxg = -self.Vx_maxg_root
+                
+                Vz_ming = -self.Vz_ming_root
+                Vx_ming = -self.Vx_ming_root
+                
+            Ixx = self.Ixx_lst[i]
+            Izz = self.Izz_lst[i]
+            Ixz = self.Ixz_lst[i]
+            
+            
+            for l in range(len(stringers_u_cs)-2):
+                qbi_maxg = -(Vz_maxg*Izz-Vx_maxg*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[l+1].zpos*stringers_u_cs[l+1].total_area - (Vx_maxg*Ixx-Vz_maxg*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[l+1].xpos*stringers_u_cs[l+1].total_area + qb_maxg[l]
+                qb_maxg.append(qbi_maxg)
+                
+                qbi_ming = -(Vz_ming*Izz-Vx_ming*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[l+1].zpos*stringers_u_cs[l+1].total_area - (Vx_ming*Ixx-Vz_ming*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[l+1].xpos*stringers_u_cs[l+1].total_area + qb_ming[l]
+                qb_ming.append(qbi_ming)
+                
+                
+            
+            
+            qb_sp_le_maxg = -(Vz_maxg*Izz-Vx_maxg*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[-1].zpos*stringers_u_cs[-1].total_area - (Vx_maxg*Ixx-Vz_maxg*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[-1].xpos*stringers_u_cs[-1].total_area + qb_maxg[-1]
+            qb_maxg.append(qb_sp_le_maxg)
+            
+            qb_sp_le_ming = -(Vz_ming*Izz-Vx_ming*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[-1].zpos*stringers_u_cs[-1].total_area - (Vx_ming*Ixx-Vz_ming*Ixz)/(Ixx*Izz-Ixz**2)*stringers_u_cs[-1].xpos*stringers_u_cs[-1].total_area + qb_ming[-1]
+            qb_ming.append(qb_sp_le_ming)
+            
+            
+            for m in range(len(stringers_l_cs)-1):
+                qbi_maxg = -(Vz_maxg*Izz-Vx_maxg*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[m+1].zpos*stringers_l_cs[m+1].total_area - (Vx_maxg*Ixx-Vz_maxg*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[m+1].xpos*stringers_l_cs[m+1].total_area + qb_maxg[l+m+2]
+                qb_maxg.append(qbi_maxg)
+                
+                qbi_ming = -(Vz_ming*Izz-Vx_ming*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[m+1].zpos*stringers_l_cs[m+1].total_area - (Vx_ming*Ixx-Vz_ming*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[m+1].xpos*stringers_l_cs[m+1].total_area + qb_ming[l+m+2]
+                qb_ming.append(qbi_ming)
+            
+            qb_sp_te_maxg = -(Vz_maxg*Izz-Vx_maxg*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[-1].zpos*stringers_l_cs[-1].total_area - (Vx_maxg*Ixx-Vz_maxg*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[-1].xpos*stringers_l_cs[-1].total_area + qb_maxg[-1]
+            qb_maxg.append(qb_sp_te_maxg)
+            
+            qb_sp_te_ming = -(Vz_ming*Izz-Vx_ming*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[-1].zpos*stringers_l_cs[-1].total_area - (Vx_ming*Ixx-Vz_ming*Ixz)/(Ixx*Izz-Ixz**2)*stringers_l_cs[-1].xpos*stringers_l_cs[-1].total_area + qb_ming[-1]
+            qb_ming.append(qb_sp_te_ming)
+            
+            qb_cs_maxg.append(qb_maxg)
+            qb_cs_ming.append(qb_ming)
+            
+#            F = []
+#            moment_cs = []
+            
+#            for n in range(len(qb)):
+#                q  = qb[n]
+#                l  = l_bt_cs[n]
+#                Fn = q*l
+#                F.append(Fn)
+#                dn = d_cs[n]
+#                moment = Fn*dn
+#                moment_cs.append(moment)
+#                
+#            moment_all.append(moment_cs)
+                
+            qbGt_cs_maxg = []
+            lGt_cs_maxg  = []
+            
+            qbGt_cs_ming = []
+            lGt_cs_ming  = []
+            
+            for o in range(len(qb_maxg[:self.n_string_u-1])):
+                qbo_maxg = qb_maxg[o]
+                G_maxg   = self.skin.material.G
+                t_maxg   = self.skin.t
+                l_s_maxg = l_bt_cs[o]
+                
+                qbGt_cs_maxg.append((qbo_maxg/(G_maxg*t_maxg))*l_s_maxg)
+                lGt_cs_maxg.append((1/(G_maxg*t_maxg))*l_s_maxg)
+                
+                
+                
+                qbo_ming = qb_ming[o]
+                G_ming   = self.skin.material.G
+                t_ming   = self.skin.t
+                l_s_ming = l_bt_cs[o]
+                
+                qbGt_cs_ming.append((qbo_ming/(G_ming*t_ming))*l_s_ming)
+                lGt_cs_ming.append((1/(G_ming*t_ming))*l_s_ming)
+            
+            
+            
+            qb_le_maxg = qb_maxg[self.n_string_u-1]
+            G_le_maxg  = spars_cs[0].material.G
+            t_le_maxg  = spars_cs[0].t
+            l_le_maxg  = l_bt_cs[self.n_string_u-1]
+            
+            qbGt_cs_maxg.append((qb_le_maxg/(G_le_maxg*t_le_maxg))*l_le_maxg)
+            lGt_cs_maxg.append((1/(G_le_maxg*t_le_maxg))*l_le_maxg)
+            
+            
+            
+            qb_le_ming = qb_ming[self.n_string_u-1]
+            G_le_ming  = spars_cs[0].material.G
+            t_le_ming  = spars_cs[0].t
+            l_le_ming  = l_bt_cs[self.n_string_u-1]
+            
+            qbGt_cs_ming.append((qb_le_ming/(G_le_ming*t_le_ming))*l_le_ming)
+            lGt_cs_ming.append((1/(G_le_ming*t_le_ming))*l_le_ming)
+            
+            
+            
+            for p in range(len(qb_maxg[self.n_string_u:-1])):
+                qbp_maxg = qb_maxg[p]
+                G_maxg   = self.skin.material.G
+                t_maxg   = self.skin.t
+                l_s_maxg = l_bt_cs[p]
+                
+                qbGt_cs_maxg.append((qbp_maxg/(G_maxg*t_maxg))*l_s_maxg)
+                lGt_cs_maxg.append((1/(G_maxg*t_maxg))*l_s_maxg)
+                
+                
+                
+                qbp_maxg = qb_maxg[p]
+                G_maxg   = self.skin.material.G
+                t_maxg   = self.skin.t
+                l_s_maxg = l_bt_cs[p]
+                
+                qbGt_cs_maxg.append((qbp_maxg/(G_maxg*t_maxg))*l_s_maxg)
+                lGt_cs_maxg.append((1/(G_maxg*t_maxg))*l_s_maxg)
+                
+                
+                
+            qb_te_maxg = qb_maxg[-1]
+            G_te_maxg  = spars_cs[1].material.G
+            t_te_maxg  = spars_cs[1].t
+            l_te_maxg  = l_bt_cs[-1]
+            
+            qbGt_cs_maxg.append((qb_te_maxg/(G_te_maxg*t_te_maxg))*l_te_maxg)
+            lGt_cs_maxg.append((1/(G_te_maxg*t_te_maxg))*l_te_maxg)
+            
+            
+            
+            qb_te_ming = qb_ming[-1]
+            G_te_ming  = spars_cs[1].material.G
+            t_te_ming  = spars_cs[1].t
+            l_te_ming  = l_bt_cs[-1]
+            
+            qbGt_cs_ming.append((qb_te_ming/(G_te_ming*t_te_ming))*l_te_ming)
+            lGt_cs_ming.append((1/(G_te_ming*t_te_ming))*l_te_ming)
+            
+            
+            
+            
+            qs_0_cs_maxg = -(sum(qbGt_cs_maxg)/sum(lGt_cs_maxg))
+            qs_0_maxg.append(qs_0_cs_maxg)
+            
+            qs_0_cs_ming = -(sum(qbGt_cs_ming)/sum(lGt_cs_ming))
+            qs_0_ming.append(qs_0_cs_ming)
+            
+            q_maxg = [q+qs_0_cs_maxg+q_T_maxg for q in qb_maxg]
+            q_ming = [r+qs_0_cs_ming+q_T_ming for r in qb_ming]
+            
+            q_maxg_tot.append(q_maxg)
+            q_ming_tot.append(q_ming)
+            
+            tau_maxg = [s/self.skin.t for s in q_maxg]
+            tau_ming = [t/self.skin.t for t in q_ming]
+            
+            tau_maxg_tot.append(tau_maxg)
+            tau_ming_tot.append(tau_ming)
+            
+            
+        return q_maxg_tot, q_ming_tot, tau_maxg_tot, tau_ming_tot
+    
+    def calc_mass(self):
+        
+        m_stringer = (self.Le_lst_u[0][0]*len(self.stiff_panel_u))*self.stringers_u_lst[0][0].mass_per_m
+        m_stringers = m_stringer*(self.n_string_u+self.n_string_l)
+        m_ribs = self.calc_m_rib()*self.n_rib
+        m_spar_le = (self.spar_lst[0][0].h*self.spar_lst[0][0].t+self.spar_lst[-1][0].h*self.spar_lst[-1][0].t)/2*self.ylst[-1]*self.spar_lst[0][0].material.rho
+        m_spar_te = (self.spar_lst[0][1].h*self.spar_lst[0][1].t+self.spar_lst[-1][1].h*self.spar_lst[-1][1].t)/2*self.ylst[-1]*self.spar_lst[0][1].material.rho
+        m_skin_u  = (sum(self.l_bt[0][:self.n_string_u-1])+sum(self.l_bt[-1][:self.n_string_u-1]))/2*self.skin.t*self.ylst[-1]*self.skin.material.rho
+        m_skin_l  = (sum(self.l_bt[0][self.n_string_u+1:-1])+sum(self.l_bt[-1][self.n_string_u+1:-1]))/2*self.skin.t*self.ylst[-1]*self.skin.material.rho
+        
+        return (m_stringers+m_ribs+m_spar_le+m_spar_te+m_skin_u+m_skin_l)/2
+        
+    def calc_m_rib(self):
+        return (self.cr*self.rib_lst[0].t*self.spar_lst[0][0].h+self.ct*self.rib_lst[0].t*self.spar_lst[0][0].h)/2*self.rib_lst[0].material.rho
+    
+            
+            
+            
+                
+              
+                
+            
+
+            
+            
+     
         
 
 
-aluminium=MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, G=28E9, name="AA2024", alpha=0.8, n=0.6)
-z_stiff = Z_Stringer(1, aluminium)
-j_stiff = J_Stringer(1, aluminium)
-skin    = Skin()
-wing = StiffenedWing(100, 50, 50, 0.25, 0.75, Spar,skin)
+#aluminium=MatProps(sigma_y=450000000, E=72400000000, poisson=0.33, rho=2.87, G=28E9, name="AA2024", alpha=0.8, n=0.6)
+#skin    = Skin()
+#wing = StiffenedWing(5, 20, 20, 0.25, 0.75, Spar,skin, 3)
+
+def size_wing(v):
+    skin = Skin()
+
+    n = v.n_discretizations
+    spar_le_loc = v.spar_le_locs
+    spar_te_loc = v.spar_te_locs
+
+    n_u   = v.w_n_stiff_u
+    n_l   = v.w_n_stiff_l
+    n_rib = v.w_n_ribs
+    b = v.b
+    S = v.S
+    qc_sweep = 0
+    taper = v.taper
+    airfoil = 'naca4415'
+    cr = v.c_r
+    ct = v.c_t
+    y_MAC = v.YMAC
+    A = v.A
+    
+    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib, b=b, S=S, qc_sweep=qc_sweep,
+                       taper=taper, airfoil=airfoil, cr=cr, ct=ct, y_MAC=y_MAC, A=A)
+    sizing = True
+    
+    it = 0
+    
+    while sizing:
+        n_u_next   = n_u+1
+        n_l_next   = n_l+1
+        n_rib_next = n_rib+1
+        it +=1
+
+        if v.printing:
+            print(it/50*100, '%')
+        
+        for i in range(len(wing.sigma_maxg)):
+            if it >=50:
+                sizing = False
+                
+            
+            for j in range(len(wing.sigma_maxg[i])):
+                
+                if abs(wing.sigma_ming[i][j]) >= wing.panel_sigma_cr or abs(wing.sigma_maxg[i][j]) >= abs(wing.u_st_sigma_cr) or abs(wing.sigma_ming[i][j]) >= abs(wing.u_st_sigma_cr):
+                    n_rib += 1
+                    n_u+=1
+                    n_l+=1
+                
+                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib, b=b, S=S, qc_sweep=qc_sweep,
+                       taper=taper, airfoil=airfoil, cr=cr, ct=ct, y_MAC=y_MAC, A=A)
+                
+                if abs(wing.sigma_maxg[i][j]) >= abs(wing.panel_sigma_cr) or abs(wing.sigma_ming[i][j]) >= abs(wing.panel_sigma_cr):
+                    n_rib += 1
+                    
+                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib, b=b, S=S, qc_sweep=qc_sweep,
+                       taper=taper, airfoil=airfoil, cr=cr, ct=ct, y_MAC=y_MAC, A=A)
+                    
+                    break
+
+                    
+                if abs(wing.sigma_maxg[i][j]) >= abs(wing.st_u_sigma_y) or abs(wing.sigma_ming[i][j]) >= abs(wing.st_u_sigma_y):
+                    n_u +=1
+                    n_l+=1
+                    
+                    
+                    wing=StiffenedWing(n, n_u, n_l, spar_le_loc, spar_te_loc, Spar, skin, n_rib, b=b, S=S, qc_sweep=qc_sweep,
+                       taper=taper, airfoil=airfoil, cr=cr, ct=ct, y_MAC=y_MAC, A=A)
+                    
+                    break
+                
+                if i == len(wing.sigma_maxg)-1 and j == len(wing.sigma_maxg[-1])-1 and n_u != n_u_next and n_l != n_l_next and n_rib != n_rib_next:
+                    print('The wing needs ', n_u, ' upper stringers, ', n_l, ' lower stringers and ', n_rib, ' ribs.')
+                    sizing = False
+                    
+                    break
+                
+            
+            break
+
+    v.w_n_stiff_u = n_u
+    v.w_n_stiff_l = n_l
+    v.w_n_ribs = n_rib
+    v.W_wing = 9.81 * 2 * wing.m_half_wing
+
+    return v
+
+
+
+#self.panel_sigma_cr = self.stiff_panel_u[0].sigma_cr
+#self.u_st_sigma_cr  = self.stringers_u_lst[0][0].sigma_cr
+#self.l_st_sigma_cr  = self.stringers_l_lst[0][0].sigma_cr
+#self.st_u_sigma_y   = self.stringers_u_lst[0][0].material.sigma_y
+#self.st_l_sigma_y   = self.stringers_l_lst[0][0].material.sigma_y
+
+
+
+
+
+
+
+#plt.figure(1)
+#plt.title('Vx Variation Along b/2')
+#plt.plot(wing.ylst, wing.Vx_maxg_lst)
+#plt.xlabel('y [m]')
+#plt.ylabel('Vx [N]')
+#
+#plt.show()
+

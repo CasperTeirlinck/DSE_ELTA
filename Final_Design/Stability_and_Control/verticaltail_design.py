@@ -29,8 +29,8 @@ def verticaltail_sizing(variables):
     bf2 = variables.bf2                 # [m]       Fuselage tail width
     Bp = variables.Bp                   # [-]       Number of blades per porpeller
     xcg = variables.xcg_max
-    xp1 = variables.xp1
-    xp2 = variables.xp2
+    xp1 = variables.xprop
+    xp2 = variables.xprop
     lp1 = xcg - xp1
     lp2 = xcg - xp2                     # [m]       Distance 1st propeller plane - aircraft centre of gravity
     Dp1 = variables.Dp1                 # [m2]      1st propeller disk diameter

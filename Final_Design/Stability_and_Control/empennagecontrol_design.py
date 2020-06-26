@@ -1,6 +1,7 @@
 from math import pi,cos,tan,sqrt
 from Stability_and_Control.wing_properties import sweep
 import numpy as np
+#
 
 def elevator_sizing(variables):
     g = variables.g0
@@ -17,19 +18,18 @@ def elevator_sizing(variables):
 
     xcg = variables.xcg_min         # [m]           Most forward centre of gravity
     xmg = variables.xmg             # [m]           Main gear location
-    MAC = variables.MAC
-    xacw = variables.xwing+0.25*MAC # [m]           Wing/fuselage aerodynamic centre location
-    xach = variables.xtail           # [m]           Horizontal tail aerodynamic centre location
+    MAC = variables.MAC             # [m]           Mean aerodynamic chord
+    xacw = variables.xlemac+0.25*MAC # [m]           Wing/fuselage aerodynamic centre location
+    xach = variables.xtail          # [m]           Horizontal tail aerodynamic centre location
 
     zcg = variables.zcg             # [m]           Centre of gravity height
-    zmg = variables.zmg             # [m]           Main gear height
+    zmg = 0#variables.zmg             # [m]           Main gear height
     zT = variables.zT               # [m]           Thrust vector height
     zD = variables.zD               # [m]           Drag vector height
 
     Sw = variables.S                # [m2]          Wing surface area
-    MAC = variables.MAC             # [m]           Mean aerodynamic chord
     CLTO = variables.CL_takeoff     # [-]           Take-off lift coefficient
-    CDTO = variables.CD0to + CLTO/(pi*variables.A*variables.eflaps)
+    CDTO = variables.CD0to + CLTO**2/(pi*variables.A*variables.eflaps)
                                     # [-]           Take-off drag coefficient
     Cm0af = variables.Cm0af
     Aw = variables.A
@@ -126,8 +126,8 @@ def elevator_sizing(variables):
     # Elevator-to-tail chord ratio
     if tau_e > 1:
         print("WARNING: ELEVATOR INTERPOLATION OUT OF RANGE")
-    cech = 0.2872*tau_e + 0.2424*tau_e**2 + 0.2300*tau_e**3 - 1.3548*tau_e**4 - 1.09131*tau_e**4 #float(input('CE/Ch = '))
-    
+    cech = 0.2872*tau_e + 0.2424*tau_e**2 + 0.2300*tau_e**3 + 1.3548*tau_e**4 - 1.09131*tau_e**5 #float(input('CE/Ch = '))
+
     # Elevator size
     be = bebh*bh
     ce = cech*chr
